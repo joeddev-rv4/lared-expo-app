@@ -52,13 +52,13 @@ export default function ProfileScreen() {
 
   const tabs = [
     { key: "posts", icon: "grid", label: "Posts" },
-    { key: "reels", icon: "video", label: "Reels" },
     { key: "tagged", icon: "user", label: "Tagged" },
   ];
 
   useFocusEffect(
     useCallback(() => {
       loadData();
+      setSelectedTab("posts");
     }, []),
   );
 
@@ -139,7 +139,7 @@ export default function ProfileScreen() {
                     <ThemedText
                       style={[styles.statLabel, { color: theme.textSecondary }]}
                     >
-                      Leads
+                      Clientes
                     </ThemedText>
                   </View>
                 </View>
@@ -205,8 +205,15 @@ export default function ProfileScreen() {
                 />
               </Pressable>
             ))}
-          </View>
-        </>
+          </View>          {(!profile || !profile.isLoggedIn) && (
+            <View style={styles.guestMessageContainer}>
+              <ThemedText style={styles.guestMessage}>
+                {selectedTab === "posts"
+                  ? "Inicia sesión para agregar tus proyectos en venta"
+                  : "Inicia sesión para que las personas se pongan en contacto contigo"}
+              </ThemedText>
+            </View>
+          )}        </>
       }
       stickyHeaderIndices={[0]}
       renderItem={({ item }) => (
@@ -336,6 +343,17 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     alignItems: "center",
     justifyContent: "center",
+  },
+  guestMessageContainer: {
+    alignItems: "center",
+    paddingVertical: Spacing["2xl"],
+    paddingHorizontal: Spacing.lg,
+  },
+  guestMessage: {
+    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "800",
+    color: Colors.light.textSecondary,
   },
   tabsContainer: {
     flexDirection: "row",

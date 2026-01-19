@@ -1,6 +1,6 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { View, StyleSheet, Pressable } from "react-native";
+import { View, StyleSheet, Pressable, Image } from "react-native";
 
 import ProfileScreen from "@/screens/ProfileScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
@@ -16,9 +16,11 @@ const Stack = createNativeStackNavigator<ProfileStackParamList>();
 
 const SaleTag = () => (
   <View style={styles.saleTagContainer}>
-    <View style={styles.saleTag}>
-      <ThemedText style={styles.saleTagText}>Convertirme{'\n'}en Vendedor</ThemedText>
-    </View>
+    <Image
+      source={require('../../assets/images/la_red_blanco_negro.png')}
+      style={styles.saleTagImage}
+    />
+    <ThemedText style={styles.saleTagText}>¡Hazme Aliado!</ThemedText>
   </View>
 );
 
@@ -51,7 +53,6 @@ export default function ProfileStackNavigator() {
 
 const styles = StyleSheet.create({
   saleTag: {
-    backgroundColor: Colors.light.primary,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   saleTagText: {
-    color: "#FFFFFF",
+    color: "#000000",
     fontSize: 10,
     fontWeight: "700",
     textAlign: "center",
@@ -75,8 +76,15 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
     lineHeight: 12,
   },
+  saleTagImage: {
+    width: 200,
+    height: 34,
+    resizeMode: 'contain',
+  },
   saleTagContainer: {
     position: "relative",
-    marginLeft: Spacing.md,
+    marginLeft: -40,
+    flexDirection: 'column',
+    alignItems: 'center',
   },
 });
