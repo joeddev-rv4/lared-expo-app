@@ -56,7 +56,7 @@ export interface UserProfile {
   email: string;
   avatarUrl?: string;
   isLoggedIn: boolean;
-  loginMethod?: "email" | "google" | "apple";
+  loginMethod?: "email" | "google" | "facebook";
 }
 
 export async function getUserProfile(): Promise<UserProfile | null> {

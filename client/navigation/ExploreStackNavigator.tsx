@@ -5,7 +5,6 @@ import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 
 import ExploreScreen from "@/screens/ExploreScreen";
-import { HeaderTitle } from "@/components/HeaderTitle";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing } from "@/constants/theme";
@@ -48,7 +47,7 @@ export default function ExploreStackNavigator() {
         name="Explore"
         component={ExploreScreen}
         options={{
-          headerTitle: () => <HeaderTitle title="PropertyHub" />,
+          headerTitle: "",
           headerRight: () => <HeaderRightButtons />,
         }}
       />

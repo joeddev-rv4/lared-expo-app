@@ -3,7 +3,6 @@ import { View, FlatList, StyleSheet, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { DrawerActions, useNavigation } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
 
 import { PropertyCard } from "@/components/PropertyCard";
@@ -16,7 +15,6 @@ import { getFavorites, toggleFavorite } from "@/lib/storage";
 import { Spacing } from "@/constants/theme";
 
 export default function ExploreScreen() {
-  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
@@ -52,10 +50,6 @@ export default function ExploreScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
-  const handleFilterPress = () => {
-    navigation.dispatch(DrawerActions.openDrawer());
-  };
-
   const filteredProperties = PLACEHOLDER_PROPERTIES.filter((property) => {
     const matchesSearch =
       property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -71,7 +65,6 @@ export default function ExploreScreen() {
         value={searchQuery}
         onChangeText={setSearchQuery}
         placeholder="Search destinations..."
-        onFilterPress={handleFilterPress}
       />
       <FlatList
         horizontal

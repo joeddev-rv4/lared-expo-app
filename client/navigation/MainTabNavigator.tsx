@@ -82,7 +82,7 @@ export default function MainTabNavigator() {
         name="ExploreTab"
         component={ExploreStackNavigator}
         options={{
-          title: "Explore",
+          title: "Explorar",
           tabBarIcon: ({ color, size }) => (
             <Feather name="search" size={size} color={color} />
           ),
@@ -92,7 +92,7 @@ export default function MainTabNavigator() {
         name="FavoritesTab"
         component={FavoritesStackNavigator}
         options={{
-          title: "Favorites",
+          title: "Favoritos",
           tabBarIcon: ({ color, size }) => (
             <Feather name="heart" size={size} color={color} />
           ),
@@ -121,7 +121,7 @@ export default function MainTabNavigator() {
         name="ProfileTab"
         component={ProfileStackNavigator}
         options={{
-          title: "Profile",
+          title: "Mi Perfil",
           tabBarIcon: ({ color, size }) => (
             <Feather name="user" size={size} color={color} />
           ),
@@ -131,7 +131,7 @@ export default function MainTabNavigator() {
         name="AchievementsTab"
         component={AchievementsStackNavigator}
         options={{
-          title: "Rewards",
+          title: "Mis Logros",
           tabBarIcon: ({ color, size }) => (
             <Feather name="award" size={size} color={color} />
           ),

@@ -1,9 +1,9 @@
 import React from "react";
-import { View, StyleSheet, Pressable, Image, Platform } from "react-native";
+import { View, StyleSheet, Pressable, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, FontAwesome } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -42,13 +42,13 @@ export default function LoginScreen() {
     navigation.replace("Main");
   };
 
-  const handleAppleLogin = async () => {
+  const handleFacebookLogin = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await setUserProfile({
-      name: "Apple User",
-      email: "user@icloud.com",
+      name: "Facebook User",
+      email: "user@facebook.com",
       isLoggedIn: true,
-      loginMethod: "apple",
+      loginMethod: "facebook",
     });
     navigation.replace("Main");
   };
@@ -72,9 +72,9 @@ export default function LoginScreen() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <ThemedText style={styles.appName}>PropertyHub</ThemedText>
+          <ThemedText style={styles.appName}>La Red Inmobiliaria</ThemedText>
           <ThemedText style={[styles.tagline, { color: theme.textSecondary }]}>
-            Find your perfect place to stay
+            Hecha por vendedores, para vendedores
           </ThemedText>
         </View>
 
@@ -110,41 +110,28 @@ export default function LoginScreen() {
             ]}
             testID="google-login-button"
           >
-            <View style={styles.googleIcon}>
-              <ThemedText style={{ fontSize: 18 }}>G</ThemedText>
-            </View>
+            <FontAwesome name="google" size={20} color="#DB4437" />
             <ThemedText style={[styles.socialButtonText, { color: theme.text }]}>
               Continue with Google
             </ThemedText>
           </Pressable>
 
-          {Platform.OS === "ios" ? (
-            <Pressable
-              onPress={handleAppleLogin}
-              style={({ pressed }) => [
-                styles.loginButton,
-                {
-                  backgroundColor: isDark ? "#FFFFFF" : "#000000",
-                  opacity: pressed ? 0.9 : 1,
-                },
-              ]}
-              testID="apple-login-button"
-            >
-              <Feather
-                name="smartphone"
-                size={20}
-                color={isDark ? "#000000" : "#FFFFFF"}
-              />
-              <ThemedText
-                style={[
-                  styles.loginButtonText,
-                  { color: isDark ? "#000000" : "#FFFFFF" },
-                ]}
-              >
-                Continue with Apple
-              </ThemedText>
-            </Pressable>
-          ) : null}
+          <Pressable
+            onPress={handleFacebookLogin}
+            style={({ pressed }) => [
+              styles.loginButton,
+              {
+                backgroundColor: "#1877F2",
+                opacity: pressed ? 0.9 : 1,
+              },
+            ]}
+            testID="facebook-login-button"
+          >
+            <FontAwesome name="facebook" size={20} color="#FFFFFF" />
+            <ThemedText style={styles.loginButtonText}>
+              Continue with Facebook
+            </ThemedText>
+          </Pressable>
         </View>
 
         <Pressable
@@ -224,12 +211,6 @@ const styles = StyleSheet.create({
   socialButtonText: {
     fontSize: 16,
     fontWeight: "600",
-  },
-  googleIcon: {
-    width: 20,
-    height: 20,
-    alignItems: "center",
-    justifyContent: "center",
   },
   skipButton: {
     alignItems: "center",
