@@ -78,8 +78,8 @@ export default function DrawerContent({ navigation }: DrawerContentComponentProp
           style={styles.logo}
           resizeMode="contain"
         />
-        <ThemedText style={styles.appName}>PropertyHub</ThemedText>
-        <ThemedText style={styles.tagline}>Find your perfect stay</ThemedText>
+        <ThemedText style={styles.appName}>La Red Inmobiliaria</ThemedText>
+        <ThemedText style={styles.tagline}>Hecho por vendedores, para vendedores</ThemedText>
       </View>
 
       <ScrollView

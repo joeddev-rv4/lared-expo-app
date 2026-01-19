@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Pressable, Image, Dimensions } from "react-native";
+import { View, StyleSheet, Pressable, Image, Dimensions, Share } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -18,6 +18,7 @@ interface PropertyCardProps {
   isFavorite: boolean;
   onPress: () => void;
   onFavoritePress: () => void;
+  onSharePress?: () => void;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -31,10 +32,12 @@ export function PropertyCard({
   isFavorite,
   onPress,
   onFavoritePress,
+  onSharePress,
 }: PropertyCardProps) {
   const { theme, isDark } = useTheme();
   const scale = useSharedValue(1);
   const heartScale = useSharedValue(1);
+  const shareScale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -42,6 +45,10 @@ export function PropertyCard({
 
   const heartAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: heartScale.value }],
+  }));
+
+  const shareAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: shareScale.value }],
   }));
 
   const handlePressIn = () => {
@@ -59,6 +66,28 @@ export function PropertyCard({
     }, 100);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onFavoritePress();
+  };
+
+  const handleSharePress = async () => {
+    shareScale.value = withSpring(1.3, { damping: 10 });
+    setTimeout(() => {
+      shareScale.value = withSpring(1, { damping: 10 });
+    }, 100);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    try {
+      const priceFormatted = `Q${property.price.toLocaleString()}`;
+      const message = `🏠 ${property.title}\n\n📍 ${property.location}\n💰 ${priceFormatted}\n📐 ${property.area} m²\n\n${property.description}\n\n🔗 La Red Inmobiliaria - Hecha por vendedores, para vendedores`;
+
+      await Share.share({
+        message,
+        title: property.title,
+      });
+    } catch (error) {
+      console.error("Error sharing:", error);
+    }
+
+    onSharePress?.();
   };
 
   return (
@@ -82,29 +111,56 @@ export function PropertyCard({
           style={styles.image}
           resizeMode="cover"
         />
-        <Animated.View style={[styles.favoriteButton, heartAnimatedStyle]}>
-          <Pressable
-            onPress={handleFavoritePress}
-            hitSlop={12}
-            testID={`favorite-button-${property.id}`}
-          >
-            <Feather
-              name={isFavorite ? "heart" : "heart"}
-              size={24}
-              color={isFavorite ? Colors.light.primary : "#FFFFFF"}
-              style={{
-                textShadowColor: "rgba(0,0,0,0.5)",
-                textShadowOffset: { width: 0, height: 1 },
-                textShadowRadius: 3,
-              }}
-            />
-            {isFavorite ? (
-              <View style={styles.heartFill}>
-                <Feather name="heart" size={24} color={Colors.light.primary} />
-              </View>
-            ) : null}
-          </Pressable>
-        </Animated.View>
+        <View style={styles.actionButtons}>
+          <Animated.View style={shareAnimatedStyle}>
+            <Pressable
+              onPress={handleSharePress}
+              hitSlop={12}
+              style={styles.actionButton}
+              testID={`share-button-${property.id}`}
+            >
+              <Feather
+                name="share"
+                size={22}
+                color="#FFFFFF"
+                style={{
+                  textShadowColor: "rgba(0,0,0,0.5)",
+                  textShadowOffset: { width: 0, height: 1 },
+                  textShadowRadius: 3,
+                }}
+              />
+            </Pressable>
+          </Animated.View>
+          <Animated.View style={heartAnimatedStyle}>
+            <Pressable
+              onPress={handleFavoritePress}
+              hitSlop={12}
+              style={styles.actionButton}
+              testID={`favorite-button-${property.id}`}
+            >
+              <Feather
+                name={isFavorite ? "heart" : "heart"}
+                size={22}
+                color={isFavorite ? Colors.light.primary : "#FFFFFF"}
+                style={{
+                  textShadowColor: "rgba(0,0,0,0.5)",
+                  textShadowOffset: { width: 0, height: 1 },
+                  textShadowRadius: 3,
+                }}
+              />
+              {isFavorite ? (
+                <View style={styles.heartFill}>
+                  <Feather name="heart" size={22} color={Colors.light.primary} />
+                </View>
+              ) : null}
+            </Pressable>
+          </Animated.View>
+        </View>
+        <View style={styles.commissionBadge}>
+          <ThemedText style={styles.commissionText}>
+            💰 Gana Q750.00
+          </ThemedText>
+        </View>
         <View style={styles.propertyTypeBadge}>
           <ThemedText style={styles.propertyTypeText}>
             {property.propertyType}
@@ -114,16 +170,9 @@ export function PropertyCard({
 
       <View style={styles.content}>
         <View style={styles.headerRow}>
-          <ThemedText style={styles.title} numberOfLines={1}>
+          <ThemedText style={styles.title} numberOfLines={2}>
             {property.title}
           </ThemedText>
-          <View style={styles.ratingContainer}>
-            <Feather name="star" size={14} color={Colors.light.primary} />
-            <ThemedText style={styles.rating}>{property.rating}</ThemedText>
-            <ThemedText style={[styles.reviewCount, { color: theme.textSecondary }]}>
-              ({property.reviewCount})
-            </ThemedText>
-          </View>
         </View>
 
         <View style={styles.locationRow}>
@@ -146,24 +195,31 @@ export function PropertyCard({
         <View style={styles.footer}>
           <View style={styles.amenities}>
             <View style={styles.amenityItem}>
-              <Feather name="users" size={14} color={theme.textSecondary} />
+              <Feather name="maximize" size={14} color={theme.textSecondary} />
               <ThemedText style={[styles.amenityText, { color: theme.textSecondary }]}>
-                {property.guests}
+                {property.area} m²
               </ThemedText>
             </View>
-            <View style={styles.amenityItem}>
-              <Feather name="home" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.amenityText, { color: theme.textSecondary }]}>
-                {property.bedrooms} bed
-              </ThemedText>
-            </View>
+            {property.bedrooms > 0 && (
+              <View style={styles.amenityItem}>
+                <Feather name="home" size={14} color={theme.textSecondary} />
+                <ThemedText style={[styles.amenityText, { color: theme.textSecondary }]}>
+                  {property.bedrooms} hab.
+                </ThemedText>
+              </View>
+            )}
+            {property.bathrooms > 0 && (
+              <View style={styles.amenityItem}>
+                <Feather name="droplet" size={14} color={theme.textSecondary} />
+                <ThemedText style={[styles.amenityText, { color: theme.textSecondary }]}>
+                  {property.bathrooms} baños
+                </ThemedText>
+              </View>
+            )}
           </View>
           <View style={styles.priceContainer}>
-            <ThemedText style={[styles.price, { color: theme.text }]}>
-              ${property.price}
-            </ThemedText>
-            <ThemedText style={[styles.priceUnit, { color: theme.textSecondary }]}>
-              /{property.priceUnit}
+            <ThemedText style={[styles.price, { color: Colors.light.primary }]}>
+              Q{property.price.toLocaleString()}
             </ThemedText>
           </View>
         </View>
@@ -185,20 +241,39 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
     height: IMAGE_HEIGHT,
   },
-  favoriteButton: {
+  actionButtons: {
     position: "absolute",
     top: Spacing.md,
     right: Spacing.md,
+    flexDirection: "row",
+    gap: Spacing.sm,
+  },
+  actionButton: {
+    padding: Spacing.xs,
   },
   heartFill: {
     position: "absolute",
     top: 0,
     left: 0,
   },
-  propertyTypeBadge: {
+  commissionBadge: {
     position: "absolute",
     bottom: Spacing.md,
     left: Spacing.md,
+    backgroundColor: "#DC2626",
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.xs,
+  },
+  commissionText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  propertyTypeBadge: {
+    position: "absolute",
+    bottom: Spacing.md,
+    right: Spacing.md,
     backgroundColor: "rgba(255,255,255,0.95)",
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,
@@ -213,29 +288,11 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
   },
   headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     marginBottom: Spacing.xs,
   },
   title: {
     fontSize: 17,
     fontWeight: "600",
-    flex: 1,
-    marginRight: Spacing.sm,
-  },
-  ratingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-  },
-  rating: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 2,
-  },
-  reviewCount: {
-    fontSize: 13,
   },
   locationRow: {
     flexDirection: "row",
@@ -276,8 +333,5 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 18,
     fontWeight: "700",
-  },
-  priceUnit: {
-    fontSize: 14,
   },
 });

@@ -5,7 +5,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import DrawerNavigator from "@/navigation/DrawerNavigator";
 import OnboardingScreen from "@/screens/OnboardingScreen";
 import LoginScreen from "@/screens/LoginScreen";
-import AddListingScreen from "@/screens/AddListingScreen";
+import CaptureClientScreen from "@/screens/CaptureClientScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useTheme } from "@/hooks/useTheme";
 import { hasCompletedOnboarding, getUserProfile } from "@/lib/storage";
@@ -86,10 +86,10 @@ export default function RootStackNavigator() {
       />
       <Stack.Screen
         name="AddListingModal"
-        component={AddListingScreen}
+        component={CaptureClientScreen}
         options={{
           presentation: "modal",
-          headerTitle: "Add Listing",
+          headerShown: false,
         }}
       />
     </Stack.Navigator>

@@ -1,11 +1,12 @@
 import React from "react";
-import { StyleSheet, Pressable } from "react-native";
+import { StyleSheet, Pressable, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
+import { Feather } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
@@ -15,11 +16,13 @@ interface FilterChipProps {
   label: string;
   isSelected: boolean;
   onPress: () => void;
+  icon?: keyof typeof Feather.glyphMap;
+  emoji?: string;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export function FilterChip({ label, isSelected, onPress }: FilterChipProps) {
+export function FilterChip({ label, isSelected, onPress, icon, emoji }: FilterChipProps) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
 
@@ -54,14 +57,27 @@ export function FilterChip({ label, isSelected, onPress }: FilterChipProps) {
         animatedStyle,
       ]}
     >
-      <ThemedText
-        style={[
-          styles.label,
-          { color: isSelected ? "#FFFFFF" : theme.text },
-        ]}
-      >
-        {label}
-      </ThemedText>
+      <View style={styles.chipContent}>
+        {emoji && (
+          <ThemedText style={styles.emoji}>{emoji}</ThemedText>
+        )}
+        {icon && (
+          <Feather
+            name={icon}
+            size={16}
+            color={isSelected ? "#FFFFFF" : theme.text}
+            style={styles.icon}
+          />
+        )}
+        <ThemedText
+          style={[
+            styles.label,
+            { color: isSelected ? "#FFFFFF" : theme.text },
+          ]}
+        >
+          {label}
+        </ThemedText>
+      </View>
     </AnimatedPressable>
   );
 }
@@ -73,6 +89,17 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
     borderWidth: 1,
     marginRight: Spacing.sm,
+  },
+  chipContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  emoji: {
+    fontSize: 16,
+    marginRight: Spacing.xs,
+  },
+  icon: {
+    marginRight: Spacing.xs,
   },
   label: {
     fontSize: 14,

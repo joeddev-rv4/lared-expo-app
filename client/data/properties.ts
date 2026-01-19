@@ -1,3 +1,5 @@
+import { APIPropiedad } from "@/lib/api";
+
 export interface Property {
   id: string;
   title: string;
@@ -10,159 +12,42 @@ export interface Property {
   imageUrl: string;
   bedrooms: number;
   bathrooms: number;
-  guests: number;
+  area: number;
   amenities: string[];
   isFavorite: boolean;
-  hostName: string;
+  projectName: string;
   propertyType: string;
+  estado: string;
 }
 
-export const PLACEHOLDER_PROPERTIES: Property[] = [
-  {
-    id: "1",
-    title: "Luxury Beachfront Villa",
-    location: "Malibu, California",
-    price: 450,
-    priceUnit: "night",
-    rating: 4.9,
-    reviewCount: 128,
-    description: "Stunning oceanfront property with panoramic views, private beach access, and modern amenities.",
-    imageUrl: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800",
-    bedrooms: 4,
-    bathrooms: 3,
-    guests: 8,
-    amenities: ["Pool", "Beach Access", "WiFi", "Kitchen"],
+export function mapAPIPropertyToProperty(apiProp: APIPropiedad): Property {
+  const firstImage = apiProp.imagenes.find((img) => img.formato === "imagen");
+  const amenities = apiProp.caracteristicas
+    ? apiProp.caracteristicas.split(",").map((a) => a.trim())
+    : [];
+
+  return {
+    id: apiProp.id.toString(),
+    title: apiProp.titulo || `${apiProp.tipo} ${apiProp.propiedad}`,
+    location: apiProp.proyecto?.direccion || apiProp.ubicacion || "Sin ubicación",
+    price: apiProp.precio,
+    priceUnit: "total",
+    rating: 0,
+    reviewCount: 0,
+    description: apiProp.descripcion || apiProp.descripcion_corta || "",
+    imageUrl: firstImage?.url || "https://via.placeholder.com/400x300?text=Sin+Imagen",
+    bedrooms: apiProp.habitaciones || 0,
+    bathrooms: apiProp.baños || 0,
+    area: apiProp.area || 0,
+    amenities,
     isFavorite: false,
-    hostName: "Sarah",
-    propertyType: "Villa",
-  },
-  {
-    id: "2",
-    title: "Modern Downtown Loft",
-    location: "New York City, NY",
-    price: 275,
-    priceUnit: "night",
-    rating: 4.8,
-    reviewCount: 256,
-    description: "Stylish loft in the heart of Manhattan with skyline views and walking distance to top attractions.",
-    imageUrl: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800",
-    bedrooms: 2,
-    bathrooms: 2,
-    guests: 4,
-    amenities: ["City View", "Gym", "WiFi", "Doorman"],
-    isFavorite: true,
-    hostName: "Michael",
-    propertyType: "Apartment",
-  },
-  {
-    id: "3",
-    title: "Cozy Mountain Cabin",
-    location: "Aspen, Colorado",
-    price: 320,
-    priceUnit: "night",
-    rating: 4.95,
-    reviewCount: 89,
-    description: "Charming cabin nestled in the mountains with a hot tub, fireplace, and ski-in/ski-out access.",
-    imageUrl: "https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800",
-    bedrooms: 3,
-    bathrooms: 2,
-    guests: 6,
-    amenities: ["Hot Tub", "Fireplace", "Ski Access", "Mountain View"],
-    isFavorite: false,
-    hostName: "Emily",
-    propertyType: "Cabin",
-  },
-  {
-    id: "4",
-    title: "Tropical Paradise Bungalow",
-    location: "Maui, Hawaii",
-    price: 380,
-    priceUnit: "night",
-    rating: 4.85,
-    reviewCount: 167,
-    description: "Private bungalow surrounded by lush gardens with ocean views and easy access to pristine beaches.",
-    imageUrl: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800",
-    bedrooms: 2,
-    bathrooms: 1,
-    guests: 4,
-    amenities: ["Garden", "Beach", "WiFi", "Outdoor Shower"],
-    isFavorite: false,
-    hostName: "David",
-    propertyType: "Bungalow",
-  },
-  {
-    id: "5",
-    title: "Historic Townhouse",
-    location: "Boston, Massachusetts",
-    price: 195,
-    priceUnit: "night",
-    rating: 4.7,
-    reviewCount: 203,
-    description: "Beautifully restored Victorian townhouse in historic Beacon Hill with modern comforts.",
-    imageUrl: "https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?w=800",
-    bedrooms: 3,
-    bathrooms: 2,
-    guests: 5,
-    amenities: ["Historic", "Garden", "WiFi", "Washer"],
-    isFavorite: true,
-    hostName: "Jennifer",
-    propertyType: "Townhouse",
-  },
-  {
-    id: "6",
-    title: "Lakefront Retreat",
-    location: "Lake Tahoe, California",
-    price: 425,
-    priceUnit: "night",
-    rating: 4.92,
-    reviewCount: 74,
-    description: "Spacious lakefront home with private dock, stunning views, and access to hiking and water sports.",
-    imageUrl: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800",
-    bedrooms: 5,
-    bathrooms: 4,
-    guests: 10,
-    amenities: ["Lake Access", "Dock", "Kayaks", "BBQ"],
-    isFavorite: false,
-    hostName: "Robert",
-    propertyType: "House",
-  },
-  {
-    id: "7",
-    title: "Chic Urban Studio",
-    location: "San Francisco, CA",
-    price: 165,
-    priceUnit: "night",
-    rating: 4.65,
-    reviewCount: 312,
-    description: "Modern studio apartment in trendy SOMA neighborhood with tech amenities and great transit access.",
-    imageUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800",
-    bedrooms: 1,
-    bathrooms: 1,
-    guests: 2,
-    amenities: ["WiFi", "Smart Home", "Gym", "Rooftop"],
-    isFavorite: false,
-    hostName: "Lisa",
-    propertyType: "Studio",
-  },
-  {
-    id: "8",
-    title: "Desert Oasis Estate",
-    location: "Scottsdale, Arizona",
-    price: 550,
-    priceUnit: "night",
-    rating: 4.88,
-    reviewCount: 56,
-    description: "Luxurious desert retreat with infinity pool, spa, and breathtaking sunset views over the mountains.",
-    imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800",
-    bedrooms: 6,
-    bathrooms: 5,
-    guests: 12,
-    amenities: ["Pool", "Spa", "Desert View", "Chef Kitchen"],
-    isFavorite: false,
-    hostName: "Thomas",
-    propertyType: "Estate",
-  },
-];
+    projectName: apiProp.proyecto?.nombre_proyecto || "",
+    propertyType: apiProp.tipo || "Propiedad",
+    estado: apiProp.estado || "disponible",
+  };
+}
+
+export const PLACEHOLDER_PROPERTIES: Property[] = [];
 
 export const PROPERTY_TYPES = [
   "All",
