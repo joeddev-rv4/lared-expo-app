@@ -55,6 +55,7 @@ export interface UserProfile {
   name: string;
   email: string;
   avatarUrl?: string;
+  bio?: string;
   isLoggedIn: boolean;
   loginMethod?: "email" | "google" | "facebook";
 }
@@ -94,6 +95,7 @@ export interface UserListing {
   bedrooms: number;
   bathrooms: number;
   guests: number;
+  imageUrl: string;
   createdAt: string;
 }
 

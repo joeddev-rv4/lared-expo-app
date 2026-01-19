@@ -5,6 +5,9 @@ import {
   Pressable,
   Image,
   ScrollView,
+  FlatList,
+  Dimensions,
+  Share,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -17,7 +20,13 @@ import * as Haptics from "expo-haptics";
 import { ThemedText } from "@/components/ThemedText";
 import { Card } from "@/components/Card";
 import { useTheme } from "@/hooks/useTheme";
-import { getUserProfile, clearUserProfile, UserProfile, getUserListings, UserListing } from "@/lib/storage";
+import {
+  getUserProfile,
+  clearUserProfile,
+  UserProfile,
+  getUserListings,
+  UserListing,
+} from "@/lib/storage";
 import { Spacing, BorderRadius, Colors, Shadows } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
@@ -39,11 +48,18 @@ export default function ProfileScreen() {
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [listings, setListings] = useState<UserListing[]>([]);
+  const [selectedTab, setSelectedTab] = useState("posts");
+
+  const tabs = [
+    { key: "posts", icon: "grid", label: "Posts" },
+    { key: "reels", icon: "video", label: "Reels" },
+    { key: "tagged", icon: "user", label: "Tagged" },
+  ];
 
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [])
+    }, []),
   );
 
   const loadData = async () => {
@@ -62,158 +78,151 @@ export default function ProfileScreen() {
     });
   };
 
-  const menuItems: MenuItem[] = [
-    {
-      icon: "home",
-      label: "My Listings",
-      value: `${listings.length} active`,
-      onPress: () => {},
-    },
-    {
-      icon: "credit-card",
-      label: "Payment Methods",
-      onPress: () => {},
-    },
-    {
-      icon: "bell",
-      label: "Notifications",
-      onPress: () => {},
-    },
-    {
-      icon: "shield",
-      label: "Privacy & Security",
-      onPress: () => {},
-    },
-    {
-      icon: "help-circle",
-      label: "Help Center",
-      onPress: () => {},
-    },
-  ];
-
   return (
-    <ScrollView
+    <FlatList
       style={[styles.container, { backgroundColor: theme.backgroundRoot }]}
-      contentContainerStyle={[
-        styles.content,
-        {
-          paddingTop: headerHeight + Spacing.xl,
-          paddingBottom: tabBarHeight + Spacing.xl,
-        },
-      ]}
-    >
-      <View style={styles.profileHeader}>
-        <View
-          style={[
-            styles.avatarContainer,
-            { backgroundColor: Colors.light.primary },
-          ]}
-        >
-          <ThemedText style={styles.avatarText}>
-            {profile?.name?.charAt(0).toUpperCase() || "G"}
-          </ThemedText>
-        </View>
-        <ThemedText style={styles.name}>
-          {profile?.name || "Guest User"}
-        </ThemedText>
-        <ThemedText style={[styles.email, { color: theme.textSecondary }]}>
-          {profile?.email || "Not signed in"}
-        </ThemedText>
-        {profile?.loginMethod ? (
+      data={listings}
+      keyExtractor={(item) => item.id}
+      numColumns={3}
+      ListHeaderComponent={
+        <>
+          <View
+            style={[styles.content, { paddingTop: headerHeight + Spacing.xl }]}
+          >
+            <View style={styles.profileHeader}>
+              {profile?.avatarUrl ? (
+                <Image
+                  source={{
+                    uri: profile.avatarUrl,
+                  }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <ThemedText style={styles.avatarText}>
+                    {profile?.name?.charAt(0).toUpperCase() || "G"}
+                  </ThemedText>
+                </View>
+              )}
+              <View style={styles.profileInfo}>
+                <ThemedText style={styles.name}>
+                  {profile?.name || "Guest User"}
+                </ThemedText>
+                {profile?.bio && (
+                  <ThemedText
+                    style={[styles.bio, { color: theme.textSecondary }]}
+                  >
+                    {profile.bio}
+                  </ThemedText>
+                )}
+                <View style={styles.statsContainer}>
+                  <View style={styles.stat}>
+                    <ThemedText style={styles.statNumber}>
+                      {listings.length}
+                    </ThemedText>
+                    <ThemedText
+                      style={[styles.statLabel, { color: theme.textSecondary }]}
+                    >
+                      Propiedades
+                    </ThemedText>
+                  </View>
+                  <View style={styles.stat}>
+                    <ThemedText style={styles.statNumber}>0</ThemedText>
+                    <ThemedText
+                      style={[styles.statLabel, { color: theme.textSecondary }]}
+                    >
+                      Vistas
+                    </ThemedText>
+                  </View>
+                  <View style={styles.stat}>
+                    <ThemedText style={styles.statNumber}>0</ThemedText>
+                    <ThemedText
+                      style={[styles.statLabel, { color: theme.textSecondary }]}
+                    >
+                      Leads
+                    </ThemedText>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View style={styles.buttonContainer}>
+              <Pressable style={styles.editButton}>
+                <ThemedText style={styles.editButtonText}>
+                  Editar Perfil
+                </ThemedText>
+              </Pressable>
+              <Pressable
+                style={styles.shareButton}
+                onPress={() =>
+                  Share.share({ message: "¡Mira mi perfil en LaRed!" })
+                }
+              >
+                <ThemedText style={styles.shareButtonText}>
+                  Compartir Perfil
+                </ThemedText>
+              </Pressable>
+            </View>
+            <View style={styles.highlightsContainer}>
+              <View style={styles.highlight}>
+                <View style={[styles.highlightCircle, { borderColor: Colors.light.error }]}>
+                  <Feather name="star" size={24} color={Colors.light.error} />
+                </View>
+              </View>
+              <View style={styles.highlight}>
+                <View style={[styles.highlightCircle, { borderColor: Colors.light.error }]}>
+                  <Feather name="star" size={24} color={Colors.light.error} />
+                </View>
+              </View>
+              <View style={styles.highlight}>
+                <View style={[styles.highlightCircle, { borderColor: Colors.light.error }]}>
+                  <Feather name="star" size={24} color={Colors.light.error} />
+                </View>
+              </View>
+            </View>
+          </View>
           <View
             style={[
-              styles.badge,
-              { backgroundColor: theme.backgroundDefault },
-            ]}
-          >
-            <Feather
-              name={
-                profile.loginMethod === "google"
-                  ? "mail"
-                  : profile.loginMethod === "apple"
-                  ? "smartphone"
-                  : "user"
-              }
-              size={14}
-              color={theme.textSecondary}
-            />
-            <ThemedText
-              style={[styles.badgeText, { color: theme.textSecondary }]}
-            >
-              {profile.loginMethod === "google"
-                ? "Google Account"
-                : profile.loginMethod === "apple"
-                ? "Apple Account"
-                : "Email Account"}
-            </ThemedText>
-          </View>
-        ) : null}
-      </View>
-
-      <View style={styles.menuSection}>
-        {menuItems.map((item, index) => (
-          <Pressable
-            key={item.label}
-            onPress={item.onPress}
-            style={({ pressed }) => [
-              styles.menuItem,
+              styles.tabsContainer,
               {
-                backgroundColor: pressed
-                  ? theme.backgroundDefault
-                  : theme.backgroundRoot,
+                backgroundColor: theme.backgroundRoot,
+                borderTopColor: theme.border,
                 borderBottomColor: theme.border,
-                borderBottomWidth: index < menuItems.length - 1 ? 1 : 0,
               },
             ]}
           >
-            <View style={styles.menuItemLeft}>
-              <View
-                style={[
-                  styles.menuIconContainer,
-                  { backgroundColor: theme.backgroundDefault },
-                ]}
+            {tabs.map((tab) => (
+              <Pressable
+                key={tab.key}
+                onPress={() => setSelectedTab(tab.key)}
+                style={styles.tab}
               >
-                <Feather name={item.icon} size={18} color={theme.text} />
-              </View>
-              <ThemedText style={styles.menuLabel}>{item.label}</ThemedText>
-            </View>
-            <View style={styles.menuItemRight}>
-              {item.value ? (
-                <ThemedText
-                  style={[styles.menuValue, { color: theme.textSecondary }]}
-                >
-                  {item.value}
-                </ThemedText>
-              ) : null}
-              <Feather name="chevron-right" size={20} color={theme.textSecondary} />
-            </View>
-          </Pressable>
-        ))}
-      </View>
-
-      <Pressable
-        onPress={handleLogout}
-        style={({ pressed }) => [
-          styles.logoutButton,
-          {
-            backgroundColor: pressed
-              ? Colors.light.error + "10"
-              : "transparent",
-            borderColor: Colors.light.error,
-          },
-        ]}
-        testID="logout-button"
-      >
-        <Feather name="log-out" size={18} color={Colors.light.error} />
-        <ThemedText style={[styles.logoutText, { color: Colors.light.error }]}>
-          Log Out
-        </ThemedText>
-      </Pressable>
-
-      <ThemedText style={[styles.version, { color: theme.textSecondary }]}>
-        PropertyHub v1.0.0
-      </ThemedText>
-    </ScrollView>
+                <Feather
+                  name={tab.icon as keyof typeof Feather.glyphMap}
+                  size={24}
+                  color={
+                    selectedTab === tab.key ? theme.text : theme.textSecondary
+                  }
+                />
+              </Pressable>
+            ))}
+          </View>
+        </>
+      }
+      stickyHeaderIndices={[0]}
+      renderItem={({ item }) => (
+        <Image
+          source={{
+            uri: item.imageUrl || "https://via.placeholder.com/300",
+          }}
+          style={styles.postImage}
+        />
+      )}
+      contentContainerStyle={[
+        styles.postsContainer,
+        { paddingBottom: tabBarHeight + Spacing.xl },
+      ]}
+      showsVerticalScrollIndicator={false}
+    />
   );
 }
 
@@ -223,43 +232,129 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: Spacing.lg,
+    position: "relative",
   },
   profileHeader: {
-    alignItems: "center",
-    marginBottom: Spacing["3xl"],
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: Spacing.xl,
   },
-  avatarContainer: {
+  avatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
+    marginRight: Spacing.lg,
+  },
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.light.error,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: Spacing.lg,
+    marginRight: Spacing.lg,
   },
   avatarText: {
     fontSize: 32,
     fontWeight: "700",
     color: "#FFFFFF",
   },
+  profileInfo: {
+    flex: 1,
+  },
   name: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "700",
-    marginBottom: Spacing.xs,
   },
-  email: {
-    fontSize: 16,
-    marginBottom: Spacing.md,
+  bio: {
+    fontSize: 14,
+    marginBottom: Spacing.lg,
   },
-  badge: {
+  statsContainer: {
     flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-    gap: Spacing.xs,
+    justifyContent: "space-evenly",
+    width: "100%",
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.lg,
   },
-  badgeText: {
-    fontSize: 13,
+  stat: {
+    alignItems: "center",
+    flex: 1,
+  },
+  statNumber: {
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  statLabel: {
+    fontSize: 14,
+  },
+  editButton: {
+    flex: 1,
+    backgroundColor: Colors.light.primary,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.sm,
+  },
+  editButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  shareButton: {
+    flex: 1,
+    backgroundColor: Colors.light.primary,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.sm,
+  },
+  shareButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  highlightsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  highlight: {
+    alignItems: "center",
+  },
+  highlightCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    backgroundColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: Spacing.md,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+  },
+  tab: {
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+  },
+  postsContainer: {
+    paddingHorizontal: Spacing.lg,
+  },
+  postImage: {
+    width: Dimensions.get("window").width / 3 - Spacing.sm,
+    height: Dimensions.get("window").width / 3 - Spacing.sm,
+    margin: Spacing.xs / 2,
   },
   menuSection: {
     marginBottom: Spacing["2xl"],

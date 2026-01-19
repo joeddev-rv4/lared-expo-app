@@ -30,6 +30,7 @@ export default function AddListingScreen() {
 
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [propertyType, setPropertyType] = useState("");
@@ -60,6 +61,7 @@ export default function AddListingScreen() {
         bedrooms: parseInt(bedrooms) || 1,
         bathrooms: parseInt(bathrooms) || 1,
         guests: parseInt(guests) || 2,
+        imageUrl: imageUrl || "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800",
       });
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -127,6 +129,27 @@ export default function AddListingScreen() {
             placeholder="Malibu, California"
             placeholderTextColor={theme.textSecondary}
             testID="location-input"
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <ThemedText style={[styles.label, { color: theme.textSecondary }]}>
+            Image URL
+          </ThemedText>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: theme.backgroundDefault,
+                color: theme.text,
+                borderColor: theme.border,
+              },
+            ]}
+            value={imageUrl}
+            onChangeText={setImageUrl}
+            placeholder="https://example.com/image.jpg"
+            placeholderTextColor={theme.textSecondary}
+            testID="image-url-input"
           />
         </View>
 
