@@ -1,36 +1,67 @@
 import React from "react";
+import { View, StyleSheet, Pressable, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import { Platform, StyleSheet } from "react-native";
-import HomeStackNavigator from "@/navigation/HomeStackNavigator";
+import * as Haptics from "expo-haptics";
+
+import ExploreStackNavigator from "@/navigation/ExploreStackNavigator";
+import FavoritesStackNavigator from "@/navigation/FavoritesStackNavigator";
 import ProfileStackNavigator from "@/navigation/ProfileStackNavigator";
+import AchievementsStackNavigator from "@/navigation/AchievementsStackNavigator";
+import AddListingScreen from "@/screens/AddListingScreen";
 import { useTheme } from "@/hooks/useTheme";
+import { Colors, Spacing, Shadows } from "@/constants/theme";
 
 export type MainTabParamList = {
-  HomeTab: undefined;
+  ExploreTab: undefined;
+  FavoritesTab: undefined;
+  AddListingTab: undefined;
   ProfileTab: undefined;
+  AchievementsTab: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
+
+function AddListingButton({ onPress }: { onPress: () => void }) {
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onPress();
+  };
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      style={[styles.fabContainer, Shadows.fab]}
+      testID="add-listing-button"
+    >
+      <View style={styles.fab}>
+        <Feather name="plus" size={28} color="#FFFFFF" />
+      </View>
+    </Pressable>
+  );
+}
 
 export default function MainTabNavigator() {
   const { theme, isDark } = useTheme();
 
   return (
     <Tab.Navigator
-      initialRouteName="HomeTab"
+      initialRouteName="ExploreTab"
       screenOptions={{
-        tabBarActiveTintColor: theme.tabIconSelected,
+        tabBarActiveTintColor: Colors.light.primary,
         tabBarInactiveTintColor: theme.tabIconDefault,
         tabBarStyle: {
           position: "absolute",
           backgroundColor: Platform.select({
             ios: "transparent",
             android: theme.backgroundRoot,
+            web: theme.backgroundRoot,
           }),
           borderTopWidth: 0,
           elevation: 0,
+          height: Platform.OS === "ios" ? 88 : 64,
+          paddingTop: 8,
         },
         tabBarBackground: () =>
           Platform.OS === "ios" ? (
@@ -41,17 +72,50 @@ export default function MainTabNavigator() {
             />
           ) : null,
         headerShown: false,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "500",
+        },
       }}
     >
       <Tab.Screen
-        name="HomeTab"
-        component={HomeStackNavigator}
+        name="ExploreTab"
+        component={ExploreStackNavigator}
         options={{
-          title: "Home",
+          title: "Explore",
           tabBarIcon: ({ color, size }) => (
-            <Feather name="home" size={size} color={color} />
+            <Feather name="search" size={size} color={color} />
           ),
         }}
+      />
+      <Tab.Screen
+        name="FavoritesTab"
+        component={FavoritesStackNavigator}
+        options={{
+          title: "Favorites",
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="heart" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="AddListingTab"
+        component={AddListingScreen}
+        options={({ navigation }) => ({
+          title: "",
+          tabBarIcon: () => null,
+          tabBarButton: () => (
+            <AddListingButton
+              onPress={() => navigation.navigate("AddListingModal")}
+            />
+          ),
+        })}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate("AddListingModal");
+          },
+        })}
       />
       <Tab.Screen
         name="ProfileTab"
@@ -63,6 +127,33 @@ export default function MainTabNavigator() {
           ),
         }}
       />
+      <Tab.Screen
+        name="AchievementsTab"
+        component={AchievementsStackNavigator}
+        options={{
+          title: "Rewards",
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="award" size={size} color={color} />
+          ),
+        }}
+      />
     </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  fabContainer: {
+    position: "relative",
+    top: -16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.light.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

@@ -1,25 +1,25 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import ProfileScreen from "@/screens/ProfileScreen";
+import AchievementsScreen from "@/screens/AchievementsScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 
-export type ProfileStackParamList = {
-  Profile: undefined;
+export type AchievementsStackParamList = {
+  Achievements: undefined;
 };
 
-const Stack = createNativeStackNavigator<ProfileStackParamList>();
+const Stack = createNativeStackNavigator<AchievementsStackParamList>();
 
-export default function ProfileStackNavigator() {
+export default function AchievementsStackNavigator() {
   const screenOptions = useScreenOptions();
 
   return (
     <Stack.Navigator screenOptions={screenOptions}>
       <Stack.Screen
-        name="Profile"
-        component={ProfileScreen}
+        name="Achievements"
+        component={AchievementsScreen}
         options={{
-          headerTitle: "Profile",
+          headerTitle: "Achievements",
         }}
       />
     </Stack.Navigator>
