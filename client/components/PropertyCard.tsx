@@ -77,7 +77,7 @@ export function PropertyCard({
 
     try {
       const priceFormatted = `Q${property.price.toLocaleString()}`;
-      const message = `🏠 ${property.title}\n\n📍 ${property.location}\n💰 ${priceFormatted}\n📐 ${property.area} m²\n\n${property.description}\n\n🔗 La Red Inmobiliaria - Hecha por vendedores, para vendedores`;
+      const message = `${property.title}\n\n${property.location}\n${priceFormatted}\n${property.area} m²\n\n${property.description}\n\nLa Red Inmobiliaria - Hecha por vendedores, para vendedores`;
 
       await Share.share({
         message,
@@ -89,6 +89,8 @@ export function PropertyCard({
 
     onSharePress?.();
   };
+
+  const bankQuota = Math.round(property.price / 180);
 
   return (
     <AnimatedPressable
@@ -112,117 +114,57 @@ export function PropertyCard({
           resizeMode="cover"
         />
         <View style={styles.actionButtons}>
-          <Animated.View style={shareAnimatedStyle}>
-            <Pressable
-              onPress={handleSharePress}
-              hitSlop={12}
-              style={styles.actionButton}
-              testID={`share-button-${property.id}`}
-            >
-              <Feather
-                name="share"
-                size={22}
-                color="#FFFFFF"
-                style={{
-                  textShadowColor: "rgba(0,0,0,0.5)",
-                  textShadowOffset: { width: 0, height: 1 },
-                  textShadowRadius: 3,
-                }}
-              />
-            </Pressable>
-          </Animated.View>
           <Animated.View style={heartAnimatedStyle}>
             <Pressable
               onPress={handleFavoritePress}
               hitSlop={12}
-              style={styles.actionButton}
+              style={styles.iconCircle}
               testID={`favorite-button-${property.id}`}
             >
               <Feather
-                name={isFavorite ? "heart" : "heart"}
-                size={22}
-                color={isFavorite ? Colors.light.primary : "#FFFFFF"}
-                style={{
-                  textShadowColor: "rgba(0,0,0,0.5)",
-                  textShadowOffset: { width: 0, height: 1 },
-                  textShadowRadius: 3,
-                }}
+                name="heart"
+                size={18}
+                color={isFavorite ? Colors.light.primary : "#333333"}
               />
-              {isFavorite ? (
-                <View style={styles.heartFill}>
-                  <Feather name="heart" size={22} color={Colors.light.primary} />
-                </View>
-              ) : null}
+            </Pressable>
+          </Animated.View>
+          <Animated.View style={shareAnimatedStyle}>
+            <Pressable
+              onPress={handleSharePress}
+              hitSlop={12}
+              style={styles.iconCircle}
+              testID={`share-button-${property.id}`}
+            >
+              <Feather
+                name="share"
+                size={18}
+                color="#333333"
+              />
             </Pressable>
           </Animated.View>
         </View>
         <View style={styles.commissionBadge}>
           <ThemedText style={styles.commissionText}>
-            💰 Gana Q750.00
-          </ThemedText>
-        </View>
-        <View style={styles.propertyTypeBadge}>
-          <ThemedText style={styles.propertyTypeText}>
-            {property.propertyType}
+            Gana Q750.00
           </ThemedText>
         </View>
       </View>
 
       <View style={styles.content}>
-        <View style={styles.headerRow}>
-          <ThemedText style={styles.title} numberOfLines={2}>
-            {property.title}
-          </ThemedText>
-        </View>
-
-        <View style={styles.locationRow}>
-          <Feather name="map-pin" size={14} color={theme.textSecondary} />
-          <ThemedText
-            style={[styles.location, { color: theme.textSecondary }]}
-            numberOfLines={1}
-          >
-            {property.location}
-          </ThemedText>
-        </View>
-
-        <ThemedText
-          style={[styles.description, { color: theme.textSecondary }]}
-          numberOfLines={2}
-        >
-          {property.description}
+        <ThemedText style={styles.title} numberOfLines={2}>
+          {property.title}
         </ThemedText>
 
-        <View style={styles.footer}>
-          <View style={styles.amenities}>
-            <View style={styles.amenityItem}>
-              <Feather name="maximize" size={14} color={theme.textSecondary} />
-              <ThemedText style={[styles.amenityText, { color: theme.textSecondary }]}>
-                {property.area} m²
-              </ThemedText>
-            </View>
-            {property.bedrooms > 0 && (
-              <View style={styles.amenityItem}>
-                <Feather name="home" size={14} color={theme.textSecondary} />
-                <ThemedText style={[styles.amenityText, { color: theme.textSecondary }]}>
-                  {property.bedrooms} hab.
-                </ThemedText>
-              </View>
-            )}
-            {property.bathrooms > 0 && (
-              <View style={styles.amenityItem}>
-                <Feather name="droplet" size={14} color={theme.textSecondary} />
-                <ThemedText style={[styles.amenityText, { color: theme.textSecondary }]}>
-                  {property.bathrooms} baños
-                </ThemedText>
-              </View>
-            )}
-          </View>
-          <View style={styles.priceContainer}>
-            <ThemedText style={[styles.price, { color: Colors.light.primary }]}>
-              Q{property.price.toLocaleString()}
-            </ThemedText>
-          </View>
-        </View>
+        <ThemedText style={[styles.bankQuota, { color: theme.textSecondary }]}>
+          Cuota desde Q{bankQuota.toLocaleString()}/mes
+        </ThemedText>
+
+        <Pressable onPress={handleSharePress} style={styles.shareButton}>
+          <ThemedText style={[styles.shareButtonText, { color: Colors.light.primary }]}>
+            COMPARTE Y GANA
+          </ThemedText>
+          <Feather name="chevron-right" size={16} color={Colors.light.primary} />
+        </Pressable>
       </View>
     </AnimatedPressable>
   );
@@ -248,13 +190,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: Spacing.sm,
   },
-  actionButton: {
-    padding: Spacing.xs,
-  },
-  heartFill: {
-    position: "absolute",
-    top: 0,
-    left: 0,
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.85)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   commissionBadge: {
     position: "absolute",
@@ -262,76 +204,34 @@ const styles = StyleSheet.create({
     left: Spacing.md,
     backgroundColor: "#DC2626",
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: BorderRadius.xs,
   },
   commissionText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "700",
     color: "#FFFFFF",
-  },
-  propertyTypeBadge: {
-    position: "absolute",
-    bottom: Spacing.md,
-    right: Spacing.md,
-    backgroundColor: "rgba(255,255,255,0.95)",
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.xs,
-  },
-  propertyTypeText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: Colors.light.text,
   },
   content: {
     padding: Spacing.md,
   },
-  headerRow: {
-    marginBottom: Spacing.xs,
-  },
   title: {
     fontSize: 17,
     fontWeight: "600",
+    marginBottom: Spacing.xs,
   },
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  bankQuota: {
+    fontSize: 14,
     marginBottom: Spacing.sm,
-    gap: 4,
   },
-  location: {
-    fontSize: 14,
-    flex: 1,
-  },
-  description: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: Spacing.md,
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  amenities: {
-    flexDirection: "row",
-    gap: Spacing.md,
-  },
-  amenityItem: {
+  shareButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
   },
-  amenityText: {
+  shareButtonText: {
     fontSize: 13,
-  },
-  priceContainer: {
-    flexDirection: "row",
-    alignItems: "baseline",
-  },
-  price: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontWeight: "600",
+    letterSpacing: 0.5,
   },
 });
