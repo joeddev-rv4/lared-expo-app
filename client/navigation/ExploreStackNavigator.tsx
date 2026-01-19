@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Pressable } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
@@ -9,7 +9,6 @@ import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing } from "@/constants/theme";
 import { ThemedText } from "@/components/ThemedText";
-import { getUserProfile } from "@/lib/storage";
 
 export type ExploreStackParamList = {
   Explore: undefined;
@@ -18,21 +17,9 @@ export type ExploreStackParamList = {
 const Stack = createNativeStackNavigator<ExploreStackParamList>();
 
 function HeaderLeftGreeting() {
-  const [userName, setUserName] = useState<string>("Usuario");
-
-  useEffect(() => {
-    const loadUserName = async () => {
-      const profile = await getUserProfile();
-      if (profile?.name) {
-        setUserName(profile.name);
-      }
-    };
-    loadUserName();
-  }, []);
-
   return (
     <ThemedText style={{ fontSize: 20, fontWeight: "700" }}>
-      Hola, {userName}
+      Hola, Ada Lovelace
     </ThemedText>
   );
 }
