@@ -22,7 +22,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { Property, mapAPIPropertyToProperty } from "@/data/properties";
-import { getFavorites, toggleFavorite } from "@/lib/storage";
+import { getFavorites, toggleFavorite, getUserProfile } from "@/lib/storage";
 import {
   fetchPropiedades,
   APIPropiedad,
@@ -56,6 +56,7 @@ export default function ExploreScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<ExtractedProject | null>(null);
+  const [userName, setUserName] = useState<string>("Usuario");
 
   useEffect(() => {
     loadData();
@@ -65,14 +66,18 @@ export default function ExploreScreen() {
     try {
       setLoading(true);
       setError(null);
-      const [apiProperties, favs] = await Promise.all([
+      const [apiProperties, favs, userProfile] = await Promise.all([
         fetchPropiedades(),
         getFavorites(),
+        getUserProfile(),
       ]);
       setRawApiData(apiProperties);
       const mappedProperties = apiProperties.map(mapAPIPropertyToProperty);
       setProperties(mappedProperties);
       setFavorites(favs);
+      if (userProfile?.name) {
+        setUserName(userProfile.name);
+      }
 
       const extractedProjects = extractProjectsFromProperties(apiProperties);
       setProjects(extractedProjects);
@@ -188,6 +193,9 @@ export default function ExploreScreen() {
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
+      <ThemedText style={styles.greetingText}>
+        Hola, {userName}
+      </ThemedText>
       <SearchBar
         value={searchQuery}
         onChangeText={setSearchQuery}
@@ -351,6 +359,11 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     marginBottom: Spacing.lg,
+  },
+  greetingText: {
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: Spacing.md,
   },
   filterContainer: {
     marginTop: Spacing.md,
