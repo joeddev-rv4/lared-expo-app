@@ -175,12 +175,12 @@ const styles = StyleSheet.create({
     height: SCREEN_HEIGHT * 0.5,
   },
   slideTitle: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: "700",
     textAlign: "center",
     color: "#FFFFFF",
-    marginTop: Spacing.lg,
-    paddingHorizontal: Spacing.xl,
+    marginTop: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
   },
   footer: {
     paddingHorizontal: Spacing.xl,
