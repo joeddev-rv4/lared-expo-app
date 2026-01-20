@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Pressable, Image, Modal } from "react-native";
+import { View, StyleSheet, Pressable, Image, Modal, ImageSourcePropType } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 
@@ -10,13 +10,15 @@ interface NavItem {
   key: string;
   label: string;
   route: string;
+  icon?: ImageSourcePropType;
+  featherIcon?: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: "explore", label: "Explorar", route: "ExploreTab" },
-  { key: "favorites", label: "Favoritos", route: "FavoritesTab" },
-  { key: "profile", label: "Mi Perfil", route: "ProfileTab" },
-  { key: "achievements", label: "Mis Logros", route: "AchievementsTab" },
+  { key: "explore", label: "Explorar", route: "ExploreTab", icon: require("../../assets/icons/explorar.png") },
+  { key: "favorites", label: "Favoritos", route: "FavoritesTab", featherIcon: "heart" },
+  { key: "profile", label: "Mi Perfil", route: "ProfileTab", icon: require("../../assets/icons/mi_perfil.png") },
+  { key: "achievements", label: "Mis Logros", route: "AchievementsTab", icon: require("../../assets/icons/mis_logros.png") },
 ];
 
 const MENU_OPTIONS = [
@@ -75,14 +77,21 @@ export function WebNavbar() {
                     { opacity: pressed ? 0.7 : 1 },
                   ]}
                 >
-                  <ThemedText
-                    style={[
-                      styles.navLabel,
-                      isActive && styles.navLabelActive,
-                    ]}
-                  >
-                    {item.label}
-                  </ThemedText>
+                  <View style={styles.navItemContent}>
+                    {item.icon ? (
+                      <Image source={item.icon} style={styles.navIcon} resizeMode="contain" />
+                    ) : item.featherIcon ? (
+                      <Feather name={item.featherIcon as any} size={18} color={isActive ? "#222222" : "#717171"} />
+                    ) : null}
+                    <ThemedText
+                      style={[
+                        styles.navLabel,
+                        isActive && styles.navLabelActive,
+                      ]}
+                    >
+                      {item.label}
+                    </ThemedText>
+                  </View>
                   {isActive ? <View style={styles.activeIndicator} /> : null}
                 </Pressable>
               );
@@ -198,6 +207,15 @@ const styles = StyleSheet.create({
   navItem: {
     paddingVertical: Spacing.sm,
     position: "relative",
+  },
+  navItemContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+  },
+  navIcon: {
+    width: 20,
+    height: 20,
   },
   navLabel: {
     fontSize: 14,
