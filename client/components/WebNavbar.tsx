@@ -182,8 +182,8 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   logoIcon: {
-    width: 44,
-    height: 44,
+    width: 62,
+    height: 62,
   },
   logoText: {
     fontSize: 22,
