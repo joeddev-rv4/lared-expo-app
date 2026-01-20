@@ -1,13 +1,10 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   StyleSheet,
   Image,
   Pressable,
-  ScrollView,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  useWindowDimensions,
+  Animated,
 } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
@@ -23,23 +20,23 @@ const SLIDES = [
   {
     id: "1",
     image: require("../../assets/images/onboarding/slide1.png"),
-    title: "Discover Amazing Properties",
+    title: "Descubre Propiedades Increíbles",
     description:
-      "Browse thousands of unique homes, apartments, and vacation rentals around the world.",
+      "Explora miles de casas, apartamentos y propiedades únicas en todo el país.",
   },
   {
     id: "2",
     image: require("../../assets/images/onboarding/slide2.png"),
-    title: "Connect with Hosts",
+    title: "Conecta con Clientes",
     description:
-      "Chat directly with property owners and get personalized recommendations for your stay.",
+      "Comparte propiedades con tus contactos y gana comisiones por cada venta exitosa.",
   },
   {
     id: "3",
     image: require("../../assets/images/onboarding/slide3.png"),
-    title: "Book Your Perfect Stay",
+    title: "Gana con Cada Venta",
     description:
-      "Secure your dream property with our simple and safe booking process.",
+      "Recibe comisiones atractivas por cada propiedad que ayudes a vender.",
   },
 ];
 
@@ -48,57 +45,51 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export default function OnboardingScreenWeb() {
   const navigation = useNavigation<NavigationProp>();
   const { theme } = useTheme();
-  const { width } = useWindowDimensions();
-  const scrollRef = useRef<ScrollView>(null);
   const [currentPage, setCurrentPage] = useState(0);
-
-  const slideWidth = width / 2 - Spacing.xl * 2;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentPage((prev) => (prev + 1) % SLIDES.length);
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => {
+        setCurrentPage((prev) => (prev + 1) % SLIDES.length);
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: false,
+        }).start();
+      });
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    scrollRef.current?.scrollTo({
-      x: currentPage * slideWidth,
-      animated: true,
-    });
-  }, [currentPage, slideWidth]);
+  }, [fadeAnim]);
 
   const handleGetStarted = async () => {
     await setOnboardingComplete();
     navigation.replace("Login");
   };
 
+  const currentSlide = SLIDES[currentPage];
+
   return (
     <ThemedView style={styles.container}>
       <View style={styles.splitContainer}>
         <View style={[styles.leftPanel, { backgroundColor: Colors.light.primary + "08" }]}>
-          <ScrollView
-            ref={scrollRef}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            scrollEnabled={false}
-            style={styles.carouselContainer}
-          >
-            {SLIDES.map((slide) => (
-              <View key={slide.id} style={[styles.slide, { width: slideWidth }]}>
-                <Image
-                  source={slide.image}
-                  style={styles.slideImage}
-                  resizeMode="contain"
-                />
-                <ThemedText style={styles.slideTitle}>{slide.title}</ThemedText>
-                <ThemedText style={[styles.slideDescription, { color: theme.textSecondary }]}>
-                  {slide.description}
-                </ThemedText>
-              </View>
-            ))}
-          </ScrollView>
+          <View style={styles.carouselContainer}>
+            <Animated.View style={[styles.slide, { opacity: fadeAnim }]}>
+              <Image
+                source={currentSlide.image}
+                style={styles.slideImage}
+                resizeMode="contain"
+              />
+              <ThemedText style={styles.slideTitle}>{currentSlide.title}</ThemedText>
+              <ThemedText style={[styles.slideDescription, { color: theme.textSecondary }]}>
+                {currentSlide.description}
+              </ThemedText>
+            </Animated.View>
+          </View>
 
           <View style={styles.pagination}>
             {SLIDES.map((_, index) => (
@@ -160,23 +151,27 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: Spacing.xl,
+    padding: Spacing["2xl"],
+    overflow: "hidden",
   },
   carouselContainer: {
-    maxHeight: 500,
+    width: "100%",
+    maxWidth: 500,
+    alignItems: "center",
+    justifyContent: "center",
   },
   slide: {
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: Spacing.xl,
+    width: "100%",
   },
   slideImage: {
-    width: 300,
-    height: 250,
+    width: 280,
+    height: 220,
     marginBottom: Spacing["2xl"],
   },
   slideTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "700",
     textAlign: "center",
     marginBottom: Spacing.md,
@@ -185,7 +180,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     lineHeight: 24,
-    maxWidth: 400,
+    maxWidth: 380,
+    paddingHorizontal: Spacing.lg,
   },
   pagination: {
     flexDirection: "row",
@@ -202,7 +198,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: Spacing.xl,
+    padding: Spacing["2xl"],
   },
   authContainer: {
     alignItems: "center",
