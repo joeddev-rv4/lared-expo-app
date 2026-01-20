@@ -446,7 +446,7 @@ export default function ExploreScreen() {
             styles.listContent,
             styles.webListContent,
             {
-              paddingTop: headerHeight + Spacing.lg,
+              paddingTop: Spacing.md,
               paddingBottom: Spacing.xl,
             },
           ]}
