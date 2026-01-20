@@ -8,6 +8,7 @@ import OnboardingScreenWeb from "@/screens/OnboardingScreen.web";
 import LoginScreen from "@/screens/LoginScreen";
 import LoginScreenWeb from "@/screens/LoginScreen.web";
 import CaptureClientScreen from "@/screens/CaptureClientScreen";
+import PropertyDetailScreen from "@/screens/PropertyDetailScreen";
 import PropertyDetailScreenWeb from "@/screens/PropertyDetailScreen.web";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useTheme } from "@/hooks/useTheme";
@@ -103,13 +104,11 @@ export default function RootStackNavigator() {
           headerShown: false,
         }}
       />
-      {isWeb ? (
-        <Stack.Screen
-          name="PropertyDetail"
-          component={PropertyDetailScreenWeb}
-          options={{ headerShown: false }}
-        />
-      ) : null}
+      <Stack.Screen
+        name="PropertyDetail"
+        component={isWeb ? PropertyDetailScreenWeb : PropertyDetailScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }

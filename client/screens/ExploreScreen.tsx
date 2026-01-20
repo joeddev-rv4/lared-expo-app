@@ -113,11 +113,10 @@ export default function ExploreScreen() {
   };
 
   const handlePropertyPress = (property: Property) => {
-    if (isWeb) {
-      navigation.navigate("PropertyDetail", { property });
-    } else {
+    if (!isWeb) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+    navigation.navigate("PropertyDetail", { property });
   };
 
   const handleSharePress = (property: Property) => {
