@@ -8,7 +8,10 @@ import {
   Pressable,
   Image,
   Dimensions,
+  Platform,
 } from "react-native";
+
+const isWeb = Platform.OS === "web";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -188,11 +191,13 @@ export default function ExploreScreen() {
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
-      <SearchBar
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        placeholder="Buscar propiedades o proyectos..."
-      />
+      {!isWeb ? (
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Buscar propiedades o proyectos..."
+        />
+      ) : null}
       <View style={styles.filterContainer}>
         <FlatList
           horizontal
@@ -269,7 +274,7 @@ export default function ExploreScreen() {
   const showProjectsGrid = selectedFilter === "Proyectos" && !selectedProject;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+    <View style={[styles.container, { backgroundColor: isWeb ? "#FFFFFF" : theme.backgroundRoot }]}>
       {showProjectsGrid ? (
         <FlatList
           key="projects-grid"

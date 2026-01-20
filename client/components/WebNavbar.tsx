@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Pressable, Image, Modal } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { DrawerActions } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
-import { useTheme } from "@/hooks/useTheme";
+import { WebSearchBar } from "@/components/WebSearchBar";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 
 interface NavItem {
@@ -28,8 +27,9 @@ const MENU_OPTIONS = [
   { key: "logout", label: "Cerrar sesión", icon: "log-out" as const },
 ];
 
+const HEADER_BG_COLOR = "#F7F7F7";
+
 export function WebNavbar() {
-  const { theme } = useTheme();
   const navigation = useNavigation<any>();
   const route = useRoute();
   const [menuVisible, setMenuVisible] = useState(false);
@@ -42,70 +42,77 @@ export function WebNavbar() {
 
   const handleMenuOptionPress = (key: string) => {
     setMenuVisible(false);
-    if (key === "notifications") {
-    } else if (key === "settings") {
-    } else if (key === "help") {
-    } else if (key === "logout") {
-    }
+  };
+
+  const handleSearch = (query: { property: string; project: string; location: string }) => {
+    console.log("Search:", query);
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: "#FFFFFF", borderBottomColor: "rgba(0,0,0,0.08)" }]}>
-      <View style={styles.innerContainer}>
-        <Pressable style={styles.logoContainer} onPress={() => handleNavPress("ExploreTab")}>
-          <Image
-            source={require("../../assets/images/icon.png")}
-            style={styles.logoIcon}
-            resizeMode="contain"
-          />
-          <ThemedText style={styles.logoText}>La Red Inmobiliaria</ThemedText>
-        </Pressable>
+    <View style={styles.container}>
+      <View style={styles.topBar}>
+        <View style={styles.innerContainer}>
+          <Pressable style={styles.logoContainer} onPress={() => handleNavPress("ExploreTab")}>
+            <Image
+              source={require("../../assets/images/icon.png")}
+              style={styles.logoIcon}
+              resizeMode="contain"
+            />
+            <ThemedText style={styles.logoText}>La Red Inmobiliaria</ThemedText>
+          </Pressable>
 
-        <View style={styles.navItems}>
-          {NAV_ITEMS.map((item) => {
-            const isActive = currentRoute === item.route || 
-              (currentRoute === "Explore" && item.route === "ExploreTab");
-            
-            return (
-              <Pressable
-                key={item.key}
-                onPress={() => handleNavPress(item.route)}
-                style={({ pressed }) => [
-                  styles.navItem,
-                  { opacity: pressed ? 0.7 : 1 },
-                ]}
-              >
-                <ThemedText
-                  style={[
-                    styles.navLabel,
-                    isActive && styles.navLabelActive,
+          <View style={styles.navItems}>
+            {NAV_ITEMS.map((item) => {
+              const isActive = currentRoute === item.route || 
+                (currentRoute === "Explore" && item.route === "ExploreTab");
+              
+              return (
+                <Pressable
+                  key={item.key}
+                  onPress={() => handleNavPress(item.route)}
+                  style={({ pressed }) => [
+                    styles.navItem,
+                    { opacity: pressed ? 0.7 : 1 },
                   ]}
                 >
-                  {item.label}
-                </ThemedText>
-                {isActive ? <View style={styles.activeIndicator} /> : null}
-              </Pressable>
-            );
-          })}
-        </View>
+                  <ThemedText
+                    style={[
+                      styles.navLabel,
+                      isActive && styles.navLabelActive,
+                    ]}
+                  >
+                    {item.label}
+                  </ThemedText>
+                  {isActive ? <View style={styles.activeIndicator} /> : null}
+                </Pressable>
+              );
+            })}
+          </View>
 
-        <View style={styles.rightSection}>
-          <Pressable style={styles.sellerButton}>
-            <ThemedText style={styles.sellerButtonText}>Conviértete en vendedor</ThemedText>
-          </Pressable>
-          
-          <Pressable 
-            style={styles.profileMenuContainer}
-            onPress={() => setMenuVisible(true)}
-          >
-            <Feather name="menu" size={16} color="#222222" style={styles.menuIcon} />
-            <Image
-              source={{ uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" }}
-              style={styles.profileImage}
-            />
-          </Pressable>
+          <View style={styles.rightSection}>
+            <Pressable style={styles.sellerButton}>
+              <ThemedText style={styles.sellerButtonText}>Conviértete en vendedor</ThemedText>
+            </Pressable>
+            
+            <Pressable 
+              style={styles.profileMenuContainer}
+              onPress={() => setMenuVisible(true)}
+            >
+              <Feather name="menu" size={16} color="#222222" style={styles.menuIcon} />
+              <Image
+                source={{ uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" }}
+                style={styles.profileImage}
+              />
+            </Pressable>
+          </View>
         </View>
       </View>
+
+      <View style={styles.searchContainer}>
+        <WebSearchBar onSearch={handleSearch} />
+      </View>
+
+      <View style={styles.bottomDivider} />
 
       <Modal
         visible={menuVisible}
@@ -143,7 +150,10 @@ export function WebNavbar() {
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    borderBottomWidth: 1,
+    backgroundColor: HEADER_BG_COLOR,
+  },
+  topBar: {
+    width: "100%",
   },
   innerContainer: {
     flexDirection: "row",
@@ -222,6 +232,7 @@ const styles = StyleSheet.create({
     paddingRight: 4,
     paddingVertical: 4,
     gap: Spacing.sm,
+    backgroundColor: "#FFFFFF",
   },
   menuIcon: {
     marginLeft: 4,
@@ -230,6 +241,16 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
+  },
+  searchContainer: {
+    width: "100%",
+    maxWidth: 1280,
+    marginHorizontal: "auto",
+  },
+  bottomDivider: {
+    width: "100%",
+    height: 1,
+    backgroundColor: "#DDDDDD",
   },
   modalOverlay: {
     flex: 1,
