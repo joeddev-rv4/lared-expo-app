@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Pressable, Image, Dimensions, Share } from "react-native";
+import { View, StyleSheet, Pressable, Image, Dimensions, Share, Platform } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -24,6 +24,7 @@ interface PropertyCardProps {
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH - Spacing.lg * 2;
 const IMAGE_HEIGHT = 200;
+const isWeb = Platform.OS === "web";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -180,8 +181,9 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   image: {
-    width: CARD_WIDTH,
+    width: isWeb ? "100%" : CARD_WIDTH,
     height: IMAGE_HEIGHT,
+    aspectRatio: isWeb ? 16 / 10 : undefined,
   },
   actionButtons: {
     position: "absolute",

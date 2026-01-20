@@ -9,6 +9,7 @@ import {
   Image,
   Dimensions,
   Platform,
+  ScrollView,
 } from "react-native";
 
 const isWeb = Platform.OS === "web";
@@ -306,6 +307,37 @@ export default function ExploreScreen() {
             />
           }
         />
+      ) : isWeb ? (
+        <ScrollView
+          contentContainerStyle={[
+            styles.listContent,
+            styles.webListContent,
+            {
+              paddingTop: headerHeight + Spacing.lg,
+              paddingBottom: Spacing.xl,
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          {renderHeader()}
+          {loading || error || filteredProperties.length === 0 ? (
+            renderEmpty()
+          ) : (
+            <View style={styles.webGrid}>
+              {filteredProperties.map((item) => (
+                <View key={item.id} style={styles.webGridItem}>
+                  <PropertyCard
+                    property={item}
+                    isFavorite={favorites.includes(item.id)}
+                    onPress={() => handlePropertyPress(item)}
+                    onFavoritePress={() => handleFavoriteToggle(item.id)}
+                    onSharePress={() => handleSharePress(item)}
+                  />
+                </View>
+              ))}
+            </View>
+          )}
+        </ScrollView>
       ) : (
         <FlatList
           key="properties-list"
@@ -352,6 +384,22 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: Spacing.lg,
+  },
+  webListContent: {
+    maxWidth: 1280,
+    marginHorizontal: "auto",
+    width: "100%",
+    paddingHorizontal: Spacing.xl,
+  },
+  webGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginHorizontal: -Spacing.md,
+  },
+  webGridItem: {
+    width: "25%",
+    paddingHorizontal: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   emptyList: {
     flexGrow: 1,
