@@ -10,7 +10,16 @@ import {
   Dimensions,
   Platform,
   ScrollView,
+  TextInput,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  interpolate,
+  Easing,
+} from "react-native-reanimated";
 
 const isWeb = Platform.OS === "web";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -60,6 +69,10 @@ export default function ExploreScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<ExtractedProject | null>(null);
+  const [webSearchExpanded, setWebSearchExpanded] = useState(false);
+  const [webSearchQuery, setWebSearchQuery] = useState("");
+  
+  const searchExpandAnim = useSharedValue(0);
 
   useEffect(() => {
     loadData();
@@ -152,6 +165,126 @@ export default function ExploreScreen() {
       setSelectedProject(null);
     }
   };
+
+  const toggleWebSearch = () => {
+    const newState = !webSearchExpanded;
+    setWebSearchExpanded(newState);
+    searchExpandAnim.value = withSpring(newState ? 1 : 0, {
+      damping: 15,
+      stiffness: 120,
+    });
+    if (!newState) {
+      setWebSearchQuery("");
+      setSearchQuery("");
+    }
+  };
+
+  const handleWebSearch = (text: string) => {
+    setWebSearchQuery(text);
+    setSearchQuery(text);
+  };
+
+  const handleWebTagPress = (tag: string) => {
+    if (tag === "Propiedades") {
+      setSelectedFilter("Propiedades");
+    } else if (tag === "Proyectos") {
+      setSelectedFilter("Proyectos");
+    } else if (tag === "Propiedades nuevas") {
+      setSelectedFilter("Propiedades");
+    }
+  };
+
+  const searchButtonAnimatedStyle = useAnimatedStyle(() => {
+    const width = interpolate(searchExpandAnim.value, [0, 1], [48, 400]);
+    return {
+      width: withTiming(width, { duration: 300, easing: Easing.bezier(0.25, 0.1, 0.25, 1) }),
+    };
+  });
+
+  const tagsAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withTiming(1 - searchExpandAnim.value, { duration: 200 }),
+      transform: [
+        { translateX: withTiming(searchExpandAnim.value * -20, { duration: 200 }) },
+        { scale: withTiming(1 - searchExpandAnim.value * 0.1, { duration: 200 }) },
+      ],
+    };
+  });
+
+  const searchInputAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withTiming(searchExpandAnim.value, { duration: 300 }),
+    };
+  });
+
+  const renderWebSearchHeader = () => (
+    <View style={styles.webSearchHeader}>
+      <View style={styles.webSearchRow}>
+        <Animated.View style={[styles.webSearchButtonContainer, searchButtonAnimatedStyle]}>
+          <Pressable
+            onPress={toggleWebSearch}
+            style={styles.webSearchButton}
+          >
+            <Feather name="search" size={20} color="#FFFFFF" />
+          </Pressable>
+          {webSearchExpanded ? (
+            <Animated.View style={[styles.webSearchInputContainer, searchInputAnimatedStyle]}>
+              <TextInput
+                value={webSearchQuery}
+                onChangeText={handleWebSearch}
+                placeholder="Buscar propiedades, proyectos..."
+                placeholderTextColor="#999999"
+                style={styles.webSearchInput}
+                autoFocus
+              />
+              <Pressable onPress={toggleWebSearch} style={styles.webSearchCloseButton}>
+                <Feather name="x" size={18} color="#666666" />
+              </Pressable>
+            </Animated.View>
+          ) : null}
+        </Animated.View>
+
+        {!webSearchExpanded ? (
+          <Animated.View style={[styles.webTagsContainer, tagsAnimatedStyle]}>
+            <Pressable
+              onPress={() => handleWebTagPress("Propiedades")}
+              style={[
+                styles.webTag,
+                selectedFilter === "Propiedades" && styles.webTagActive,
+              ]}
+            >
+              <ThemedText style={[
+                styles.webTagText,
+                selectedFilter === "Propiedades" && styles.webTagTextActive,
+              ]}>
+                Propiedades
+              </ThemedText>
+            </Pressable>
+            <Pressable
+              onPress={() => handleWebTagPress("Proyectos")}
+              style={[
+                styles.webTag,
+                selectedFilter === "Proyectos" && styles.webTagActive,
+              ]}
+            >
+              <ThemedText style={[
+                styles.webTagText,
+                selectedFilter === "Proyectos" && styles.webTagTextActive,
+              ]}>
+                Proyectos
+              </ThemedText>
+            </Pressable>
+            <Pressable
+              onPress={() => handleWebTagPress("Propiedades nuevas")}
+              style={styles.webTag}
+            >
+              <ThemedText style={styles.webTagText}>Propiedades nuevas</ThemedText>
+            </Pressable>
+          </Animated.View>
+        ) : null}
+      </View>
+    </View>
+  );
 
   const renderProjectCard = ({ item }: { item: ExtractedProject }) => (
     <Pressable
@@ -319,6 +452,7 @@ export default function ExploreScreen() {
           ]}
           showsVerticalScrollIndicator={false}
         >
+          {renderWebSearchHeader()}
           {renderHeader()}
           {loading || error || filteredProperties.length === 0 ? (
             renderEmpty()
@@ -492,5 +626,73 @@ const styles = StyleSheet.create({
   projectCount: {
     fontSize: 12,
     fontWeight: "500",
+  },
+  webSearchHeader: {
+    marginBottom: Spacing.lg,
+  },
+  webSearchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+  },
+  webSearchButtonContainer: {
+    height: 48,
+    backgroundColor: Colors.light.primary,
+    borderRadius: BorderRadius.full,
+    flexDirection: "row",
+    alignItems: "center",
+    overflow: "hidden",
+  },
+  webSearchButton: {
+    width: 48,
+    height: 48,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  webSearchInputContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingRight: Spacing.sm,
+  },
+  webSearchInput: {
+    flex: 1,
+    height: 48,
+    fontSize: 16,
+    color: "#FFFFFF",
+    paddingHorizontal: Spacing.md,
+  },
+  webSearchCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  webTagsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+  },
+  webTag: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    backgroundColor: "#F5F5F5",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  webTagActive: {
+    backgroundColor: Colors.light.primary,
+    borderColor: Colors.light.primary,
+  },
+  webTagText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#333333",
+  },
+  webTagTextActive: {
+    color: "#FFFFFF",
   },
 });

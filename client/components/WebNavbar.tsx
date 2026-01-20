@@ -4,7 +4,6 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
-import { WebSearchBar } from "@/components/WebSearchBar";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 
 interface NavItem {
@@ -122,10 +121,6 @@ export function WebNavbar() {
             </Pressable>
           </View>
         </View>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <WebSearchBar onSearch={handleSearch} />
       </View>
 
       <View style={styles.bottomDivider} />
@@ -260,11 +255,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#DDDDDD",
-  },
-  searchContainer: {
-    width: "100%",
-    maxWidth: 1280,
-    marginHorizontal: "auto",
   },
   bottomDivider: {
     width: "100%",
