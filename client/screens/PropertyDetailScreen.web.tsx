@@ -13,6 +13,7 @@ import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { ThemedText } from "@/components/ThemedText";
+import { WebNavbar } from "@/components/WebNavbar";
 import { useTheme } from "@/hooks/useTheme";
 import { Property } from "@/data/properties";
 import { Spacing, Colors, BorderRadius, Shadows } from "@/constants/theme";
@@ -68,6 +69,7 @@ export default function PropertyDetailScreenWeb() {
 
   return (
     <View style={[styles.container, { backgroundColor: "#FFFFFF" }]}>
+      <WebNavbar />
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
