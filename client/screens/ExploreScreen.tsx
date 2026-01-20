@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   headerContainer: {
-    marginBottom: Spacing.lg,
+    marginBottom: isWeb ? Spacing.sm : Spacing.lg,
   },
   filterContainer: {
     marginTop: Spacing.md,
