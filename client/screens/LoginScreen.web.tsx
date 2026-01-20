@@ -5,6 +5,7 @@ import {
   Pressable,
   Image,
   Animated,
+  ImageBackground,
 } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
@@ -20,24 +21,11 @@ import { RootStackParamList } from "@/navigation/RootStackNavigator";
 const SLIDES = [
   {
     id: "1",
-    image: require("../../assets/images/onboarding/slide1.png"),
-    title: "Descubre Propiedades Increíbles",
-    description:
-      "Explora miles de casas, apartamentos y propiedades únicas en todo el país.",
+    image: require("../../assets/images/login_message_1.png"),
   },
   {
     id: "2",
-    image: require("../../assets/images/onboarding/slide2.png"),
-    title: "Conecta con Clientes",
-    description:
-      "Comparte propiedades con tus contactos y gana comisiones por cada venta exitosa.",
-  },
-  {
-    id: "3",
-    image: require("../../assets/images/onboarding/slide3.png"),
-    title: "Gana con Cada Venta",
-    description:
-      "Recibe comisiones atractivas por cada propiedad que ayudes a vender.",
+    image: require("../../assets/images/login_message_2.png"),
   },
 ];
 
@@ -111,40 +99,42 @@ export default function LoginScreenWeb() {
   return (
     <ThemedView style={styles.container}>
       <View style={styles.splitContainer}>
-        <View style={[styles.leftPanel, { backgroundColor: Colors.light.primary + "08" }]}>
-          <View style={styles.carouselContainer}>
-            <Animated.View style={[styles.slide, { opacity: fadeAnim }]}>
-              <Image
-                source={currentSlide.image}
-                style={styles.slideImage}
-                resizeMode="contain"
-              />
-              <ThemedText style={styles.slideTitle}>{currentSlide.title}</ThemedText>
-              <ThemedText style={[styles.slideDescription, { color: theme.textSecondary }]}>
-                {currentSlide.description}
-              </ThemedText>
-            </Animated.View>
-          </View>
+        <ImageBackground
+          source={require("../../assets/images/login_image_1.png")}
+          style={styles.leftPanel}
+          resizeMode="cover"
+        >
+          <View style={styles.leftOverlay}>
+            <View style={styles.carouselContainer}>
+              <Animated.View style={[styles.slide, { opacity: fadeAnim }]}>
+                <Image
+                  source={currentSlide.image}
+                  style={styles.slideImage}
+                  resizeMode="contain"
+                />
+              </Animated.View>
+            </View>
 
-          <View style={styles.pagination}>
-            {SLIDES.map((_, index) => (
-              <Pressable
-                key={index}
-                onPress={() => setCurrentPage(index)}
-                style={[
-                  styles.dot,
-                  {
-                    backgroundColor:
-                      index === currentPage ? Colors.light.primary : theme.border,
-                    width: index === currentPage ? 24 : 8,
-                  },
-                ]}
-              />
-            ))}
+            <View style={styles.pagination}>
+              {SLIDES.map((_, index) => (
+                <Pressable
+                  key={index}
+                  onPress={() => setCurrentPage(index)}
+                  style={[
+                    styles.dot,
+                    {
+                      backgroundColor:
+                        index === currentPage ? "#FFFFFF" : "rgba(255, 255, 255, 0.5)",
+                      width: index === currentPage ? 24 : 8,
+                    },
+                  ]}
+                />
+              ))}
+            </View>
           </View>
-        </View>
+        </ImageBackground>
 
-        <View style={styles.rightPanel}>
+        <View style={[styles.rightPanel, { backgroundColor: theme.backgroundRoot }]}>
           <View style={styles.authContainer}>
             <Image
               source={require("../../assets/images/icon.png")}
@@ -169,7 +159,7 @@ export default function LoginScreenWeb() {
               >
                 <Feather name="mail" size={20} color="#FFFFFF" />
                 <ThemedText style={styles.loginButtonText}>
-                  Continue with Email
+                  Continuar con Email
                 </ThemedText>
               </Pressable>
 
@@ -188,7 +178,7 @@ export default function LoginScreenWeb() {
               >
                 <FontAwesome name="google" size={20} color="#DB4437" />
                 <ThemedText style={[styles.socialButtonText, { color: theme.text }]}>
-                  Continue with Google
+                  Continuar con Google
                 </ThemedText>
               </Pressable>
 
@@ -204,7 +194,7 @@ export default function LoginScreenWeb() {
               >
                 <FontAwesome name="facebook" size={20} color="#FFFFFF" />
                 <ThemedText style={styles.loginButtonText}>
-                  Continue with Facebook
+                  Continuar con Facebook
                 </ThemedText>
               </Pressable>
             </View>
@@ -217,18 +207,18 @@ export default function LoginScreenWeb() {
               ]}
             >
               <ThemedText style={[styles.skipText, { color: theme.textSecondary }]}>
-                Continue as Guest
+                Continuar como Invitado
               </ThemedText>
             </Pressable>
 
             <ThemedText style={[styles.termsText, { color: theme.textSecondary }]}>
-              By continuing, you agree to our{" "}
+              Al continuar, aceptas nuestros{" "}
               <ThemedText style={[styles.linkText, { color: Colors.light.primary }]}>
-                Terms of Service
+                Términos de Servicio
               </ThemedText>{" "}
-              and{" "}
+              y{" "}
               <ThemedText style={[styles.linkText, { color: Colors.light.primary }]}>
-                Privacy Policy
+                Política de Privacidad
               </ThemedText>
             </ThemedText>
           </View>
@@ -248,10 +238,14 @@ const styles = StyleSheet.create({
   },
   leftPanel: {
     flex: 1,
+    overflow: "hidden",
+  },
+  leftOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "center",
     alignItems: "center",
     padding: Spacing["2xl"],
-    overflow: "hidden",
   },
   carouselContainer: {
     width: "100%",
@@ -265,22 +259,8 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   slideImage: {
-    width: 280,
-    height: 220,
-    marginBottom: Spacing["2xl"],
-  },
-  slideTitle: {
-    fontSize: 26,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: Spacing.md,
-  },
-  slideDescription: {
-    fontSize: 16,
-    textAlign: "center",
-    lineHeight: 24,
-    maxWidth: 380,
-    paddingHorizontal: Spacing.lg,
+    width: 400,
+    height: 300,
   },
   pagination: {
     flexDirection: "row",
