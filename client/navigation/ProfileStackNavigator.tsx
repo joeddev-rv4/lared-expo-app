@@ -1,6 +1,6 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { View, StyleSheet, Pressable, Image } from "react-native";
+import { View, StyleSheet, Pressable, Image, Dimensions } from "react-native";
 
 import ProfileScreen from "@/screens/ProfileScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
@@ -14,11 +14,15 @@ export type ProfileStackParamList = {
 
 const Stack = createNativeStackNavigator<ProfileStackParamList>();
 
+const { width: screenWidth } = Dimensions.get('window');
+const imageWidth = screenWidth * 0.6;
+const imageHeight = imageWidth / 6;
+
 const SaleTag = () => (
   <View style={styles.saleTagContainer}>
     <Image
       source={require('../../assets/images/la_red_blanco_negro.png')}
-      style={styles.saleTagImage}
+      style={[styles.saleTagImage, { width: imageWidth, height: imageHeight }]}
     />
     <ThemedText style={styles.saleTagText}>¡Hazme Aliado!</ThemedText>
   </View>
@@ -34,14 +38,16 @@ export default function ProfileStackNavigator() {
         component={ProfileScreen}
         options={{
           headerTitle: "",
+          headerStyle: { backgroundColor: Colors.light.primary },
+          headerTintColor: '#FFFFFF',
           headerLeft: () => <SaleTag />,
           headerRight: () => (
             <View style={{ flexDirection: 'row', marginRight: 16 }}>
               <Pressable style={{ marginRight: 16 }}>
-                <Feather name="bell" size={24} color="#000" />
+                <Feather name="bell" size={24} color="#FFFFFF" />
               </Pressable>
               <Pressable>
-                <Feather name="menu" size={24} color="#000" />
+                <Feather name="menu" size={24} color="#FFFFFF" />
               </Pressable>
             </View>
           ),
@@ -68,7 +74,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   saleTagText: {
-    color: "#000000",
+    color: "#FFFFFF",
     fontSize: 10,
     fontWeight: "700",
     textAlign: "center",
@@ -77,13 +83,11 @@ const styles = StyleSheet.create({
     lineHeight: 12,
   },
   saleTagImage: {
-    width: 200,
-    height: 34,
     resizeMode: 'contain',
   },
   saleTagContainer: {
     position: "relative",
-    marginLeft: -40,
+    marginLeft: -45,
     flexDirection: 'column',
     alignItems: 'center',
   },

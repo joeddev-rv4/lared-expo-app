@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -8,6 +8,7 @@ import {
   FlatList,
   Dimensions,
   Share,
+  Animated,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -49,6 +50,20 @@ export default function ProfileScreen() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [listings, setListings] = useState<UserListing[]>([]);
   const [selectedTab, setSelectedTab] = useState("posts");
+  const [avatarModalVisible, setAvatarModalVisible] = useState(false);
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+  const [hoveredOption, setHoveredOption] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (avatarModalVisible) {
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      scaleAnim.setValue(0);
+    }
+  }, [avatarModalVisible]);
 
   const tabs = [
     { key: "posts", icon: "grid", label: "Posts" },
@@ -79,9 +94,9 @@ export default function ProfileScreen() {
   };
 
   return (
-    <FlatList
-      style={[styles.container, { backgroundColor: theme.backgroundRoot }]}
-      data={listings}
+    <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+      <FlatList
+        data={listings}
       keyExtractor={(item) => item.id}
       numColumns={3}
       ListHeaderComponent={
@@ -90,20 +105,22 @@ export default function ProfileScreen() {
             style={[styles.content, { paddingTop: headerHeight + Spacing.xl }]}
           >
             <View style={styles.profileHeader}>
-              {profile?.avatarUrl ? (
-                <Image
-                  source={{
-                    uri: profile.avatarUrl,
-                  }}
-                  style={styles.avatar}
-                />
-              ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <ThemedText style={styles.avatarText}>
-                    {profile?.name?.charAt(0).toUpperCase() || "G"}
-                  </ThemedText>
-                </View>
-              )}
+              <Pressable onPress={() => setAvatarModalVisible(!avatarModalVisible)}>
+                {profile?.avatarUrl ? (
+                  <Image
+                    source={{
+                      uri: profile.avatarUrl,
+                    }}
+                    style={styles.avatar}
+                  />
+                ) : (
+                  <View style={styles.avatarPlaceholder}>
+                    <ThemedText style={styles.avatarText}>
+                      {profile?.name?.charAt(0).toUpperCase() || "G"}
+                    </ThemedText>
+                  </View>
+                )}
+              </Pressable>
               <View style={styles.profileInfo}>
                 <ThemedText style={styles.name}>
                   {profile?.name || "Guest User"}
@@ -229,7 +246,31 @@ export default function ProfileScreen() {
         { paddingBottom: tabBarHeight + Spacing.xl },
       ]}
       showsVerticalScrollIndicator={false}
-    />
+      />
+      {avatarModalVisible && (
+        <Pressable style={styles.overlay} onPress={() => setAvatarModalVisible(false)} />
+      )}
+      {avatarModalVisible && (
+        <Animated.View style={[styles.dropdown, { top: headerHeight + Spacing.xl + 90, left: Spacing.lg, transform: [{ scale: scaleAnim }] }]}>
+          <Pressable 
+            style={({ pressed }) => [styles.modalOption, hoveredOption === 'change' && styles.hovered]} 
+            onPress={() => { setHoveredOption(null); setAvatarModalVisible(false); }}
+            onHoverIn={() => setHoveredOption('change')}
+            onHoverOut={() => setHoveredOption(null)}
+          >
+            <ThemedText style={styles.modalOptionText}>Cambiar Foto De Perfil</ThemedText>
+          </Pressable>
+          <Pressable 
+            style={({ pressed }) => [styles.modalOption, hoveredOption === 'delete' && styles.hovered]} 
+            onPress={() => { setHoveredOption(null); setAvatarModalVisible(false); }}
+            onHoverIn={() => setHoveredOption('delete')}
+            onHoverOut={() => setHoveredOption(null)}
+          >
+            <ThemedText style={styles.modalOptionText}>Eliminar Foto De Perfil</ThemedText>
+          </Pressable>
+        </Animated.View>
+      )}
+    </View>
   );
 }
 
@@ -424,5 +465,35 @@ const styles = StyleSheet.create({
   version: {
     fontSize: 13,
     textAlign: "center",
+  },
+  dropdown: {
+    position: 'absolute',
+    width: 200,
+    backgroundColor: 'white',
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    elevation: 5,
+    zIndex: 1000,
+  },
+  modalOption: {
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+  },
+  hovered: {
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    borderRadius: BorderRadius.sm,
+  },
+  modalOptionText: {
+    fontSize: 16,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+    backgroundColor: 'transparent',
+    zIndex: 999,
   },
 });
