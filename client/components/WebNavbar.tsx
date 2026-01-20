@@ -37,6 +37,14 @@ export function WebNavbar() {
   const [sellerHovered, setSellerHovered] = useState(false);
 
   const currentRoute = route.name;
+  
+  const getIsActive = (itemKey: string, itemRoute: string) => {
+    if (currentRoute === itemRoute) return true;
+    if (itemKey === "explore" && (currentRoute === "Explore" || currentRoute === "ExploreScreen" || currentRoute === "MainTabs" || currentRoute.toLowerCase().includes("explore"))) return true;
+    if (itemKey === "profile" && currentRoute.toLowerCase().includes("profile")) return true;
+    if (itemKey === "achievements" && currentRoute.toLowerCase().includes("achievement")) return true;
+    return false;
+  };
 
   const handleNavPress = (routeName: string) => {
     navigation.navigate(routeName);
@@ -68,12 +76,7 @@ export function WebNavbar() {
 
           <View style={styles.navItems}>
             {NAV_ITEMS.map((item) => {
-              const isActive = currentRoute === item.route || 
-                (currentRoute === "Explore" && item.route === "ExploreTab") ||
-                (currentRoute === "ExploreScreen" && item.route === "ExploreTab") ||
-                (currentRoute.includes("Explore") && item.route === "ExploreTab") ||
-                (currentRoute.includes("Profile") && item.route === "ProfileTab") ||
-                (currentRoute.includes("Achievement") && item.route === "AchievementsTab");
+              const isActive = getIsActive(item.key, item.route);
               
               return (
                 <Pressable
