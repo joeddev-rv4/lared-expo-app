@@ -16,12 +16,12 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { key: "explore", label: "Explorar", route: "ExploreTab", icon: require("../../assets/icons/explorar.png") },
-  { key: "favorites", label: "Favoritos", route: "FavoritesTab", featherIcon: "heart" },
   { key: "profile", label: "Mi Perfil", route: "ProfileTab", icon: require("../../assets/icons/mi_perfil.png") },
   { key: "achievements", label: "Mis Logros", route: "AchievementsTab", icon: require("../../assets/icons/mis_logros.png") },
 ];
 
 const MENU_OPTIONS = [
+  { key: "favorites", label: "Favoritos", icon: "heart" as const, route: "FavoritesTab" },
   { key: "notifications", label: "Notificaciones", icon: "bell" as const },
   { key: "settings", label: "Configuración", icon: "settings" as const },
   { key: "help", label: "Centro de ayuda", icon: "help-circle" as const },
@@ -42,8 +42,11 @@ export function WebNavbar() {
     navigation.navigate(routeName);
   };
 
-  const handleMenuOptionPress = (key: string) => {
+  const handleMenuOptionPress = (key: string, route?: string) => {
     setMenuVisible(false);
+    if (route) {
+      navigation.navigate(route);
+    }
   };
 
   const handleSearch = (query: { property: string; project: string; location: string }) => {
@@ -154,7 +157,7 @@ export function WebNavbar() {
                   index === MENU_OPTIONS.length - 1 && styles.menuOptionLast,
                   { backgroundColor: pressed ? "#F7F7F7" : "#FFFFFF" },
                 ]}
-                onPress={() => handleMenuOptionPress(option.key)}
+                onPress={() => handleMenuOptionPress(option.key, (option as any).route)}
               >
                 <Feather name={option.icon} size={16} color="#222222" />
                 <ThemedText style={styles.menuOptionText}>{option.label}</ThemedText>
