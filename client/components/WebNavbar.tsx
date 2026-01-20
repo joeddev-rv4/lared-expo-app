@@ -69,7 +69,11 @@ export function WebNavbar() {
           <View style={styles.navItems}>
             {NAV_ITEMS.map((item) => {
               const isActive = currentRoute === item.route || 
-                (currentRoute === "Explore" && item.route === "ExploreTab");
+                (currentRoute === "Explore" && item.route === "ExploreTab") ||
+                (currentRoute === "ExploreScreen" && item.route === "ExploreTab") ||
+                (currentRoute.includes("Explore") && item.route === "ExploreTab") ||
+                (currentRoute.includes("Profile") && item.route === "ProfileTab") ||
+                (currentRoute.includes("Achievement") && item.route === "AchievementsTab");
               
               return (
                 <Pressable
