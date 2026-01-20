@@ -25,8 +25,11 @@ const isWeb = Platform.OS === "web";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Haptics from "expo-haptics";
 import { Feather } from "@expo/vector-icons";
+import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 import { PropertyCard } from "@/components/PropertyCard";
 import { SearchBar } from "@/components/SearchBar";
@@ -54,6 +57,7 @@ export default function ExploreScreen() {
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
   const { theme, isDark } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -109,7 +113,9 @@ export default function ExploreScreen() {
   };
 
   const handlePropertyPress = (property: Property) => {
-    if (!isWeb) {
+    if (isWeb) {
+      navigation.navigate("PropertyDetail", { property });
+    } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
   };
