@@ -15,7 +15,7 @@ export type ProfileStackParamList = {
 const Stack = createNativeStackNavigator<ProfileStackParamList>();
 
 const { width: screenWidth } = Dimensions.get('window');
-const imageWidth = screenWidth * 0.6;
+const imageWidth = screenWidth * 0.5;
 const imageHeight = imageWidth / 6;
 
 const SaleTag = () => (
@@ -81,14 +81,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     textAlignVertical: 'center',
     lineHeight: 12,
+    marginLeft: 55,
   },
   saleTagImage: {
     resizeMode: 'contain',
   },
   saleTagContainer: {
     position: "relative",
-    marginLeft: -45,
+    marginLeft: -30,
     flexDirection: 'column',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
 });
