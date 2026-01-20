@@ -192,29 +192,31 @@ export default function ExploreScreen() {
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       {!isWeb ? (
-        <SearchBar
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Buscar propiedades o proyectos..."
-        />
-      ) : null}
-      <View style={styles.filterContainer}>
-        <FlatList
-          horizontal
-          data={FILTER_OPTIONS}
-          keyExtractor={(item) => item.key}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterList}
-          renderItem={({ item }) => (
-            <FilterChip
-              label={item.label}
-              emoji={item.emoji}
-              isSelected={selectedFilter === item.key}
-              onPress={() => handleFilterChange(item.key)}
+        <>
+          <SearchBar
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Buscar propiedades o proyectos..."
+          />
+          <View style={styles.filterContainer}>
+            <FlatList
+              horizontal
+              data={FILTER_OPTIONS}
+              keyExtractor={(item) => item.key}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterList}
+              renderItem={({ item }) => (
+                <FilterChip
+                  label={item.label}
+                  emoji={item.emoji}
+                  isSelected={selectedFilter === item.key}
+                  onPress={() => handleFilterChange(item.key)}
+                />
+              )}
             />
-          )}
-        />
-      </View>
+          </View>
+        </>
+      ) : null}
       {selectedProject && (
         <View style={styles.selectedProjectContainer}>
           <ThemedText style={[styles.selectedProjectLabel, { color: theme.textSecondary }]}>
