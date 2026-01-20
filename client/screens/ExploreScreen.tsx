@@ -203,7 +203,7 @@ export default function ExploreScreen() {
       return img?.url || "https://via.placeholder.com/400x300?text=Proyecto";
     }
     const matchingProperty = properties.find((p) => p.projectName === project.nombre_proyecto);
-    return matchingProperty?.image || "https://via.placeholder.com/400x300?text=Proyecto";
+    return matchingProperty?.imageUrl || "https://via.placeholder.com/400x300?text=Proyecto";
   };
 
   const renderWebSearchHeader = () => (
@@ -537,13 +537,13 @@ const styles = StyleSheet.create({
   horizontalProjectCard: {
     width: PROJECT_CARD_WIDTH,
     borderRadius: BorderRadius.lg,
-    overflow: "hidden",
+    overflow: "hidden" as const,
   },
   horizontalProjectImage: {
-    width: "100%",
+    width: "100%" as const,
     height: 160,
     backgroundColor: "#F0F0F0",
-  },
+  } as const,
   horizontalProjectInfo: {
     padding: Spacing.md,
   },
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
     gap: Spacing.lg,
   },
   webGridItem: {
-    width: isWeb ? "calc(25% - 18px)" : "100%",
+    width: isWeb ? "23%" : "100%",
     minWidth: 280,
   },
   mobilePropertiesList: {
