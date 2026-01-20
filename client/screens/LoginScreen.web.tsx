@@ -114,7 +114,6 @@ export default function LoginScreenWeb() {
                   style={styles.slideImage}
                   resizeMode="contain"
                 />
-                <ThemedText style={styles.slideTitle}>{currentSlide.title}</ThemedText>
               </Animated.View>
             </View>
 
@@ -262,8 +261,8 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   slideImage: {
-    width: 400,
-    height: 300,
+    width: 500,
+    height: 400,
   },
   slideTitle: {
     fontSize: 26,

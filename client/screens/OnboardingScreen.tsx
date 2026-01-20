@@ -97,7 +97,6 @@ export default function OnboardingScreen() {
                 style={styles.image}
                 resizeMode="contain"
               />
-              <ThemedText style={styles.slideTitle}>{slide.title}</ThemedText>
             </View>
           ))}
         </ScrollView>
@@ -171,16 +170,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   image: {
-    width: SCREEN_WIDTH * 0.85,
-    height: SCREEN_HEIGHT * 0.4,
-  },
-  slideTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-    textAlign: "center",
-    color: "#FFFFFF",
-    marginTop: Spacing.lg,
-    lineHeight: 36,
+    width: SCREEN_WIDTH * 0.95,
+    height: SCREEN_HEIGHT * 0.6,
   },
   footer: {
     paddingHorizontal: Spacing.xl,

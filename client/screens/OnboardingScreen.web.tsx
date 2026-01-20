@@ -75,7 +75,6 @@ export default function OnboardingScreenWeb() {
                 style={styles.slideImage}
                 resizeMode="contain"
               />
-              <ThemedText style={styles.slideTitle}>{currentSlide.title}</ThemedText>
             </Animated.View>
 
             <View style={styles.pagination}>
@@ -157,16 +156,8 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   slideImage: {
-    width: 400,
-    height: 300,
-  },
-  slideTitle: {
-    fontSize: 26,
-    fontWeight: "700",
-    textAlign: "center",
-    color: "#FFFFFF",
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.lg,
+    width: 550,
+    height: 450,
   },
   pagination: {
     flexDirection: "row",
