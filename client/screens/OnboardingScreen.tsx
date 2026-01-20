@@ -180,7 +180,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#FFFFFF",
     marginTop: Spacing.xl,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    width: "100%",
   },
   footer: {
     paddingHorizontal: Spacing.xl,
