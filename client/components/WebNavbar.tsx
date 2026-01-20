@@ -94,15 +94,18 @@ export function WebNavbar() {
               <ThemedText style={styles.sellerButtonText}>Conviértete en vendedor</ThemedText>
             </Pressable>
             
-            <Pressable 
-              style={styles.profileMenuContainer}
-              onPress={() => setMenuVisible(true)}
-            >
-              <Feather name="menu" size={16} color="#222222" style={styles.menuIcon} />
+            <Pressable style={styles.profileButton}>
               <Image
                 source={{ uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" }}
                 style={styles.profileImage}
               />
+            </Pressable>
+
+            <Pressable 
+              style={styles.menuButton}
+              onPress={() => setMenuVisible(true)}
+            >
+              <Feather name="menu" size={20} color="#222222" />
             </Pressable>
           </View>
         </View>
@@ -222,25 +225,22 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#FFFFFF",
   },
-  profileMenuContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#DDDDDD",
-    borderRadius: BorderRadius.full,
-    paddingLeft: Spacing.sm,
-    paddingRight: 4,
-    paddingVertical: 4,
-    gap: Spacing.sm,
-    backgroundColor: "#FFFFFF",
-  },
-  menuIcon: {
-    marginLeft: 4,
+  profileButton: {
+    padding: 4,
   },
   profileImage: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#DDDDDD",
+  },
+  menuButton: {
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#DDDDDD",
   },
   searchContainer: {
     width: "100%",
