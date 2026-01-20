@@ -41,7 +41,15 @@ export default function RootStackNavigator() {
       const onboardingComplete = await hasCompletedOnboarding();
       const profile = await getUserProfile();
 
-      setInitialRoute("Onboarding");
+      if (!isWeb) {
+        setInitialRoute("Onboarding");
+      } else if (!onboardingComplete) {
+        setInitialRoute("Onboarding");
+      } else if (profile?.isLoggedIn) {
+        setInitialRoute("Main");
+      } else {
+        setInitialRoute("Login");
+      }
     } catch (error) {
       setInitialRoute("Onboarding");
     } finally {
