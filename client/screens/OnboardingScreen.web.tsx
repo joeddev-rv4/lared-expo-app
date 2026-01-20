@@ -19,10 +19,12 @@ const SLIDES = [
   {
     id: "1",
     image: require("../../assets/images/login_message_1.png"),
+    title: "Refiere propiedades y gana",
   },
   {
     id: "2",
     image: require("../../assets/images/login_message_2.png"),
+    title: "Tu conectas, nosotros vendemos",
   },
 ];
 
@@ -73,6 +75,7 @@ export default function OnboardingScreenWeb() {
                 style={styles.slideImage}
                 resizeMode="contain"
               />
+              <ThemedText style={styles.slideTitle}>{currentSlide.title}</ThemedText>
             </Animated.View>
 
             <View style={styles.pagination}>
@@ -156,7 +159,14 @@ const styles = StyleSheet.create({
   slideImage: {
     width: 400,
     height: 300,
-    marginBottom: Spacing["2xl"],
+  },
+  slideTitle: {
+    fontSize: 26,
+    fontWeight: "700",
+    textAlign: "center",
+    color: "#FFFFFF",
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.lg,
   },
   pagination: {
     flexDirection: "row",
