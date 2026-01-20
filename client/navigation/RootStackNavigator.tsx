@@ -1,15 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, View, Platform } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import DrawerNavigator from "@/navigation/DrawerNavigator";
 import OnboardingScreen from "@/screens/OnboardingScreen";
+import OnboardingScreenWeb from "@/screens/OnboardingScreen.web";
 import LoginScreen from "@/screens/LoginScreen";
+import LoginScreenWeb from "@/screens/LoginScreen.web";
 import CaptureClientScreen from "@/screens/CaptureClientScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useTheme } from "@/hooks/useTheme";
 import { hasCompletedOnboarding, getUserProfile } from "@/lib/storage";
 import { Colors } from "@/constants/theme";
+
+const isWeb = Platform.OS === "web";
+const OnboardingComponent = isWeb ? OnboardingScreenWeb : OnboardingScreen;
+const LoginComponent = isWeb ? LoginScreenWeb : LoginScreen;
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -71,12 +77,12 @@ export default function RootStackNavigator() {
     >
       <Stack.Screen
         name="Onboarding"
-        component={OnboardingScreen}
+        component={OnboardingComponent}
         options={{ headerShown: false }}
       />
       <Stack.Screen
         name="Login"
-        component={LoginScreen}
+        component={LoginComponent}
         options={{ headerShown: false }}
       />
       <Stack.Screen

@@ -10,8 +10,11 @@ import FavoritesStackNavigator from "@/navigation/FavoritesStackNavigator";
 import ProfileStackNavigator from "@/navigation/ProfileStackNavigator";
 import AchievementsStackNavigator from "@/navigation/AchievementsStackNavigator";
 import AddListingScreen from "@/screens/AddListingScreen";
+import { WebNavbar } from "@/components/WebNavbar";
 import { useTheme } from "@/hooks/useTheme";
 import { Colors, Spacing, Shadows } from "@/constants/theme";
+
+const isWeb = Platform.OS === "web";
 
 export type MainTabParamList = {
   ExploreTab: undefined;
@@ -46,38 +49,42 @@ export default function MainTabNavigator() {
   const { theme, isDark } = useTheme();
 
   return (
-    <Tab.Navigator
-      initialRouteName="ExploreTab"
-      screenOptions={{
-        tabBarActiveTintColor: Colors.light.primary,
-        tabBarInactiveTintColor: theme.tabIconDefault,
-        tabBarStyle: {
-          position: "absolute",
-          backgroundColor: Platform.select({
-            ios: "transparent",
-            android: theme.backgroundRoot,
-            web: theme.backgroundRoot,
-          }),
-          borderTopWidth: 0,
-          elevation: 0,
-          height: Platform.OS === "ios" ? 88 : 64,
-          paddingTop: 8,
-        },
-        tabBarBackground: () =>
-          Platform.OS === "ios" ? (
-            <BlurView
-              intensity={100}
-              tint={isDark ? "dark" : "light"}
-              style={StyleSheet.absoluteFill}
-            />
-          ) : null,
-        headerShown: false,
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: "500",
-        },
-      }}
-    >
+    <View style={styles.webContainer}>
+      {isWeb && <WebNavbar />}
+      <Tab.Navigator
+        initialRouteName="ExploreTab"
+        screenOptions={{
+          tabBarActiveTintColor: Colors.light.primary,
+          tabBarInactiveTintColor: theme.tabIconDefault,
+          tabBarStyle: isWeb
+            ? { display: "none" }
+            : {
+                position: "absolute",
+                backgroundColor: Platform.select({
+                  ios: "transparent",
+                  android: theme.backgroundRoot,
+                  web: theme.backgroundRoot,
+                }),
+                borderTopWidth: 0,
+                elevation: 0,
+                height: Platform.OS === "ios" ? 88 : 64,
+                paddingTop: 8,
+              },
+          tabBarBackground: () =>
+            Platform.OS === "ios" ? (
+              <BlurView
+                intensity={100}
+                tint={isDark ? "dark" : "light"}
+                style={StyleSheet.absoluteFill}
+              />
+            ) : null,
+          headerShown: false,
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: "500",
+          },
+        }}
+      >
       <Tab.Screen
         name="ExploreTab"
         component={ExploreStackNavigator}
@@ -98,25 +105,27 @@ export default function MainTabNavigator() {
           ),
         }}
       />
-      <Tab.Screen
-        name="AddListingTab"
-        component={AddListingScreen}
-        options={({ navigation }) => ({
-          title: "",
-          tabBarIcon: () => null,
-          tabBarButton: () => (
-            <AddListingButton
-              onPress={() => navigation.navigate("AddListingModal")}
-            />
-          ),
-        })}
-        listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            e.preventDefault();
-            navigation.navigate("AddListingModal");
-          },
-        })}
-      />
+      {Platform.OS !== "web" && (
+        <Tab.Screen
+          name="AddListingTab"
+          component={AddListingScreen}
+          options={({ navigation }) => ({
+            title: "",
+            tabBarIcon: () => null,
+            tabBarButton: () => (
+              <AddListingButton
+                onPress={() => navigation.navigate("AddListingModal")}
+              />
+            ),
+          })}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              e.preventDefault();
+              navigation.navigate("AddListingModal");
+            },
+          })}
+        />
+      )}
       <Tab.Screen
         name="ProfileTab"
         component={ProfileStackNavigator}
@@ -138,10 +147,14 @@ export default function MainTabNavigator() {
         }}
       />
     </Tab.Navigator>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  webContainer: {
+    flex: 1,
+  },
   fabContainer: {
     position: "relative",
     top: -16,
