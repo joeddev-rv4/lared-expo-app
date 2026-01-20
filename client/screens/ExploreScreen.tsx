@@ -30,7 +30,6 @@ import { Feather } from "@expo/vector-icons";
 
 import { PropertyCard } from "@/components/PropertyCard";
 import { SearchBar } from "@/components/SearchBar";
-import { FilterChip } from "@/components/FilterChip";
 import { EmptyState } from "@/components/EmptyState";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
@@ -38,20 +37,15 @@ import { Property, mapAPIPropertyToProperty } from "@/data/properties";
 import { getFavorites, toggleFavorite } from "@/lib/storage";
 import {
   fetchPropiedades,
+  fetchProyectos,
   APIPropiedad,
-  ExtractedProject,
-  extractProjectsFromProperties,
+  APIProyectoDetalle,
 } from "@/lib/api";
 import { Spacing, Colors, BorderRadius, Shadows } from "@/constants/theme";
 
-const FILTER_OPTIONS = [
-  { key: "Todos", label: "Todos", emoji: "🔍" },
-  { key: "Propiedades", label: "Propiedades", emoji: "🏠" },
-  { key: "Proyectos", label: "Proyectos", emoji: "🏗️" },
-];
-
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const PROJECT_CARD_WIDTH = (SCREEN_WIDTH - Spacing.lg * 3) / 2;
+const PROJECT_CARD_WIDTH = isWeb ? 280 : SCREEN_WIDTH * 0.7;
+const PROPERTY_CARD_WIDTH = isWeb ? 320 : SCREEN_WIDTH * 0.8;
 
 export default function ExploreScreen() {
   const insets = useSafeAreaInsets();
@@ -60,18 +54,16 @@ export default function ExploreScreen() {
   const { theme, isDark } = useTheme();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState("Todos");
   const [favorites, setFavorites] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [properties, setProperties] = useState<Property[]>([]);
-  const [rawApiData, setRawApiData] = useState<APIPropiedad[]>([]);
-  const [projects, setProjects] = useState<ExtractedProject[]>([]);
+  const [projects, setProjects] = useState<APIProyectoDetalle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedProject, setSelectedProject] = useState<ExtractedProject | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [webSearchExpanded, setWebSearchExpanded] = useState(false);
   const [webSearchQuery, setWebSearchQuery] = useState("");
-  
+
   const searchExpandAnim = useSharedValue(0);
 
   useEffect(() => {
@@ -82,19 +74,17 @@ export default function ExploreScreen() {
     try {
       setLoading(true);
       setError(null);
-      const [apiProperties, favs] = await Promise.all([
+      const [apiProperties, apiProjects, favs] = await Promise.all([
         fetchPropiedades(),
+        fetchProyectos(),
         getFavorites(),
       ]);
-      setRawApiData(apiProperties);
       const mappedProperties = apiProperties.map(mapAPIPropertyToProperty);
       setProperties(mappedProperties);
+      setProjects(apiProjects);
       setFavorites(favs);
-
-      const extractedProjects = extractProjectsFromProperties(apiProperties);
-      setProjects(extractedProjects);
     } catch (err) {
-      setError("Error al cargar las propiedades. Intenta de nuevo.");
+      setError("Error al cargar los datos. Intenta de nuevo.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -103,7 +93,9 @@ export default function ExploreScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     await loadData();
     setRefreshing(false);
   };
@@ -114,22 +106,43 @@ export default function ExploreScreen() {
   };
 
   const handlePropertyPress = (property: Property) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
   };
 
   const handleSharePress = (property: Property) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
   };
+
+  const handleProjectPress = (project: APIProyectoDetalle) => {
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setSelectedProjectId(project.id);
+  };
+
+  const nearbyProperties = useMemo(() => {
+    const shuffled = [...properties].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 10);
+  }, [properties]);
+
+  const topProperties = useMemo(() => {
+    return properties
+      .sort((a, b) => b.price - a.price)
+      .slice(0, 10);
+  }, [properties]);
 
   const filteredProperties = useMemo(() => {
     let filtered = properties;
 
-    if (selectedProject) {
-      filtered = filtered.filter((p) => p.projectName === selectedProject.name);
-    } else if (selectedFilter === "Propiedades") {
-      // Show all properties
-    } else if (selectedFilter === "Proyectos") {
-      return [];
+    if (selectedProjectId) {
+      filtered = filtered.filter((p) => {
+        const project = projects.find((proj) => proj.id === selectedProjectId);
+        return project && p.projectName === project.nombre_proyecto;
+      });
     }
 
     if (searchQuery) {
@@ -141,30 +154,7 @@ export default function ExploreScreen() {
     }
 
     return filtered;
-  }, [properties, searchQuery, selectedFilter, selectedProject]);
-
-  const filteredProjects = useMemo(() => {
-    if (!searchQuery) return projects;
-    return projects.filter((project) =>
-      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.type.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [projects, searchQuery]);
-
-  const handleProjectPress = (project: ExtractedProject) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setSelectedProject(project);
-    setSelectedFilter("Propiedades");
-  };
-
-  const handleFilterChange = (filterKey: string) => {
-    setSelectedFilter(filterKey);
-    if (filterKey !== "Propiedades") {
-      setSelectedProject(null);
-    }
-  };
+  }, [properties, searchQuery, selectedProjectId, projects]);
 
   const toggleWebSearch = () => {
     const newState = !webSearchExpanded;
@@ -182,16 +172,6 @@ export default function ExploreScreen() {
   const handleWebSearch = (text: string) => {
     setWebSearchQuery(text);
     setSearchQuery(text);
-  };
-
-  const handleWebTagPress = (tag: string) => {
-    if (tag === "Propiedades") {
-      setSelectedFilter("Propiedades");
-    } else if (tag === "Proyectos") {
-      setSelectedFilter("Proyectos");
-    } else if (tag === "Propiedades nuevas") {
-      setSelectedFilter("Propiedades");
-    }
   };
 
   const searchButtonAnimatedStyle = useAnimatedStyle(() => {
@@ -216,6 +196,15 @@ export default function ExploreScreen() {
       opacity: withTiming(searchExpandAnim.value, { duration: 300 }),
     };
   });
+
+  const getProjectImage = (project: APIProyectoDetalle) => {
+    if (project.imagenes && project.imagenes.length > 0) {
+      const img = project.imagenes.find((i) => i.formato === "imagen");
+      return img?.url || "https://via.placeholder.com/400x300?text=Proyecto";
+    }
+    const matchingProperty = properties.find((p) => p.projectName === project.nombre_proyecto);
+    return matchingProperty?.image || "https://via.placeholder.com/400x300?text=Proyecto";
+  };
 
   const renderWebSearchHeader = () => (
     <View style={styles.webSearchHeader}>
@@ -246,38 +235,13 @@ export default function ExploreScreen() {
 
         {!webSearchExpanded ? (
           <Animated.View style={[styles.webTagsContainer, tagsAnimatedStyle]}>
-            <Pressable
-              onPress={() => handleWebTagPress("Propiedades")}
-              style={[
-                styles.webTag,
-                selectedFilter === "Propiedades" && styles.webTagActive,
-              ]}
-            >
-              <ThemedText style={[
-                styles.webTagText,
-                selectedFilter === "Propiedades" && styles.webTagTextActive,
-              ]}>
-                Propiedades
-              </ThemedText>
+            <Pressable style={styles.webTag}>
+              <ThemedText style={styles.webTagText}>Propiedades</ThemedText>
             </Pressable>
-            <Pressable
-              onPress={() => handleWebTagPress("Proyectos")}
-              style={[
-                styles.webTag,
-                selectedFilter === "Proyectos" && styles.webTagActive,
-              ]}
-            >
-              <ThemedText style={[
-                styles.webTagText,
-                selectedFilter === "Proyectos" && styles.webTagTextActive,
-              ]}>
-                Proyectos
-              </ThemedText>
+            <Pressable style={styles.webTag}>
+              <ThemedText style={styles.webTagText}>Proyectos</ThemedText>
             </Pressable>
-            <Pressable
-              onPress={() => handleWebTagPress("Propiedades nuevas")}
-              style={styles.webTag}
-            >
+            <Pressable style={styles.webTag}>
               <ThemedText style={styles.webTagText}>Propiedades nuevas</ThemedText>
             </Pressable>
           </Animated.View>
@@ -286,89 +250,79 @@ export default function ExploreScreen() {
     </View>
   );
 
-  const renderProjectCard = ({ item }: { item: ExtractedProject }) => (
-    <Pressable
-      onPress={() => handleProjectPress(item)}
-      style={({ pressed }) => [
-        styles.projectCard,
-        { backgroundColor: theme.backgroundRoot, opacity: pressed ? 0.9 : 1 },
-        isDark ? null : Shadows.card,
-      ]}
-    >
-      <Image source={{ uri: item.imageUrl }} style={styles.projectImage} />
-      <View style={styles.projectInfo}>
-        <ThemedText style={styles.projectName} numberOfLines={1}>
-          {item.name}
-        </ThemedText>
-        <View style={styles.projectLocationRow}>
-          <Feather name="map-pin" size={12} color={theme.textSecondary} />
-          <ThemedText
-            style={[styles.projectLocation, { color: theme.textSecondary }]}
-            numberOfLines={1}
-          >
-            {item.location || item.address}
+  const renderProjectCard = (project: APIProyectoDetalle) => {
+    const isSelected = selectedProjectId === project.id;
+    return (
+      <Pressable
+        key={project.id}
+        onPress={() => handleProjectPress(project)}
+        style={({ pressed }) => [
+          styles.horizontalProjectCard,
+          { 
+            backgroundColor: theme.backgroundRoot, 
+            opacity: pressed ? 0.9 : 1,
+            borderColor: isSelected ? Colors.light.primary : "transparent",
+            borderWidth: isSelected ? 2 : 0,
+          },
+          isDark ? null : Shadows.card,
+        ]}
+      >
+        <Image source={{ uri: getProjectImage(project) }} style={styles.horizontalProjectImage} />
+        <View style={styles.horizontalProjectInfo}>
+          <ThemedText style={styles.horizontalProjectName} numberOfLines={1}>
+            {project.nombre_proyecto}
           </ThemedText>
-        </View>
-        <View style={styles.projectTypeRow}>
+          <View style={styles.projectLocationRow}>
+            <Feather name="map-pin" size={12} color={theme.textSecondary} />
+            <ThemedText style={[styles.projectLocation, { color: theme.textSecondary }]} numberOfLines={1}>
+              {project.ubicacion || project.direccion}
+            </ThemedText>
+          </View>
           <View style={[styles.projectTypeBadge, { backgroundColor: Colors.light.primary + "20" }]}>
             <ThemedText style={[styles.projectTypeLabel, { color: Colors.light.primary }]}>
-              {item.type}
+              {project.tipo}
             </ThemedText>
           </View>
         </View>
-        <ThemedText style={[styles.projectCount, { color: Colors.light.primary }]}>
-          {item.propertyCount} {item.propertyCount === 1 ? "propiedad" : "propiedades"}
-        </ThemedText>
-      </View>
-    </Pressable>
-  );
+      </Pressable>
+    );
+  };
 
-  const renderHeader = () => (
-    <View style={styles.headerContainer}>
-      {!isWeb ? (
-        <>
-          <SearchBar
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Buscar propiedades o proyectos..."
-          />
-          <View style={styles.filterContainer}>
-            <FlatList
-              horizontal
-              data={FILTER_OPTIONS}
-              keyExtractor={(item) => item.key}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.filterList}
-              renderItem={({ item }) => (
-                <FilterChip
-                  label={item.label}
-                  emoji={item.emoji}
-                  isSelected={selectedFilter === item.key}
-                  onPress={() => handleFilterChange(item.key)}
-                />
-              )}
-            />
-          </View>
-        </>
-      ) : null}
-      {selectedProject && (
-        <View style={styles.selectedProjectContainer}>
-          <ThemedText style={[styles.selectedProjectLabel, { color: theme.textSecondary }]}>
-            Proyecto:
-          </ThemedText>
-          <Pressable
-            onPress={() => setSelectedProject(null)}
-            style={[styles.selectedProjectChip, { backgroundColor: Colors.light.primary }]}
-          >
-            <ThemedText style={styles.selectedProjectText}>{selectedProject.name}</ThemedText>
-            <Feather name="x" size={16} color="#FFFFFF" />
-          </Pressable>
-        </View>
-      )}
+  const renderHorizontalPropertyCard = (property: Property) => (
+    <View key={property.id} style={styles.horizontalPropertyCard}>
+      <PropertyCard
+        property={property}
+        isFavorite={favorites.includes(property.id)}
+        onPress={() => handlePropertyPress(property)}
+        onFavoritePress={() => handleFavoriteToggle(property.id)}
+        onSharePress={() => handleSharePress(property)}
+      />
     </View>
   );
 
-  const renderEmpty = () => {
+  const renderSectionTitle = (title: string, showClearButton?: boolean) => (
+    <View style={styles.sectionTitleContainer}>
+      <ThemedText style={styles.sectionTitle}>{title}</ThemedText>
+      {showClearButton && selectedProjectId ? (
+        <Pressable onPress={() => setSelectedProjectId(null)} style={styles.clearButton}>
+          <ThemedText style={styles.clearButtonText}>Ver todos</ThemedText>
+          <Feather name="x" size={14} color={Colors.light.primary} />
+        </Pressable>
+      ) : null}
+    </View>
+  );
+
+  const renderMobileSearchHeader = () => (
+    <View style={styles.mobileSearchHeader}>
+      <SearchBar
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        placeholder="Buscar propiedades o proyectos..."
+      />
+    </View>
+  );
+
+  const renderContent = () => {
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
@@ -393,121 +347,95 @@ export default function ExploreScreen() {
     }
 
     return (
-      <EmptyState
-        image={require("../../assets/images/empty-states/search.png")}
-        title="Sin resultados"
-        description="No se encontraron resultados. Intenta ajustar tu búsqueda."
-        actionLabel="Limpiar filtros"
-        onAction={() => {
-          setSearchQuery("");
-          setSelectedFilter("Todos");
-          setSelectedProject(null);
-        }}
-      />
+      <>
+        {renderSectionTitle("Proyectos disponibles")}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalScrollContent}
+          style={styles.horizontalScrollView}
+        >
+          {projects.map(renderProjectCard)}
+        </ScrollView>
+
+        {renderSectionTitle("Propiedades cercanas")}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalScrollContent}
+          style={styles.horizontalScrollView}
+        >
+          {nearbyProperties.map(renderHorizontalPropertyCard)}
+        </ScrollView>
+
+        {renderSectionTitle("Top 10 propiedades")}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalScrollContent}
+          style={styles.horizontalScrollView}
+        >
+          {topProperties.map(renderHorizontalPropertyCard)}
+        </ScrollView>
+
+        {renderSectionTitle("Todas las propiedades", true)}
+        {isWeb ? (
+          <View style={styles.webGrid}>
+            {filteredProperties.map((item) => (
+              <View key={item.id} style={styles.webGridItem}>
+                <PropertyCard
+                  property={item}
+                  isFavorite={favorites.includes(item.id)}
+                  onPress={() => handlePropertyPress(item)}
+                  onFavoritePress={() => handleFavoriteToggle(item.id)}
+                  onSharePress={() => handleSharePress(item)}
+                />
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.mobilePropertiesList}>
+            {filteredProperties.map((item) => (
+              <PropertyCard
+                key={item.id}
+                property={item}
+                isFavorite={favorites.includes(item.id)}
+                onPress={() => handlePropertyPress(item)}
+                onFavoritePress={() => handleFavoriteToggle(item.id)}
+                onSharePress={() => handleSharePress(item)}
+              />
+            ))}
+          </View>
+        )}
+      </>
     );
   };
 
-  const showProjectsGrid = selectedFilter === "Proyectos" && !selectedProject;
-
   return (
     <View style={[styles.container, { backgroundColor: isWeb ? "#FFFFFF" : theme.backgroundRoot }]}>
-      {showProjectsGrid ? (
-        <FlatList
-          key="projects-grid"
-          data={filteredProjects}
-          keyExtractor={(item) => item.id.toString()}
-          numColumns={2}
-          renderItem={renderProjectCard}
-          columnWrapperStyle={styles.projectsRow}
-          contentContainerStyle={[
-            styles.listContent,
-            {
-              paddingTop: headerHeight + Spacing.lg,
-              paddingBottom: tabBarHeight + Spacing.xl,
-            },
-            filteredProjects.length === 0 ? styles.emptyList : null,
-          ]}
-          scrollIndicatorInsets={{ bottom: insets.bottom }}
-          ListHeaderComponent={renderHeader}
-          ListEmptyComponent={renderEmpty}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: isWeb ? headerHeight : headerHeight + Spacing.lg,
+            paddingBottom: isWeb ? Spacing.xl : tabBarHeight + Spacing.xl,
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          !isWeb ? (
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
               tintColor={theme.textSecondary}
               progressViewOffset={headerHeight}
             />
-          }
-        />
-      ) : isWeb ? (
-        <ScrollView
-          contentContainerStyle={[
-            styles.listContent,
-            styles.webListContent,
-            {
-              paddingTop: headerHeight,
-              paddingBottom: Spacing.xl,
-            },
-          ]}
-          showsVerticalScrollIndicator={false}
-        >
-          {renderWebSearchHeader()}
-          {renderHeader()}
-          {loading || error || filteredProperties.length === 0 ? (
-            renderEmpty()
-          ) : (
-            <View style={styles.webGrid}>
-              {filteredProperties.map((item) => (
-                <View key={item.id} style={styles.webGridItem}>
-                  <PropertyCard
-                    property={item}
-                    isFavorite={favorites.includes(item.id)}
-                    onPress={() => handlePropertyPress(item)}
-                    onFavoritePress={() => handleFavoriteToggle(item.id)}
-                    onSharePress={() => handleSharePress(item)}
-                  />
-                </View>
-              ))}
-            </View>
-          )}
-        </ScrollView>
-      ) : (
-        <FlatList
-          key="properties-list"
-          data={filteredProperties}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <PropertyCard
-              property={item}
-              isFavorite={favorites.includes(item.id)}
-              onPress={() => handlePropertyPress(item)}
-              onFavoritePress={() => handleFavoriteToggle(item.id)}
-              onSharePress={() => handleSharePress(item)}
-            />
-          )}
-          contentContainerStyle={[
-            styles.listContent,
-            {
-              paddingTop: headerHeight + Spacing.lg,
-              paddingBottom: tabBarHeight + Spacing.xl,
-            },
-            filteredProperties.length === 0 ? styles.emptyList : null,
-          ]}
-          scrollIndicatorInsets={{ bottom: insets.bottom }}
-          ListHeaderComponent={renderHeader}
-          ListEmptyComponent={renderEmpty}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={theme.textSecondary}
-              progressViewOffset={headerHeight}
-            />
-          }
-        />
-      )}
+          ) : undefined
+        }
+      >
+        {isWeb ? renderWebSearchHeader() : renderMobileSearchHeader()}
+        {renderContent()}
+      </ScrollView>
     </View>
   );
 }
@@ -516,116 +444,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  listContent: {
+  scrollContent: {
     paddingHorizontal: Spacing.lg,
-  },
-  webListContent: {
-    maxWidth: 1280,
-    marginHorizontal: "auto",
-    width: "100%",
-    paddingHorizontal: Spacing.xl,
-  },
-  webGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginHorizontal: -Spacing.md,
-  },
-  webGridItem: {
-    width: "25%",
-    paddingHorizontal: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  emptyList: {
-    flexGrow: 1,
-  },
-  headerContainer: {
-    marginBottom: isWeb ? Spacing.sm : Spacing.lg,
-  },
-  filterContainer: {
-    marginTop: Spacing.md,
-  },
-  filterList: {
-    paddingVertical: Spacing.sm,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: Spacing["5xl"],
-  },
-  loadingText: {
-    marginTop: Spacing.lg,
-    fontSize: 16,
-  },
-  selectedProjectContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: Spacing.sm,
-  },
-  selectedProjectLabel: {
-    fontSize: 14,
-    marginRight: Spacing.sm,
-  },
-  selectedProjectChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-    gap: Spacing.xs,
-  },
-  selectedProjectText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  projectsRow: {
-    justifyContent: "space-between",
-    marginBottom: Spacing.md,
-  },
-  projectCard: {
-    width: PROJECT_CARD_WIDTH,
-    borderRadius: BorderRadius.md,
-    overflow: "hidden",
-  },
-  projectImage: {
-    width: "100%",
-    height: 120,
-  },
-  projectInfo: {
-    padding: Spacing.sm,
-  },
-  projectName: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: Spacing.xs,
-  },
-  projectLocationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginBottom: Spacing.xs,
-  },
-  projectLocation: {
-    fontSize: 12,
-    flex: 1,
-  },
-  projectTypeRow: {
-    marginBottom: Spacing.xs,
-  },
-  projectTypeBadge: {
-    alignSelf: "flex-start",
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.xs,
-  },
-  projectTypeLabel: {
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  projectCount: {
-    fontSize: 12,
-    fontWeight: "500",
   },
   webSearchHeader: {
     marginBottom: Spacing.lg,
@@ -646,6 +466,7 @@ const styles = StyleSheet.create({
   webSearchButton: {
     width: 48,
     height: 48,
+    borderRadius: BorderRadius.full,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -657,42 +478,123 @@ const styles = StyleSheet.create({
   },
   webSearchInput: {
     flex: 1,
-    height: 48,
     fontSize: 16,
     color: "#FFFFFF",
-    paddingHorizontal: Spacing.md,
+    marginLeft: Spacing.sm,
   },
   webSearchCloseButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    padding: Spacing.xs,
     backgroundColor: "rgba(255,255,255,0.2)",
-    justifyContent: "center",
-    alignItems: "center",
+    borderRadius: BorderRadius.full,
   },
   webTagsContainer: {
     flexDirection: "row",
-    alignItems: "center",
     gap: Spacing.sm,
   },
   webTag: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
     backgroundColor: "#F5F5F5",
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-  },
-  webTagActive: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
+    borderRadius: BorderRadius.full,
   },
   webTagText: {
     fontSize: 14,
+    color: "#222222",
     fontWeight: "500",
-    color: "#333333",
   },
-  webTagTextActive: {
-    color: "#FFFFFF",
+  mobileSearchHeader: {
+    marginBottom: Spacing.md,
+  },
+  sectionTitleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.md,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#222222",
+  },
+  clearButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+  },
+  clearButtonText: {
+    fontSize: 14,
+    color: Colors.light.primary,
+    fontWeight: "500",
+  },
+  horizontalScrollView: {
+    marginHorizontal: -Spacing.lg,
+  },
+  horizontalScrollContent: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.md,
+  },
+  horizontalProjectCard: {
+    width: PROJECT_CARD_WIDTH,
+    borderRadius: BorderRadius.lg,
+    overflow: "hidden",
+  },
+  horizontalProjectImage: {
+    width: "100%",
+    height: 160,
+    backgroundColor: "#F0F0F0",
+  },
+  horizontalProjectInfo: {
+    padding: Spacing.md,
+  },
+  horizontalProjectName: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: Spacing.xs,
+  },
+  projectLocationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  projectLocation: {
+    fontSize: 13,
+    flex: 1,
+  },
+  projectTypeBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+  },
+  projectTypeLabel: {
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  horizontalPropertyCard: {
+    width: PROPERTY_CARD_WIDTH,
+  },
+  webGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.lg,
+  },
+  webGridItem: {
+    width: isWeb ? "calc(25% - 18px)" : "100%",
+    minWidth: 280,
+  },
+  mobilePropertiesList: {
+    gap: Spacing.md,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: Spacing.xl * 3,
+  },
+  loadingText: {
+    marginTop: Spacing.md,
+    fontSize: 16,
   },
 });
