@@ -86,6 +86,56 @@ export async function fetchPropiedades(): Promise<APIPropiedad[]> {
   }
 }
 
+export interface APIProyectosResponse {
+  success: boolean;
+  data: APIProyectoDetalle[];
+}
+
+export interface APIProyectoDetalle {
+  id: number;
+  nombre_proyecto: string;
+  direccion: string;
+  aprobacion12cuotas: string | null;
+  tipo: string;
+  ubicacion: string;
+  estado: string;
+  caracteristicas: string;
+  created_at: string;
+  updated_at: string;
+  imagenes?: Array<{
+    tipo: string;
+    url: string;
+    formato: string;
+  }>;
+}
+
+export async function fetchProyectos(): Promise<APIProyectoDetalle[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/proyectos/redinmo`, {
+      method: "GET",
+      headers: {
+        "x-api-key": API_KEY,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data: APIProyectosResponse = await response.json();
+
+    if (!data.success) {
+      throw new Error("API returned unsuccessful response");
+    }
+
+    return data.data;
+  } catch (error) {
+    console.error("Error fetching proyectos:", error);
+    throw error;
+  }
+}
+
 export interface ExtractedProject {
   id: number;
   name: string;
