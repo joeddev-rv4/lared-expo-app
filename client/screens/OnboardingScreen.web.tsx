@@ -5,13 +5,12 @@ import {
   Image,
   Pressable,
   Animated,
+  ImageBackground,
 } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
 
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { useTheme } from "@/hooks/useTheme";
 import { setOnboardingComplete } from "@/lib/storage";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
@@ -19,24 +18,11 @@ import { RootStackParamList } from "@/navigation/RootStackNavigator";
 const SLIDES = [
   {
     id: "1",
-    image: require("../../assets/images/onboarding/slide1.png"),
-    title: "Descubre Propiedades Increíbles",
-    description:
-      "Explora miles de casas, apartamentos y propiedades únicas en todo el país.",
+    image: require("../../assets/images/login_message_1.png"),
   },
   {
     id: "2",
-    image: require("../../assets/images/onboarding/slide2.png"),
-    title: "Conecta con Clientes",
-    description:
-      "Comparte propiedades con tus contactos y gana comisiones por cada venta exitosa.",
-  },
-  {
-    id: "3",
-    image: require("../../assets/images/onboarding/slide3.png"),
-    title: "Gana con Cada Venta",
-    description:
-      "Recibe comisiones atractivas por cada propiedad que ayudes a vender.",
+    image: require("../../assets/images/login_message_2.png"),
   },
 ];
 
@@ -44,7 +30,6 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function OnboardingScreenWeb() {
   const navigation = useNavigation<NavigationProp>();
-  const { theme } = useTheme();
   const [currentPage, setCurrentPage] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -74,9 +59,13 @@ export default function OnboardingScreenWeb() {
   const currentSlide = SLIDES[currentPage];
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.splitContainer}>
-        <View style={[styles.leftPanel, { backgroundColor: Colors.light.primary + "08" }]}>
+    <ImageBackground
+      source={require("../../assets/images/login_image_1.png")}
+      style={styles.container}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay}>
+        <View style={styles.content}>
           <View style={styles.carouselContainer}>
             <Animated.View style={[styles.slide, { opacity: fadeAnim }]}>
               <Image
@@ -84,32 +73,26 @@ export default function OnboardingScreenWeb() {
                 style={styles.slideImage}
                 resizeMode="contain"
               />
-              <ThemedText style={styles.slideTitle}>{currentSlide.title}</ThemedText>
-              <ThemedText style={[styles.slideDescription, { color: theme.textSecondary }]}>
-                {currentSlide.description}
-              </ThemedText>
             </Animated.View>
+
+            <View style={styles.pagination}>
+              {SLIDES.map((_, index) => (
+                <Pressable
+                  key={index}
+                  onPress={() => setCurrentPage(index)}
+                  style={[
+                    styles.dot,
+                    {
+                      backgroundColor:
+                        index === currentPage ? "#FFFFFF" : "rgba(255, 255, 255, 0.5)",
+                      width: index === currentPage ? 24 : 8,
+                    },
+                  ]}
+                />
+              ))}
+            </View>
           </View>
 
-          <View style={styles.pagination}>
-            {SLIDES.map((_, index) => (
-              <Pressable
-                key={index}
-                onPress={() => setCurrentPage(index)}
-                style={[
-                  styles.dot,
-                  {
-                    backgroundColor:
-                      index === currentPage ? Colors.light.primary : theme.border,
-                    width: index === currentPage ? 24 : 8,
-                  },
-                ]}
-              />
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.rightPanel}>
           <View style={styles.authContainer}>
             <Image
               source={require("../../assets/images/icon.png")}
@@ -119,7 +102,7 @@ export default function OnboardingScreenWeb() {
             <ThemedText style={styles.welcomeTitle}>
               Bienvenido a La Red Inmobiliaria
             </ThemedText>
-            <ThemedText style={[styles.welcomeSubtitle, { color: theme.textSecondary }]}>
+            <ThemedText style={styles.welcomeSubtitle}>
               Hecha por vendedores, para vendedores
             </ThemedText>
 
@@ -135,30 +118,35 @@ export default function OnboardingScreenWeb() {
           </View>
         </View>
       </View>
-    </ThemedView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: "100%",
+    height: "100%",
   },
-  splitContainer: {
+  overlay: {
     flex: 1,
-    flexDirection: "row",
-  },
-  leftPanel: {
-    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "center",
     alignItems: "center",
+  },
+  content: {
+    flexDirection: "row",
+    width: "100%",
+    maxWidth: 1200,
+    alignItems: "center",
+    justifyContent: "center",
     padding: Spacing["2xl"],
-    overflow: "hidden",
   },
   carouselContainer: {
-    width: "100%",
-    maxWidth: 500,
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    maxWidth: 600,
   },
   slide: {
     alignItems: "center",
@@ -166,44 +154,25 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   slideImage: {
-    width: 280,
-    height: 220,
+    width: 400,
+    height: 300,
     marginBottom: Spacing["2xl"],
-  },
-  slideTitle: {
-    fontSize: 26,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: Spacing.md,
-  },
-  slideDescription: {
-    fontSize: 16,
-    textAlign: "center",
-    lineHeight: 24,
-    maxWidth: 380,
-    paddingHorizontal: Spacing.lg,
   },
   pagination: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: Spacing["2xl"],
     gap: Spacing.sm,
   },
   dot: {
     height: 8,
     borderRadius: 4,
   },
-  rightPanel: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: Spacing["2xl"],
-  },
   authContainer: {
+    flex: 1,
     alignItems: "center",
     maxWidth: 400,
-    width: "100%",
+    paddingHorizontal: Spacing["2xl"],
   },
   logo: {
     width: 100,
@@ -215,11 +184,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
     marginBottom: Spacing.sm,
+    color: "#FFFFFF",
   },
   welcomeSubtitle: {
     fontSize: 16,
     textAlign: "center",
     marginBottom: Spacing["3xl"],
+    color: "rgba(255, 255, 255, 0.8)",
   },
   getStartedButton: {
     width: "100%",

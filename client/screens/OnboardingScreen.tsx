@@ -9,6 +9,7 @@ import {
   Platform,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  ImageBackground,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -16,8 +17,6 @@ import { useNavigation } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { useTheme } from "@/hooks/useTheme";
 import { setOnboardingComplete } from "@/lib/storage";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
@@ -27,24 +26,11 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SLIDES = [
   {
     id: "1",
-    image: require("../../assets/images/onboarding/slide1.png"),
-    title: "Discover Amazing Properties",
-    description:
-      "Browse thousands of unique homes, apartments, and vacation rentals around the world.",
+    image: require("../../assets/images/login_message_1.png"),
   },
   {
     id: "2",
-    image: require("../../assets/images/onboarding/slide2.png"),
-    title: "Connect with Hosts",
-    description:
-      "Chat directly with property owners and get personalized recommendations for your stay.",
-  },
-  {
-    id: "3",
-    image: require("../../assets/images/onboarding/slide3.png"),
-    title: "Book Your Perfect Stay",
-    description:
-      "Secure your dream property with our simple and safe booking process.",
+    image: require("../../assets/images/login_message_2.png"),
   },
 ];
 
@@ -53,7 +39,6 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export default function OnboardingScreen() {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
-  const { theme } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -88,87 +73,89 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        style={styles.scrollView}
-      >
-        {SLIDES.map((slide) => (
-          <View key={slide.id} style={styles.slide}>
-            <Image
-              source={slide.image}
-              style={styles.image}
-              resizeMode="contain"
-            />
-            <View style={styles.textContainer}>
-              <ThemedText style={styles.title}>{slide.title}</ThemedText>
-              <ThemedText style={[styles.description, { color: theme.textSecondary }]}>
-                {slide.description}
-              </ThemedText>
+    <ImageBackground
+      source={require("../../assets/images/login_image_1.png")}
+      style={styles.container}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay}>
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          style={styles.scrollView}
+        >
+          {SLIDES.map((slide) => (
+            <View key={slide.id} style={styles.slide}>
+              <Image
+                source={slide.image}
+                style={styles.image}
+                resizeMode="contain"
+              />
             </View>
-          </View>
-        ))}
-      </ScrollView>
-
-      <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing.xl }]}>
-        <View style={styles.pagination}>
-          {SLIDES.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                {
-                  backgroundColor:
-                    index === currentPage
-                      ? Colors.light.primary
-                      : theme.border,
-                  width: index === currentPage ? 24 : 8,
-                },
-              ]}
-            />
           ))}
-        </View>
+        </ScrollView>
 
-        <View style={styles.buttonContainer}>
-          <Pressable
-            onPress={handleSkip}
-            style={({ pressed }) => [
-              styles.skipButton,
-              { opacity: pressed ? 0.7 : 1 },
-            ]}
-            testID="skip-button"
-          >
-            <ThemedText style={[styles.skipText, { color: theme.textSecondary }]}>
-              Skip
-            </ThemedText>
-          </Pressable>
+        <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing.xl }]}>
+          <View style={styles.pagination}>
+            {SLIDES.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  {
+                    backgroundColor:
+                      index === currentPage ? "#FFFFFF" : "rgba(255, 255, 255, 0.5)",
+                    width: index === currentPage ? 24 : 8,
+                  },
+                ]}
+              />
+            ))}
+          </View>
 
-          <Pressable
-            onPress={handleContinue}
-            style={({ pressed }) => [
-              styles.continueButton,
-              { opacity: pressed ? 0.9 : 1, backgroundColor: Colors.light.primary },
-            ]}
-            testID="continue-button"
-          >
-            <ThemedText style={styles.continueText}>
-              {currentPage === SLIDES.length - 1 ? "Get Started" : "Continue"}
-            </ThemedText>
-          </Pressable>
+          <View style={styles.buttonContainer}>
+            <Pressable
+              onPress={handleSkip}
+              style={({ pressed }) => [
+                styles.skipButton,
+                { opacity: pressed ? 0.7 : 1 },
+              ]}
+              testID="skip-button"
+            >
+              <ThemedText style={styles.skipText}>Saltar</ThemedText>
+            </Pressable>
+
+            <Pressable
+              onPress={handleContinue}
+              style={({ pressed }) => [
+                styles.continueButton,
+                { opacity: pressed ? 0.9 : 1, backgroundColor: Colors.light.primary },
+              ]}
+              testID="continue-button"
+            >
+              <ThemedText style={styles.continueText}>
+                {currentPage === SLIDES.length - 1 ? "Comenzar" : "Continuar"}
+              </ThemedText>
+            </Pressable>
+          </View>
         </View>
       </View>
-    </ThemedView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
   scrollView: {
     flex: 1,
@@ -181,24 +168,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
   },
   image: {
-    width: SCREEN_WIDTH * 0.85,
-    height: SCREEN_HEIGHT * 0.4,
-    marginBottom: Spacing["3xl"],
-  },
-  textContainer: {
-    alignItems: "center",
-    paddingHorizontal: Spacing.lg,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: Spacing.md,
-  },
-  description: {
-    fontSize: 16,
-    textAlign: "center",
-    lineHeight: 24,
+    width: SCREEN_WIDTH * 0.9,
+    height: SCREEN_HEIGHT * 0.5,
   },
   footer: {
     paddingHorizontal: Spacing.xl,
@@ -226,6 +197,7 @@ const styles = StyleSheet.create({
   skipText: {
     fontSize: 16,
     fontWeight: "500",
+    color: "#FFFFFF",
   },
   continueButton: {
     paddingVertical: Spacing.md,
