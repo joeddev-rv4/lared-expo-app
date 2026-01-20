@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable } from "react-native";
+import { Pressable, Platform } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
@@ -10,6 +10,8 @@ import { useTheme } from "@/hooks/useTheme";
 import { Spacing } from "@/constants/theme";
 import { ThemedText } from "@/components/ThemedText";
 
+const isWeb = Platform.OS === "web";
+
 export type ExploreStackParamList = {
   Explore: undefined;
 };
@@ -17,6 +19,8 @@ export type ExploreStackParamList = {
 const Stack = createNativeStackNavigator<ExploreStackParamList>();
 
 function HeaderLeftGreeting() {
+  if (isWeb) return null;
+  
   return (
     <ThemedText style={{ fontSize: 20, fontWeight: "700" }}>
       Hola, Ada Lovelace
@@ -27,6 +31,8 @@ function HeaderLeftGreeting() {
 function HeaderRightButtons() {
   const navigation = useNavigation();
   const { theme } = useTheme();
+
+  if (isWeb) return null;
 
   return (
     <>

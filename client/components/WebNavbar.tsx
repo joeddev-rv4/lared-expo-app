@@ -1,11 +1,12 @@
 import React from "react";
-import { View, StyleSheet, Pressable, Image } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { DrawerActions } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
-import { Colors, Spacing, Shadows } from "@/constants/theme";
+import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 
 interface NavItem {
   key: string;
@@ -32,57 +33,57 @@ export function WebNavbar() {
     navigation.navigate(routeName);
   };
 
-  return (
-    <View style={[styles.container, { backgroundColor: theme.backgroundRoot }, Shadows.card]}>
-      <View style={styles.innerContainer}>
-        <Pressable style={styles.logoContainer} onPress={() => handleNavPress("ExploreTab")}>
-          <Image
-            source={require("../../assets/images/icon.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <ThemedText style={styles.logoText}>La Red Inmobiliaria</ThemedText>
-        </Pressable>
+  const handleMenuPress = () => {
+    navigation.dispatch(DrawerActions.openDrawer());
+  };
 
-        <View style={styles.navItems}>
-          {NAV_ITEMS.map((item) => {
-            const isActive = currentRoute === item.route || 
-              (currentRoute === "Explore" && item.route === "ExploreTab");
-            
-            return (
-              <Pressable
-                key={item.key}
-                onPress={() => handleNavPress(item.route)}
-                style={({ pressed }) => [
-                  styles.navItem,
-                  isActive && styles.navItemActive,
-                  { opacity: pressed ? 0.7 : 1 },
-                ]}
-              >
-                <Feather
-                  name={item.icon}
-                  size={20}
-                  color={isActive ? Colors.light.primary : theme.textSecondary}
-                />
-                <ThemedText
-                  style={[
-                    styles.navLabel,
-                    { color: isActive ? Colors.light.primary : theme.textSecondary },
+  return (
+    <View style={[styles.container, { backgroundColor: theme.backgroundSecondary }]}>
+      <View style={styles.innerContainer}>
+        <View style={styles.navMenuContainer}>
+          <View style={styles.navMenu}>
+            {NAV_ITEMS.map((item) => {
+              const isActive = currentRoute === item.route || 
+                (currentRoute === "Explore" && item.route === "ExploreTab");
+              
+              return (
+                <Pressable
+                  key={item.key}
+                  onPress={() => handleNavPress(item.route)}
+                  style={({ pressed }) => [
+                    styles.navItem,
+                    isActive && styles.navItemActive,
+                    { opacity: pressed ? 0.7 : 1 },
                   ]}
                 >
-                  {item.label}
-                </ThemedText>
-              </Pressable>
-            );
-          })}
+                  <Feather
+                    name={item.icon}
+                    size={18}
+                    color={Colors.light.primary}
+                  />
+                  <ThemedText
+                    style={[
+                      styles.navLabel,
+                      isActive && styles.navLabelActive,
+                    ]}
+                  >
+                    {item.label}
+                  </ThemedText>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
 
         <View style={styles.rightSection}>
-          <Pressable style={styles.iconButton}>
-            <Feather name="bell" size={20} color={theme.text} />
+          <Pressable style={[styles.iconButton, { backgroundColor: "#FFFFFF" }]}>
+            <Feather name="bell" size={20} color={Colors.light.primary} />
           </Pressable>
-          <Pressable style={styles.iconButton}>
-            <Feather name="menu" size={20} color={theme.text} />
+          <Pressable 
+            style={[styles.iconButton, { backgroundColor: "#FFFFFF" }]}
+            onPress={handleMenuPress}
+          >
+            <Feather name="menu" size={20} color={Colors.light.primary} />
           </Pressable>
         </View>
       </View>
@@ -106,24 +107,18 @@ const styles = StyleSheet.create({
     marginHorizontal: "auto",
     width: "100%",
   },
-  logoContainer: {
+  navMenuContainer: {
+    flex: 1,
+    alignItems: "center",
+  },
+  navMenu: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.sm,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-  },
-  logoText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.light.primary,
-  },
-  navItems: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.lg,
+    backgroundColor: "#FFFFFF",
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    gap: Spacing.xs,
   },
   navItem: {
     flexDirection: "row",
@@ -131,7 +126,7 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
-    borderRadius: 20,
+    borderRadius: BorderRadius.full,
   },
   navItemActive: {
     backgroundColor: Colors.light.primary + "15",
@@ -139,6 +134,10 @@ const styles = StyleSheet.create({
   navLabel: {
     fontSize: 14,
     fontWeight: "500",
+    color: Colors.light.primary,
+  },
+  navLabelActive: {
+    fontWeight: "600",
   },
   rightSection: {
     flexDirection: "row",
@@ -147,6 +146,6 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: Spacing.sm,
-    borderRadius: 20,
+    borderRadius: BorderRadius.full,
   },
 });
