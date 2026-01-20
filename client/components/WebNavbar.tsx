@@ -27,7 +27,7 @@ const MENU_OPTIONS = [
   { key: "logout", label: "Cerrar sesión", icon: "log-out" as const },
 ];
 
-const HEADER_BG_COLOR = "#F7F7F7";
+const HEADER_BG_COLOR = "#F5F5F5";
 
 export function WebNavbar() {
   const navigation = useNavigation<any>();
