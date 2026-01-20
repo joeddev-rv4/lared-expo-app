@@ -53,6 +53,11 @@ export function WebNavbar() {
     <View style={[styles.container, { backgroundColor: "#FFFFFF", borderBottomColor: "rgba(0,0,0,0.08)" }]}>
       <View style={styles.innerContainer}>
         <Pressable style={styles.logoContainer} onPress={() => handleNavPress("ExploreTab")}>
+          <Image
+            source={require("../../assets/images/icon.png")}
+            style={styles.logoIcon}
+            resizeMode="contain"
+          />
           <ThemedText style={styles.logoText}>La Red Inmobiliaria</ThemedText>
         </Pressable>
 
@@ -153,6 +158,11 @@ const styles = StyleSheet.create({
   logoContainer: {
     flexDirection: "row",
     alignItems: "center",
+    gap: Spacing.sm,
+  },
+  logoIcon: {
+    width: 32,
+    height: 32,
   },
   logoText: {
     fontSize: 18,
