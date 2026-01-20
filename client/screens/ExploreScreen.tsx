@@ -374,7 +374,7 @@ export default function ExploreScreen() {
     </View>
   );
 
-  const renderSectionTitle = (title: string, section: SectionType, showClearButton?: boolean) => (
+  const renderSectionTitle = (title: string, section: SectionType, showClearButton?: boolean, hideArrow?: boolean) => (
     <View style={styles.sectionTitleContainer}>
       <ThemedText style={styles.sectionTitle}>{title}</ThemedText>
       <View style={styles.sectionTitleRight}>
@@ -384,12 +384,14 @@ export default function ExploreScreen() {
             <Feather name="x" size={14} color={Colors.light.primary} />
           </Pressable>
         ) : null}
-        <Pressable 
-          onPress={() => handleExpandSection(section)} 
-          style={styles.expandArrowButton}
-        >
-          <Feather name="chevron-right" size={24} color={Colors.light.primary} />
-        </Pressable>
+        {!hideArrow ? (
+          <Pressable 
+            onPress={() => handleExpandSection(section)} 
+            style={styles.expandArrowButton}
+          >
+            <Feather name="chevron-right" size={24} color={Colors.light.primary} />
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );
@@ -511,7 +513,7 @@ export default function ExploreScreen() {
           {topProperties.map(renderHorizontalPropertyCard)}
         </ScrollView>
 
-        {renderSectionTitle("Todas las propiedades", "all", true)}
+        {renderSectionTitle("Todas las propiedades", "all", true, true)}
         {isWeb ? (
           <View style={styles.webGrid}>
             {filteredProperties.map((item) => (
@@ -755,18 +757,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.lg,
+    ...(isWeb && { display: "grid" as any, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" as any }),
   },
   webGridItem: {
-    width: isWeb ? "23%" : "100%",
+    width: isWeb ? "100%" : "100%",
     minWidth: 280,
   },
   webProjectsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.lg,
+    ...(isWeb && { display: "grid" as any, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" as any }),
   },
   expandedProjectCard: {
-    width: isWeb ? "23%" : "100%",
+    width: "100%",
     minWidth: 280,
     borderRadius: BorderRadius.lg,
     overflow: "hidden" as const,
