@@ -33,6 +33,7 @@ export function WebNavbar() {
   const navigation = useNavigation<any>();
   const route = useRoute();
   const [menuVisible, setMenuVisible] = useState(false);
+  const [sellerHovered, setSellerHovered] = useState(false);
 
   const currentRoute = route.name;
 
@@ -90,8 +91,20 @@ export function WebNavbar() {
           </View>
 
           <View style={styles.rightSection}>
-            <Pressable style={styles.sellerButton}>
-              <ThemedText style={styles.sellerButtonText}>Conviértete en vendedor</ThemedText>
+            <Pressable 
+              style={[
+                styles.sellerButton,
+                sellerHovered && styles.sellerButtonHovered,
+              ]}
+              onHoverIn={() => setSellerHovered(true)}
+              onHoverOut={() => setSellerHovered(false)}
+            >
+              <ThemedText style={[
+                styles.sellerButtonText,
+                sellerHovered && styles.sellerButtonTextHovered,
+              ]}>
+                Conviértete en vendedor
+              </ThemedText>
             </Pressable>
             
             <Pressable style={styles.profileButton}>
@@ -218,11 +231,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: "transparent",
+  },
+  sellerButtonHovered: {
+    backgroundColor: "#4A4A4A",
   },
   sellerButtonText: {
     fontSize: 13,
     fontWeight: "600",
+    color: "#222222",
+  },
+  sellerButtonTextHovered: {
     color: "#FFFFFF",
   },
   profileButton: {
