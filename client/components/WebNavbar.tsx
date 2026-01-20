@@ -1,5 +1,5 @@
-import React from "react";
-import { View, StyleSheet, Pressable } from "react-native";
+import React, { useState } from "react";
+import { View, StyleSheet, Pressable, Image, Modal } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { DrawerActions } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
@@ -11,21 +11,28 @@ import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 interface NavItem {
   key: string;
   label: string;
-  icon: keyof typeof Feather.glyphMap;
   route: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: "explore", label: "Explorar", icon: "search", route: "ExploreTab" },
-  { key: "favorites", label: "Favoritos", icon: "heart", route: "FavoritesTab" },
-  { key: "profile", label: "Mi Perfil", icon: "user", route: "ProfileTab" },
-  { key: "achievements", label: "Mis Logros", icon: "award", route: "AchievementsTab" },
+  { key: "explore", label: "Explorar", route: "ExploreTab" },
+  { key: "favorites", label: "Favoritos", route: "FavoritesTab" },
+  { key: "profile", label: "Mi Perfil", route: "ProfileTab" },
+  { key: "achievements", label: "Mis Logros", route: "AchievementsTab" },
+];
+
+const MENU_OPTIONS = [
+  { key: "notifications", label: "Notificaciones", icon: "bell" as const },
+  { key: "settings", label: "Configuración", icon: "settings" as const },
+  { key: "help", label: "Centro de ayuda", icon: "help-circle" as const },
+  { key: "logout", label: "Cerrar sesión", icon: "log-out" as const },
 ];
 
 export function WebNavbar() {
   const { theme } = useTheme();
   const navigation = useNavigation<any>();
   const route = useRoute();
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const currentRoute = route.name;
 
@@ -33,60 +40,97 @@ export function WebNavbar() {
     navigation.navigate(routeName);
   };
 
-  const handleMenuPress = () => {
-    navigation.dispatch(DrawerActions.openDrawer());
+  const handleMenuOptionPress = (key: string) => {
+    setMenuVisible(false);
+    if (key === "notifications") {
+    } else if (key === "settings") {
+    } else if (key === "help") {
+    } else if (key === "logout") {
+    }
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.backgroundSecondary }]}>
+    <View style={[styles.container, { backgroundColor: "#FFFFFF", borderBottomColor: "rgba(0,0,0,0.08)" }]}>
       <View style={styles.innerContainer}>
-        <View style={styles.navMenuContainer}>
-          <View style={styles.navMenu}>
-            {NAV_ITEMS.map((item) => {
-              const isActive = currentRoute === item.route || 
-                (currentRoute === "Explore" && item.route === "ExploreTab");
-              
-              return (
-                <Pressable
-                  key={item.key}
-                  onPress={() => handleNavPress(item.route)}
-                  style={({ pressed }) => [
-                    styles.navItem,
-                    isActive && styles.navItemActive,
-                    { opacity: pressed ? 0.7 : 1 },
+        <Pressable style={styles.logoContainer} onPress={() => handleNavPress("ExploreTab")}>
+          <ThemedText style={styles.logoText}>La Red Inmobiliaria</ThemedText>
+        </Pressable>
+
+        <View style={styles.navItems}>
+          {NAV_ITEMS.map((item) => {
+            const isActive = currentRoute === item.route || 
+              (currentRoute === "Explore" && item.route === "ExploreTab");
+            
+            return (
+              <Pressable
+                key={item.key}
+                onPress={() => handleNavPress(item.route)}
+                style={({ pressed }) => [
+                  styles.navItem,
+                  { opacity: pressed ? 0.7 : 1 },
+                ]}
+              >
+                <ThemedText
+                  style={[
+                    styles.navLabel,
+                    isActive && styles.navLabelActive,
                   ]}
                 >
-                  <Feather
-                    name={item.icon}
-                    size={18}
-                    color={Colors.light.primary}
-                  />
-                  <ThemedText
-                    style={[
-                      styles.navLabel,
-                      isActive && styles.navLabelActive,
-                    ]}
-                  >
-                    {item.label}
-                  </ThemedText>
-                </Pressable>
-              );
-            })}
-          </View>
+                  {item.label}
+                </ThemedText>
+                {isActive ? <View style={styles.activeIndicator} /> : null}
+              </Pressable>
+            );
+          })}
         </View>
 
         <View style={styles.rightSection}>
-          <Pressable style={[styles.iconButton, { backgroundColor: "#FFFFFF" }]}>
-            <Feather name="bell" size={20} color={Colors.light.primary} />
+          <Pressable style={styles.sellerButton}>
+            <ThemedText style={styles.sellerButtonText}>Conviértete en vendedor</ThemedText>
           </Pressable>
+          
           <Pressable 
-            style={[styles.iconButton, { backgroundColor: "#FFFFFF" }]}
-            onPress={handleMenuPress}
+            style={styles.profileMenuContainer}
+            onPress={() => setMenuVisible(true)}
           >
-            <Feather name="menu" size={20} color={Colors.light.primary} />
+            <Feather name="menu" size={16} color="#222222" style={styles.menuIcon} />
+            <Image
+              source={{ uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" }}
+              style={styles.profileImage}
+            />
           </Pressable>
         </View>
       </View>
+
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay}
+          onPress={() => setMenuVisible(false)}
+        >
+          <View style={styles.dropdownMenu}>
+            {MENU_OPTIONS.map((option, index) => (
+              <Pressable
+                key={option.key}
+                style={({ pressed }) => [
+                  styles.menuOption,
+                  index === 0 && styles.menuOptionFirst,
+                  index === MENU_OPTIONS.length - 1 && styles.menuOptionLast,
+                  { backgroundColor: pressed ? "#F7F7F7" : "#FFFFFF" },
+                ]}
+                onPress={() => handleMenuOptionPress(option.key)}
+              >
+                <Feather name={option.icon} size={16} color="#222222" />
+                <ThemedText style={styles.menuOptionText}>{option.label}</ThemedText>
+              </Pressable>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -95,7 +139,6 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(0,0,0,0.08)",
   },
   innerContainer: {
     flexDirection: "row",
@@ -107,45 +150,113 @@ const styles = StyleSheet.create({
     marginHorizontal: "auto",
     width: "100%",
   },
-  navMenuContainer: {
-    flex: 1,
-    alignItems: "center",
-  },
-  navMenu: {
+  logoContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    gap: Spacing.xs,
+  },
+  logoText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#222222",
+  },
+  navItems: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xl,
   },
   navItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
     paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.full,
-  },
-  navItemActive: {
-    backgroundColor: Colors.light.primary + "15",
+    position: "relative",
   },
   navLabel: {
     fontSize: 14,
     fontWeight: "500",
-    color: Colors.light.primary,
+    color: "#717171",
   },
   navLabelActive: {
+    color: "#222222",
     fontWeight: "600",
+  },
+  activeIndicator: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: "#222222",
+    borderRadius: 1,
   },
   rightSection: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.md,
   },
-  iconButton: {
-    padding: Spacing.sm,
+  sellerButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
+    backgroundColor: Colors.light.primary,
+  },
+  sellerButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  profileMenuContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#DDDDDD",
+    borderRadius: BorderRadius.full,
+    paddingLeft: Spacing.sm,
+    paddingRight: 4,
+    paddingVertical: 4,
+    gap: Spacing.sm,
+  },
+  menuIcon: {
+    marginLeft: 4,
+  },
+  profileImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.1)",
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+    paddingTop: 70,
+    paddingRight: Spacing.xl,
+  },
+  dropdownMenu: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: BorderRadius.md,
+    minWidth: 200,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    overflow: "hidden",
+  },
+  menuOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    gap: Spacing.md,
+  },
+  menuOptionFirst: {
+    paddingTop: Spacing.lg,
+  },
+  menuOptionLast: {
+    paddingBottom: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: "#EBEBEB",
+  },
+  menuOptionText: {
+    fontSize: 14,
+    color: "#222222",
   },
 });
