@@ -82,9 +82,13 @@ export function WebNavbar() {
                 >
                   <View style={styles.navItemContent}>
                     {item.icon ? (
-                      <Image source={item.icon} style={styles.navIcon} resizeMode="contain" />
+                      <Image 
+                        source={item.icon} 
+                        style={isActive ? styles.navIconActive : styles.navIcon} 
+                        resizeMode="contain" 
+                      />
                     ) : item.featherIcon ? (
-                      <Feather name={item.featherIcon as any} size={18} color={isActive ? "#222222" : "#717171"} />
+                      <Feather name={item.featherIcon as any} size={isActive ? 24 : 20} color={isActive ? "#222222" : "#717171"} />
                     ) : null}
                     <ThemedText
                       style={[
@@ -214,11 +218,15 @@ const styles = StyleSheet.create({
   navItemContent: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.xs,
+    gap: Spacing.sm,
   },
   navIcon: {
-    width: 20,
-    height: 20,
+    width: 40,
+    height: 40,
+  },
+  navIconActive: {
+    width: 48,
+    height: 48,
   },
   navLabel: {
     fontSize: 14,
