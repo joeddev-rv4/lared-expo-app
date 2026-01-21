@@ -151,37 +151,20 @@ export default function PropertyDetailScreen() {
             <ThemedText style={styles.shortDescription}>{shortDescription}</ThemedText>
           ) : null}
           
-          <View style={styles.ratingRow}>
-            <Feather name="star" size={14} color="#222222" />
-            <ThemedText style={styles.rating}>
-              {property.rating || "4.85"}
-            </ThemedText>
-            <ThemedText style={styles.reviews}>
-              ({property.reviewCount || Math.floor(Math.random() * 100 + 10)} evaluaciones)
-            </ThemedText>
-            <View style={styles.dot} />
-            <Feather name="award" size={14} color="#222222" />
-            <ThemedText style={styles.superhost}>Superanfitrión</ThemedText>
-          </View>
-
-          <Pressable style={styles.locationRow}>
-            <ThemedText style={styles.location}>{property.location}</ThemedText>
-            <Feather name="chevron-right" size={16} color="#717171" />
-          </Pressable>
-
-          <View style={styles.divider} />
-
-          <View style={styles.hostSection}>
-            <View style={styles.hostInfo}>
-              <ThemedText style={styles.hostTitle}>
-                Propiedad completa alojada por {property.projectName || "Anfitrión"}
-              </ThemedText>
-              <ThemedText style={styles.hostDetails}>
-                {property.bedrooms || 2} habitaciones · {property.bathrooms || 1} baños · {property.area || 80} m²
-              </ThemedText>
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Feather name="share-2" size={14} color="#222222" />
+              <ThemedText style={styles.statText}>10 veces compartida</ThemedText>
             </View>
-            <View style={styles.hostAvatar}>
-              <Feather name="user" size={24} color="#717171" />
+            <ThemedText style={styles.statDot}>·</ThemedText>
+            <View style={styles.statItem}>
+              <Feather name="users" size={14} color="#222222" />
+              <ThemedText style={styles.statText}>2 personas interesadas</ThemedText>
+            </View>
+            <ThemedText style={styles.statDot}>·</ThemedText>
+            <View style={styles.statItem}>
+              <Feather name="star" size={14} color="#222222" />
+              <ThemedText style={styles.statText}>4.5 estrellas</ThemedText>
             </View>
           </View>
 
@@ -260,59 +243,15 @@ export default function PropertyDetailScreen() {
                 </View>
               ))}
             </View>
-            <Pressable style={styles.showAllButton}>
-              <ThemedText style={styles.showAllButtonText}>
-                Mostrar los {amenities.length + 10} servicios
-              </ThemedText>
-            </Pressable>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.locationSection}>
-            <ThemedText style={styles.sectionTitle}>Dónde vas a estar</ThemedText>
-            <View style={styles.mapPlaceholder}>
-              <Feather name="map" size={48} color="#717171" />
-              <ThemedText style={styles.mapPlaceholderText}>{property.location}</ThemedText>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.rulesSection}>
-            <ThemedText style={styles.sectionTitle}>Cosas que debes saber</ThemedText>
-            
-            <Pressable style={styles.ruleItem}>
-              <View>
-                <ThemedText style={styles.ruleTitle}>Normas de la casa</ThemedText>
-                <ThemedText style={styles.ruleDescription}>Llegada después de las 15:00</ThemedText>
-              </View>
-              <Feather name="chevron-right" size={20} color="#222222" />
-            </Pressable>
-
-            <Pressable style={styles.ruleItem}>
-              <View>
-                <ThemedText style={styles.ruleTitle}>Seguridad y propiedad</ThemedText>
-                <ThemedText style={styles.ruleDescription}>Detector de humo</ThemedText>
-              </View>
-              <Feather name="chevron-right" size={20} color="#222222" />
-            </Pressable>
-
-            <Pressable style={styles.ruleItem}>
-              <View>
-                <ThemedText style={styles.ruleTitle}>Política de cancelación</ThemedText>
-                <ThemedText style={styles.ruleDescription}>Cancelación gratuita por 48 horas</ThemedText>
-              </View>
-              <Feather name="chevron-right" size={20} color="#222222" />
-            </Pressable>
           </View>
         </View>
       </ScrollView>
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
-        <View style={styles.priceContainer}>
+        <View style={styles.priceInfoContainer}>
           <ThemedText style={styles.price}>{formatPrice(property.price)}</ThemedText>
-          <ThemedText style={styles.priceLabel}> / noche</ThemedText>
+          <ThemedText style={styles.priceDetail}>Hasta 12 cuotas</ThemedText>
+          <ThemedText style={styles.priceDetail}>Comisión: {formatPrice(Math.round(property.price * 0.02))}</ThemedText>
         </View>
         <Pressable style={styles.reserveButton}>
           <ThemedText style={styles.reserveButtonText}>Comparte y gana</ThemedText>
@@ -430,6 +369,26 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: "#484848",
     marginBottom: 12,
+  },
+  statsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    flexWrap: "wrap",
+  },
+  statItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  statText: {
+    fontSize: 13,
+    color: "#222222",
+  },
+  statDot: {
+    fontSize: 14,
+    color: "#717171",
+    marginHorizontal: 6,
   },
   ratingRow: {
     flexDirection: "row",
@@ -624,6 +583,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "baseline",
   },
+  priceInfoContainer: {
+    flex: 1,
+  },
   price: {
     fontSize: 18,
     fontWeight: "600",
@@ -632,6 +594,10 @@ const styles = StyleSheet.create({
   priceLabel: {
     fontSize: 16,
     color: "#222222",
+  },
+  priceDetail: {
+    fontSize: 12,
+    color: "#717171",
   },
   reserveButton: {
     backgroundColor: "#bf0a0a",
