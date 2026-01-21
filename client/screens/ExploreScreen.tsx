@@ -286,8 +286,8 @@ export default function ExploreScreen() {
           ) : null}
         </Animated.View>
 
-        {!webSearchExpanded && !isMobileWeb ? (
-          <Animated.View style={[styles.webTagsContainer, tagsAnimatedStyle]}>
+        {!isMobileWeb ? (
+          <View style={styles.webTagsContainer}>
             <Pressable style={styles.webTag}>
               <ThemedText style={styles.webTagText}>Propiedades</ThemedText>
             </Pressable>
@@ -297,7 +297,7 @@ export default function ExploreScreen() {
             <Pressable style={styles.webTag}>
               <ThemedText style={styles.webTagText}>Propiedades nuevas</ThemedText>
             </Pressable>
-          </Animated.View>
+          </View>
         ) : null}
       </View>
     </View>
@@ -630,6 +630,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   webSearchHeader: {
+    marginTop: Spacing.xl,
     marginBottom: Spacing.lg,
   },
   webSearchRow: {
