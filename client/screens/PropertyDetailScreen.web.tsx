@@ -91,44 +91,40 @@ export default function PropertyDetailScreenWeb() {
           </View>
         </View>
 
-        <View style={styles.imageGallery}>
-          <Image source={{ uri: property.imageUrl }} style={styles.mainImage} />
-          <View style={styles.imageGrid}>
-            <Image source={{ uri: property.imageUrl }} style={styles.gridImage} />
-            <Image source={{ uri: property.imageUrl }} style={styles.gridImage} />
-            <Image source={{ uri: property.imageUrl }} style={[styles.gridImage, styles.gridImageTopRight]} />
-            <Image source={{ uri: property.imageUrl }} style={[styles.gridImage, styles.gridImageBottomRight]} />
+        <View style={styles.imageGalleryContainer}>
+          <ThemedText style={styles.propertyTitleOverlay}>{property.title}</ThemedText>
+          <View style={styles.imageGallery}>
+            <Image source={{ uri: property.imageUrl }} style={styles.mainImage} />
+            <View style={styles.imageGrid}>
+              <Image source={{ uri: property.imageUrl }} style={styles.gridImage} />
+              <Image source={{ uri: property.imageUrl }} style={styles.gridImage} />
+              <Image source={{ uri: property.imageUrl }} style={[styles.gridImage, styles.gridImageTopRight]} />
+              <Image source={{ uri: property.imageUrl }} style={[styles.gridImage, styles.gridImageBottomRight]} />
+            </View>
+            <Pressable style={styles.showAllPhotosButton}>
+              <Feather name="grid" size={14} color="#222222" />
+              <ThemedText style={styles.showAllPhotosText}>Mostrar todas las fotos</ThemedText>
+            </Pressable>
           </View>
-          <Pressable style={styles.showAllPhotosButton}>
-            <Feather name="grid" size={14} color="#222222" />
-            <ThemedText style={styles.showAllPhotosText}>Mostrar todas las fotos</ThemedText>
-          </Pressable>
+          <ThemedText style={styles.descriptionBelowImages}>{property.description}</ThemedText>
         </View>
 
         <View style={styles.contentContainer}>
           <View style={styles.mainContent}>
-            <ThemedText style={styles.propertyTitle}>{property.title}</ThemedText>
-            
-            <View style={styles.ratingRow}>
-              <Feather name="star" size={14} color="#222222" />
-              <ThemedText style={styles.ratingText}>{property.rating.toFixed(2)}</ThemedText>
-              <ThemedText style={styles.reviewCount}>({property.reviewCount} evaluaciones)</ThemedText>
-              <ThemedText style={styles.locationDot}>·</ThemedText>
-              <Feather name="award" size={14} color="#222222" />
-              <ThemedText style={styles.superhost}>Superanfitrión</ThemedText>
-              <ThemedText style={styles.locationDot}>·</ThemedText>
-              <ThemedText style={styles.location}>{property.location}</ThemedText>
-            </View>
-
-            <View style={styles.divider} />
-
-            <View style={styles.hostSection}>
-              <View style={styles.hostAvatar}>
-                <Feather name="user" size={28} color="#666666" />
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Feather name="share-2" size={16} color="#222222" />
+                <ThemedText style={styles.statText}>10 veces compartida</ThemedText>
               </View>
-              <View style={styles.hostInfo}>
-                <ThemedText style={styles.hostTitle}>Propiedad de {property.projectName}</ThemedText>
-                <ThemedText style={styles.hostSubtitle}>Superanfitrión · 2 años como anfitrión</ThemedText>
+              <ThemedText style={styles.statDot}>·</ThemedText>
+              <View style={styles.statItem}>
+                <Feather name="users" size={16} color="#222222" />
+                <ThemedText style={styles.statText}>2 personas interesadas</ThemedText>
+              </View>
+              <ThemedText style={styles.statDot}>·</ThemedText>
+              <View style={styles.statItem}>
+                <Feather name="star" size={16} color="#222222" />
+                <ThemedText style={styles.statText}>4.5 estrellas</ThemedText>
               </View>
             </View>
 
@@ -416,6 +412,41 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#222222",
     marginBottom: Spacing.sm,
+  },
+  imageGalleryContainer: {
+    paddingHorizontal: Spacing.xl * 2,
+  },
+  propertyTitleOverlay: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#222222",
+    marginBottom: Spacing.md,
+  },
+  descriptionBelowImages: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#484848",
+    marginTop: Spacing.lg,
+  },
+  statsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  statItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+  },
+  statText: {
+    fontSize: 14,
+    color: "#484848",
+  },
+  statDot: {
+    fontSize: 14,
+    color: "#717171",
   },
   ratingRow: {
     flexDirection: "row",
