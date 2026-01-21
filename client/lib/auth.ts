@@ -41,7 +41,7 @@ GoogleSignin.configure({
   offlineAccess: false,
 });
 
-export const loginWithGoogle = async (): Promise<FirestoreUser> => {
+export const loginWithGoogle = async (): Promise<{ user: FirestoreUser; isNewUser: boolean }> => {
   try {
     if (Platform.OS === 'web') {
       // Web implementation using Firebase directly
@@ -55,7 +55,21 @@ export const loginWithGoogle = async (): Promise<FirestoreUser> => {
       const userData = await getUserByEmail<FirestoreUser>(user.email!);
       
       if (!userData) {
-        throw new Error('Cuenta no existe');
+        // Usuario nuevo - crear perfil básico
+        const newUser: FirestoreUser = {
+          id: user.uid,
+          email: user.email!,
+          name: user.displayName || '',
+          phone: '',
+          createdAt: new Date(),
+          status: UserStatus.NOT_VERIFIED,
+          isAdmin: false,
+          isVerifiedBroker: false,
+        };
+        
+        // Crear documento básico en Firestore
+        await setDocument(COLLECTIONS.USERS, user.uid, newUser);
+        return { user: newUser, isNewUser: true };
       }
       
       // Si el usuario existe pero con un UID diferente, actualizar el documento
@@ -63,10 +77,10 @@ export const loginWithGoogle = async (): Promise<FirestoreUser> => {
         // Copiar el usuario existente al nuevo UID de Google
         const updatedUser = { ...userData, id: user.uid };
         await setDocument(COLLECTIONS.USERS, user.uid, updatedUser);
-        return updatedUser;
+        return { user: updatedUser, isNewUser: false };
       }
       
-      return userData;
+      return { user: userData, isNewUser: false };
     } else {
       // Mobile implementation using Google Sign-In
       await GoogleSignin.hasPlayServices();
@@ -84,7 +98,21 @@ export const loginWithGoogle = async (): Promise<FirestoreUser> => {
       const userData = await getUserByEmail<FirestoreUser>(user.email!);
       
       if (!userData) {
-        throw new Error('Cuenta no existe');
+        // Usuario nuevo - crear perfil básico
+        const newUser: FirestoreUser = {
+          id: user.uid,
+          email: user.email!,
+          name: user.displayName || '',
+          phone: '',
+          createdAt: new Date(),
+          status: UserStatus.NOT_VERIFIED,
+          isAdmin: false,
+          isVerifiedBroker: false,
+        };
+        
+        // Crear documento básico en Firestore
+        await setDocument(COLLECTIONS.USERS, user.uid, newUser);
+        return { user: newUser, isNewUser: true };
       }
       
       // Si el usuario existe pero con un UID diferente, actualizar el documento
@@ -92,10 +120,10 @@ export const loginWithGoogle = async (): Promise<FirestoreUser> => {
         // Copiar el usuario existente al nuevo UID de Google
         const updatedUser = { ...userData, id: user.uid };
         await setDocument(COLLECTIONS.USERS, user.uid, updatedUser);
-        return updatedUser;
+        return { user: updatedUser, isNewUser: false };
       }
       
-      return userData;
+      return { user: userData, isNewUser: false };
     }
   } catch (error: any) {
     console.error('Google login error:', error);

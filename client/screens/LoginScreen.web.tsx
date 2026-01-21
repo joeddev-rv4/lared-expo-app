@@ -43,11 +43,13 @@ export default function LoginScreenWeb() {
   const navigation = useNavigation<NavigationProp>();
   const { theme, isDark } = useTheme();
   const [currentPage, setCurrentPage] = useState(0);
-  const [mode, setMode] = useState<'buttons' | 'login' | 'register' | 'register_username' | 'register_phone' | 'verify_phone'>('buttons');
+  const [mode, setMode] = useState<'buttons' | 'login' | 'register' | 'register_username' | 'register_phone' | 'verify_phone' | 'google_phone' | 'google_verify_phone'>('buttons');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
+  const [isFromGoogle, setIsFromGoogle] = useState(false);
+  const [googleUserData, setGoogleUserData] = useState<{ uid: string; email: string; displayName: string } | null>(null);
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [codeColors] = useState([new Animated.Value(0), new Animated.Value(0), new Animated.Value(0), new Animated.Value(0), new Animated.Value(0), new Animated.Value(0)]);
   const codeInputRefs = useRef<(TextInput | null)[]>([null, null, null, null, null, null]);
@@ -75,7 +77,7 @@ export default function LoginScreenWeb() {
   }, [user, navigation, hasAttemptedLogin]);
 
   useEffect(() => {
-    if (mode === 'login' || mode === 'register' || mode === 'register_username' || mode === 'register_phone' || mode === 'verify_phone') {
+    if (mode === 'login' || mode === 'register' || mode === 'register_username' || mode === 'register_phone' || mode === 'verify_phone' || mode === 'google_phone' || mode === 'google_verify_phone') {
       // Animar hacia adentro
       Animated.parallel([
         Animated.timing(formAnim, {
@@ -354,53 +356,606 @@ export default function LoginScreenWeb() {
                   </ThemedText>
                 </Pressable>
 
-              <Pressable
-                onPress={handleGoogleLogin}
-                style={({ pressed }) => [
-                  styles.loginButton,
-                  styles.socialButton,
-                  {
-                    backgroundColor: theme.backgroundRoot,
-                    borderColor: theme.border,
-                    opacity: pressed ? 0.7 : 1,
-                  },
-                  isDark ? null : Shadows.card,
+                <Pressable
+                  onPress={async () => {
+                    try {
+                      const isNewUser = await loginGoogle();
+                      console.log('Login Google completado, isNewUser:', isNewUser);
+                      
+                      // Guardar datos del usuario de Google inmediatamente
+                      const auth = getAuth();
+                      const currentUser = auth.currentUser;
+                      if (currentUser) {
+                        setGoogleUserData({
+                          uid: currentUser.uid,
+                          email: currentUser.email || '',
+                          displayName: currentUser.displayName || ''
+                        });
+                      }
+                      
+                      if (isNewUser) {
+                        // Usuario nuevo, mostrar pantalla de teléfono
+                        setIsFromGoogle(true);
+                        Animated.timing(buttonsAnim, {
+                          toValue: 0,
+                          duration: 200,
+                          useNativeDriver: false,
+                        }).start(() => {
+                          setMode('google_phone');
+                          formAnim.setValue(0);
+                          Animated.timing(formAnim, {
+                            toValue: 1,
+                            duration: 300,
+                            useNativeDriver: false,
+                          }).start();
+                        });
+                      } else {
+                        // Usuario existente, ir a Main
+                        setHasAttemptedLogin(true);
+                        navigation.replace('Main');
+                      }
+                    } catch (error: any) {
+                      if (error.message.includes('credenciales') || error.message.includes('Cuenta no existe')) {
+                        setErrorMessage(error.message);
+                        setShowErrorPopup(true);
+                        setTimeout(() => setShowErrorPopup(false), 3000);
+                      } else {
+                        Alert.alert('Error', error.message || 'Error al iniciar sesión con Google');
+                      }
+                    }
+                  }}
+                  style={({ pressed }) => [
+                    styles.loginButton,
+                    styles.socialButton,
+                    {
+                      backgroundColor: theme.backgroundRoot,
+                      borderColor: theme.border,
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                    isDark ? null : Shadows.card,
+                  ]}
+                >
+                  <FontAwesome name="google" size={20} color="#DB4437" />
+                  <ThemedText style={[styles.socialButtonText, { color: theme.text }]}>
+                    Continue with Google
+                  </ThemedText>
+                </Pressable>
+
+                <Pressable
+                  onPress={async () => {
+                    try {
+                      await loginFacebook();
+                    } catch (error: any) {
+                      if (error.message.includes('credenciales') || error.message.includes('Cuenta no existe')) {
+                        setErrorMessage(error.message);
+                        setShowErrorPopup(true);
+                        setTimeout(() => setShowErrorPopup(false), 3000);
+                      } else {
+                        Alert.alert('Error', error.message || 'Error al iniciar sesión con Facebook');
+                      }
+                    }
+                  }}
+                  style={({ pressed }) => [
+                    styles.loginButton,
+                    {
+                      backgroundColor: "#1877F2",
+                      opacity: pressed ? 0.9 : 1,
+                    },
+                  ]}
+                >
+                  <FontAwesome name="facebook" size={20} color="#FFFFFF" />
+                  <ThemedText style={styles.loginButtonText}>
+                    Continue with Facebook
+                  </ThemedText>
+                </Pressable>
+                <Pressable
+                  onPress={() => Alert.alert('Continuar como invitado', 'Funcionalidad próximamente')}
+                  style={({ pressed }) => [
+                    styles.skipButton,
+                    { opacity: pressed ? 0.7 : 1, borderWidth: 0 },
+                  ]}
+                >
+                  <ThemedText style={[styles.skipText, { color: theme.textSecondary }]}>
+                    Continue as Guest
+                  </ThemedText>
+                </Pressable>
+              </Animated.View>
+            ) : mode === 'login' ? (
+              <Animated.View 
+                style={[
+                  styles.formContainer,
+                  { 
+                    opacity: formAnim,
+                    transform: [{ 
+                      translateX: formAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [50, 0]
+                      })
+                    }]
+                  }
                 ]}
               >
-                <FontAwesome name="google" size={20} color="#DB4437" />
-                <ThemedText style={[styles.socialButtonText, { color: theme.text }]}>
-                  Continue with Google
-                </ThemedText>
-              </Pressable>
-
-              <Pressable
-                onPress={handleFacebookLogin}
-                style={({ pressed }) => [
-                  styles.loginButton,
-                  {
-                    backgroundColor: "#1877F2",
-                    opacity: pressed ? 0.9 : 1,
-                  },
+                <TextInput
+                  style={[styles.input, { 
+                    borderColor: theme.border, 
+                    color: theme.text,
+                    backgroundColor: theme.backgroundDefault 
+                  }]}
+                  placeholder="Email"
+                  placeholderTextColor={theme.textSecondary}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoFocus
+                />
+                <TextInput
+                  style={[styles.input, { 
+                    borderColor: theme.border, 
+                    color: theme.text,
+                    backgroundColor: theme.backgroundDefault 
+                  }]}
+                  placeholder="Contraseña"
+                  placeholderTextColor={theme.textSecondary}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                />
+                <Pressable
+                  onPress={handleSubmit}
+                  disabled={isLoading}
+                  style={({ pressed }) => [
+                    styles.loginButton,
+                    {
+                      backgroundColor: Colors.light.primary,
+                      opacity: pressed ? 0.9 : isLoading ? 0.7 : 1,
+                    },
+                  ]}
+                >
+                  <ThemedText style={styles.loginButtonText}>
+                    {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                  </ThemedText>
+                </Pressable>
+                <View style={styles.formFooter}>
+                  <Pressable
+                    onPress={handleBack}
+                    style={({ pressed }) => [
+                      styles.backButton,
+                      { opacity: pressed ? 0.7 : 1 },
+                    ]}
+                  >
+                    <Feather name="arrow-left" size={20} color={theme.textSecondary} />
+                    <ThemedText style={[styles.backButtonText, { color: theme.textSecondary }]}>
+                      Volver
+                    </ThemedText>
+                  </Pressable>
+                  <Pressable
+                    onPress={handleRegister}
+                    style={({ pressed }) => [
+                      { opacity: pressed ? 0.7 : 1 },
+                    ]}
+                  >
+                    <ThemedText style={[styles.registerText, { color: Colors.light.primary }]}>
+                      Registrarse
+                    </ThemedText>
+                  </Pressable>
+                </View>
+              </Animated.View>
+            ) : mode === 'register' ? (
+              <Animated.View 
+                style={[
+                  styles.registerContainer,
+                  { 
+                    opacity: formAnim,
+                    transform: [{ 
+                      translateX: formAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [50, 0]
+                      })
+                    }]
+                  }
                 ]}
               >
-                <FontAwesome name="facebook" size={20} color="#FFFFFF" />
-                <ThemedText style={styles.loginButtonText}>
-                  Continue with Facebook
+                <ThemedText style={[styles.registerTitle, { color: theme.text }]}>
+                  Ingresa tu email
                 </ThemedText>
-              </Pressable>
-            </View>
-
-            <Pressable
-              onPress={handleSkip}
-              style={({ pressed }) => [
-                styles.skipButton,
-                { opacity: pressed ? 0.7 : 1 },
-              ]}
-            >
-              <ThemedText style={[styles.skipText, { color: theme.textSecondary }]}>
-                Continue as Guest
-              </ThemedText>
-            </Pressable>
+                <TextInput
+                  style={[styles.input, { 
+                    borderColor: theme.border, 
+                    color: theme.text,
+                    backgroundColor: theme.backgroundDefault 
+                  }]}
+                  placeholder="Email"
+                  placeholderTextColor={theme.textSecondary}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoFocus
+                />
+                <Pressable
+                  onPress={handleRegisterNext}
+                  style={({ pressed }) => [
+                    styles.loginButton,
+                    {
+                      backgroundColor: Colors.light.primary,
+                      opacity: pressed ? 0.9 : 1,
+                    },
+                  ]}
+                >
+                  <ThemedText style={styles.loginButtonText}>
+                    Siguiente
+                  </ThemedText>
+                </Pressable>
+                <Pressable
+                  onPress={handleBack}
+                  style={({ pressed }) => [
+                    styles.backButton,
+                    { opacity: pressed ? 0.7 : 1 },
+                  ]}
+                >
+                  <Feather name="arrow-left" size={20} color={theme.textSecondary} />
+                  <ThemedText style={[styles.backButtonText, { color: theme.textSecondary }]}>
+                    Volver
+                  </ThemedText>
+                </Pressable>
+              </Animated.View>
+            ) : mode === 'register_username' ? (
+              <Animated.View 
+                style={[
+                  styles.registerContainer,
+                  { 
+                    opacity: formAnim,
+                    transform: [{ 
+                      translateX: formAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [50, 0]
+                      })
+                    }]
+                  }
+                ]}
+              >
+                <ThemedText style={[styles.registerTitle, { color: theme.text }]}>
+                  Ingresa tu usuario
+                </ThemedText>
+                <TextInput
+                  style={[styles.input, { 
+                    borderColor: theme.border, 
+                    color: theme.text,
+                    backgroundColor: theme.backgroundDefault 
+                  }]}
+                  placeholder="Usuario"
+                  placeholderTextColor={theme.textSecondary}
+                  value={username}
+                  onChangeText={setUsername}
+                  autoCapitalize="none"
+                  autoFocus
+                />
+                <Pressable
+                  onPress={handleUsernameNext}
+                  style={({ pressed }) => [
+                    styles.loginButton,
+                    {
+                      backgroundColor: Colors.light.primary,
+                      opacity: pressed ? 0.9 : 1,
+                    },
+                  ]}
+                >
+                  <ThemedText style={styles.loginButtonText}>
+                    Siguiente
+                  </ThemedText>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    Animated.timing(formAnim, {
+                      toValue: 0,
+                      duration: 200,
+                      useNativeDriver: false,
+                    }).start(() => {
+                      setMode('register');
+                    });
+                  }}
+                  style={({ pressed }) => [
+                    styles.backButton,
+                    { opacity: pressed ? 0.7 : 1 },
+                  ]}
+                >
+                  <Feather name="arrow-left" size={20} color={theme.textSecondary} />
+                  <ThemedText style={[styles.backButtonText, { color: theme.textSecondary }]}>
+                    Volver
+                  </ThemedText>
+                </Pressable>
+              </Animated.View>
+            ) : mode === 'register_phone' ? (
+              <Animated.View 
+                style={[
+                  styles.registerContainer,
+                  { 
+                    opacity: formAnim,
+                    transform: [{ 
+                      translateX: formAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [50, 0]
+                      })
+                    }]
+                  }
+                ]}
+              >
+                <ThemedText style={[styles.registerTitle, { color: theme.text }]}>
+                  Ingresa tu teléfono
+                </ThemedText>
+                <TextInput
+                  style={[styles.input, { 
+                    borderColor: theme.border, 
+                    color: theme.text,
+                    backgroundColor: theme.backgroundDefault 
+                  }]}
+                  placeholder="Teléfono"
+                  placeholderTextColor={theme.textSecondary}
+                  value={phone}
+                  onChangeText={setPhone}
+                  keyboardType="phone-pad"
+                  autoFocus
+                />
+                <View style={styles.buttonRow}>
+                  <Pressable
+                    onPress={() => {
+                      if (!phone.trim()) {
+                        setErrorMessage('Por favor ingresa tu teléfono');
+                        setShowErrorPopup(true);
+                        setTimeout(() => setShowErrorPopup(false), 3000);
+                        return;
+                      }
+                      Animated.timing(formAnim, {
+                        toValue: 0,
+                        duration: 200,
+                        useNativeDriver: false,
+                      }).start(() => {
+                        setMode('verify_phone');
+                        formAnim.setValue(0);
+                        Animated.timing(formAnim, {
+                          toValue: 1,
+                          duration: 300,
+                          useNativeDriver: false,
+                        }).start();
+                      });
+                    }}
+                    style={({ pressed }) => [
+                      styles.loginButton,
+                      {
+                        backgroundColor: Colors.light.primary,
+                        opacity: pressed ? 0.9 : 1,
+                        flex: 1,
+                        marginRight: Spacing.sm,
+                        height: 50,
+                        paddingVertical: 0,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      },
+                    ]}
+                  >
+                    <ThemedText style={styles.loginButtonText}>
+                      Siguiente
+                    </ThemedText>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      // Sin funcionalidad por ahora
+                    }}
+                    style={({ pressed }) => [
+                      styles.skipButton,
+                      {
+                        opacity: pressed ? 0.7 : 1,
+                        flex: 1,
+                        marginLeft: Spacing.sm,
+                        height: 50,
+                        paddingVertical: 0,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderColor: '#cccccc', // Bordes grises
+                      },
+                    ]}
+                  >
+                    <ThemedText style={[styles.skipText, { color: theme.textSecondary, marginTop: 0 }]}>
+                      Saltar
+                    </ThemedText>
+                  </Pressable>
+                </View>
+                <Pressable
+                  onPress={() => {
+                    Animated.timing(formAnim, {
+                      toValue: 0,
+                      duration: 200,
+                      useNativeDriver: false,
+                    }).start(() => {
+                      setMode('register_username');
+                    });
+                  }}
+                  style={({ pressed }) => [
+                    styles.backButton,
+                    { opacity: pressed ? 0.7 : 1 },
+                  ]}
+                >
+                  <Feather name="arrow-left" size={20} color={theme.textSecondary} />
+                  <ThemedText style={[styles.backButtonText, { color: theme.textSecondary }]}>
+                    Volver
+                  </ThemedText>
+                </Pressable>
+              </Animated.View>
+            ) : mode === 'verify_phone' ? (
+              <Animated.View 
+                style={[
+                  styles.registerContainer,
+                  { 
+                    opacity: formAnim,
+                    transform: [{ 
+                      translateX: formAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [50, 0]
+                      })
+                    }]
+                  }
+                ]}
+              >
+                <ThemedText style={[styles.registerTitle, { color: theme.text }]}>
+                  Verifica tu teléfono
+                </ThemedText>
+                <View style={styles.codeContainer}>
+                  {verificationCode.map((digit, index) => {
+                    const borderColor = codeColors[index].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['#cccccc', Colors.light.primary]
+                    });
+                    
+                    return (
+                      <Animated.View key={index} style={[styles.codeSlotWrapper, { borderColor }]}>
+                        <TextInput
+                          ref={(ref) => { codeInputRefs.current[index] = ref; }}
+                          style={[styles.codeSlot, { color: theme.text, outlineStyle: 'none' } as any]}
+                          value={digit}
+                          onChangeText={(text) => {
+                            if (text.length <= 1 && /^[0-9]*$/.test(text)) {
+                              const newCode = [...verificationCode];
+                              newCode[index] = text;
+                              setVerificationCode(newCode);
+                              
+                              if (text) {
+                                Animated.timing(codeColors[index], {
+                                  toValue: 1,
+                                  duration: 200,
+                                  useNativeDriver: false,
+                                }).start();
+                                
+                                // Auto-focus next input
+                                if (index < 5) {
+                                  setTimeout(() => {
+                                    codeInputRefs.current[index + 1]?.focus();
+                                  }, 10);
+                                }
+                              } else {
+                                Animated.timing(codeColors[index], {
+                                  toValue: 0,
+                                  duration: 200,
+                                  useNativeDriver: false,
+                                }).start();
+                              }
+                            }
+                          }}
+                          onKeyPress={(e: any) => {
+                            if (e.nativeEvent.key === 'Backspace' && !digit && index > 0) {
+                              setTimeout(() => {
+                                codeInputRefs.current[index - 1]?.focus();
+                              }, 10);
+                            }
+                          }}
+                          keyboardType="number-pad"
+                          maxLength={1}
+                          autoFocus={index === 0}
+                        />
+                      </Animated.View>
+                    );
+                  })}
+                </View>
+                <Pressable
+                  onPress={async () => {
+                    const code = verificationCode.join('');
+                    if (code.length !== 6) {
+                      setErrorMessage('Por favor ingresa el código completo');
+                      setShowErrorPopup(true);
+                      setTimeout(() => setShowErrorPopup(false), 3000);
+                      return;
+                    }
+                    
+                    try {
+                      // Crear usuario en Firebase Auth
+                      const auth = getAuth();
+                      const tempPassword = `Temp${Date.now()}!`; // Contraseña temporal
+                      await createUserWithEmailAndPassword(auth, email, tempPassword);
+                      
+                      console.log('Usuario creado en Auth, iniciando sesión...');
+                      
+                      // Hacer login para establecer la sesión correctamente
+                      await login(email, tempPassword);
+                      
+                      // Ahora obtener el usuario autenticado
+                      const currentUser = auth.currentUser;
+                      if (!currentUser) {
+                        throw new Error('No se pudo autenticar el usuario');
+                      }
+                      
+                      console.log('Usuario autenticado:', currentUser.uid);
+                      
+                      // Esperar un poco más para asegurar que la sesión esté completamente establecida
+                      await new Promise(resolve => setTimeout(resolve, 1000));
+                      
+                      // Guardar datos adicionales en Firestore con merge
+                      await setDoc(doc(db, 'users', currentUser.uid), {
+                        email: email,
+                        username: username,
+                        phone: phone,
+                        createdAt: new Date().toISOString(),
+                        verificationCode: code,
+                      }, { merge: true });
+                      
+                      console.log('Datos guardados en Firestore correctamente');
+                      
+                      // Redirigir a la página principal
+                      setHasAttemptedLogin(true);
+                      navigation.replace('Main');
+                    } catch (error: any) {
+                      console.error('Error al crear usuario:', error);
+                      let errorMsg = 'Error al crear la cuenta';
+                      if (error.code === 'auth/email-already-in-use') {
+                        errorMsg = 'Este email ya está relacionado a una cuenta';
+                      } else if (error.message) {
+                        errorMsg = error.message;
+                      }
+                      setErrorMessage(errorMsg);
+                      setShowErrorPopup(true);
+                      setTimeout(() => setShowErrorPopup(false), 3000);
+                    }
+                  }}
+                  style={({ pressed }) => [
+                    styles.loginButton,
+                    {
+                      backgroundColor: Colors.light.primary,
+                      opacity: pressed ? 0.9 : 1,
+                      marginTop: Spacing.xl,
+                    },
+                  ]}
+                >
+                  <ThemedText style={styles.loginButtonText}>
+                    Siguiente
+                  </ThemedText>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    Animated.timing(formAnim, {
+                      toValue: 0,
+                      duration: 200,
+                      useNativeDriver: false,
+                    }).start(() => {
+                      setMode('register_phone');
+                      formAnim.setValue(0);
+                      Animated.timing(formAnim, {
+                        toValue: 1,
+                        duration: 300,
+                        useNativeDriver: false,
+                      }).start();
+                    });
+                  }}
+                  style={({ pressed }) => [
+                    styles.backButton,
+                    { opacity: pressed ? 0.7 : 1 },
+                  ]}
+                >
+                  <Feather name="arrow-left" size={20} color={theme.textSecondary} />
+                  <ThemedText style={[styles.backButtonText, { color: theme.textSecondary }]}>
+                    Volver
+                  </ThemedText>
+                </Pressable>
+              </Animated.View>
+            ) : null}
 
             <ThemedText style={[styles.termsText, { color: theme.textSecondary }]}>
               Al continuar, aceptas nuestros{" "}

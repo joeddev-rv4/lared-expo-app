@@ -15,7 +15,7 @@ interface AuthContextType {
   user: FirestoreUser | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginGoogle: () => Promise<void>;
+  loginGoogle: () => Promise<boolean>;
   loginFacebook: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -48,12 +48,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      // DISABLE auto-login completely - only handle explicit login attempts
+      // Mantener la sesión activa si hay un usuario autenticado en Firebase
+      // pero NO navegar automáticamente (auto-login deshabilitado)
       if (firebaseUser) {
-        console.log('Firebase user detected, but ignoring auto-login');
+        console.log('Firebase user detected, maintaining session');
+      } else {
+        // Solo limpiar si no hay usuario autenticado
+        queryClient.setQueryData(['user'], null);
       }
-      // Always set user to null unless explicitly logged in
-      queryClient.setQueryData(['user'], null);
     });
 
     return () => unsubscribe();
@@ -76,17 +78,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const loginGoogle = async () => {
+  const loginGoogle = async (): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const userData = await loginWithGoogle();
+      const result = await loginWithGoogle();
       
-      if (userData.status === UserStatus.BLOCKED) {
+      if (result.user.status === UserStatus.BLOCKED) {
         await logout();
         throw new Error('User is blocked');
       }
-      queryClient.setQueryData(['user'], userData);
-      navigation.navigate('Main' as any);
+      
+      queryClient.setQueryData(['user'], result.user);
+      
+      // Retornar si es usuario nuevo
+      return result.isNewUser;
     } catch (error) {
       throw error;
     } finally {
