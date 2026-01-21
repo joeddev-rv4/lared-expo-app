@@ -34,6 +34,11 @@ export default function PropertyDetailScreenWeb() {
   const [guests, setGuests] = useState("1");
   const [showFullDescription, setShowFullDescription] = useState(false);
 
+  const filteredImages = property?.imagenes
+    ?.filter(img => ["Imagen", "Video", "masterplan"].includes(img.tipo))
+    ?.map(img => img.url) || [];
+  const galleryImages = filteredImages.length > 0 ? filteredImages : [property?.imageUrl || ""];
+
   if (!property) {
     return (
       <View style={[styles.container, { backgroundColor: "#FFFFFF" }]}>
@@ -95,16 +100,16 @@ export default function PropertyDetailScreenWeb() {
         <View style={styles.imageGalleryContainer}>
           <ThemedText style={styles.propertyTitleOverlay}>{property.title}</ThemedText>
           <View style={styles.imageGallery}>
-            <Image source={{ uri: property.imageUrl }} style={styles.mainImage} />
+            <Image source={{ uri: galleryImages[0] || property.imageUrl }} style={styles.mainImage} />
             <View style={styles.imageGrid}>
-              <Image source={{ uri: property.imageUrl }} style={styles.gridImage} />
-              <Image source={{ uri: property.imageUrl }} style={styles.gridImage} />
-              <Image source={{ uri: property.imageUrl }} style={[styles.gridImage, styles.gridImageTopRight]} />
-              <Image source={{ uri: property.imageUrl }} style={[styles.gridImage, styles.gridImageBottomRight]} />
+              <Image source={{ uri: galleryImages[1] || galleryImages[0] || property.imageUrl }} style={styles.gridImage} />
+              <Image source={{ uri: galleryImages[2] || galleryImages[0] || property.imageUrl }} style={styles.gridImage} />
+              <Image source={{ uri: galleryImages[3] || galleryImages[0] || property.imageUrl }} style={[styles.gridImage, styles.gridImageTopRight]} />
+              <Image source={{ uri: galleryImages[4] || galleryImages[0] || property.imageUrl }} style={[styles.gridImage, styles.gridImageBottomRight]} />
             </View>
             <Pressable style={styles.showAllPhotosButton}>
               <Feather name="grid" size={14} color="#222222" />
-              <ThemedText style={styles.showAllPhotosText}>Mostrar todas las fotos</ThemedText>
+              <ThemedText style={styles.showAllPhotosText}>Mostrar todas las fotos ({galleryImages.length})</ThemedText>
             </Pressable>
           </View>
           <ThemedText style={styles.descriptionBelowImages}>{property.descripcionCorta || property.description}</ThemedText>

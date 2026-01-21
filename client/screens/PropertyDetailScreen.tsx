@@ -38,13 +38,10 @@ export default function PropertyDetailScreen() {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  const images = property ? [
-    property.imageUrl,
-    property.imageUrl,
-    property.imageUrl,
-    property.imageUrl,
-    property.imageUrl,
-  ] : [];
+  const filteredImages = property?.imagenes
+    ?.filter(img => ["Imagen", "Video", "masterplan"].includes(img.tipo))
+    ?.map(img => img.url) || [];
+  const images = filteredImages.length > 0 ? filteredImages : [property?.imageUrl || ""];
 
   if (!property) {
     return (

@@ -1,5 +1,11 @@
 import { APIPropiedad } from "@/lib/api";
 
+export interface PropertyImage {
+  tipo: string;
+  url: string;
+  formato: string;
+}
+
 export interface Property {
   id: string;
   title: string;
@@ -14,6 +20,7 @@ export interface Property {
   caracteristicas: string[];
   proyectoCaracteristicas: string[];
   imageUrl: string;
+  imagenes: PropertyImage[];
   bedrooms: number;
   bathrooms: number;
   area: number;
@@ -36,6 +43,12 @@ export function mapAPIPropertyToProperty(apiProp: APIPropiedad): Property {
     ? apiProp.proyecto.caracteristicas.split(",").map((a) => a.trim())
     : [];
 
+  const imagenes: PropertyImage[] = apiProp.imagenes?.map(img => ({
+    tipo: img.tipo,
+    url: img.url,
+    formato: img.formato,
+  })) || [];
+
   return {
     id: apiProp.id.toString(),
     title: apiProp.titulo || `${apiProp.tipo} ${apiProp.propiedad}`,
@@ -50,6 +63,7 @@ export function mapAPIPropertyToProperty(apiProp: APIPropiedad): Property {
     caracteristicas,
     proyectoCaracteristicas,
     imageUrl: firstImage?.url || "https://via.placeholder.com/400x300?text=Sin+Imagen",
+    imagenes,
     bedrooms: apiProp.habitaciones || 0,
     bathrooms: apiProp.baños || 0,
     area: apiProp.area || 0,
