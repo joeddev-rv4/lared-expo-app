@@ -90,7 +90,7 @@ export default function LoginScreen() {
             ]}
             testID="email-login-button"
           >
-            <Ionicons name="mail-outline" size={20} color="#FFFFFF" />
+            <MaterialIcons name="mail-outline" size={20} color="#FFFFFF" />
             <ThemedText style={styles.loginButtonText}>
               Continue with Email
             </ThemedText>

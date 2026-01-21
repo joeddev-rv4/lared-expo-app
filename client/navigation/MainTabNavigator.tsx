@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet, Pressable, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -40,7 +40,7 @@ function AddListingButton({ onPress }: { onPress: () => void }) {
       testID="add-listing-button"
     >
       <View style={styles.fab}>
-        <Ionicons name="add" size={28} color="#FFFFFF" />
+        <MaterialIcons name="add" size={28} color="#FFFFFF" />
       </View>
     </Pressable>
   );
@@ -97,7 +97,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Explorar",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search-outline" size={size} color={color} />
+            <MaterialIcons name="search" size={size} color={color} />
           ),
         }}
       />
@@ -107,7 +107,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Favoritos",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart-outline" size={size} color={color} />
+            <MaterialIcons name="favorite_border" size={size} color={color} />
           ),
         }}
       />
@@ -138,7 +138,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Mi Perfil",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+            <MaterialIcons name="person_outline" size={size} color={color} />
           ),
         }}
       />
@@ -148,7 +148,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Mis Logros",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="trophy-outline" size={size} color={color} />
+            <MaterialIcons name="emoji_events" size={size} color={color} />
           ),
         }}
       />

@@ -3,7 +3,7 @@ import { View, StyleSheet, FlatList } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
 import { EmptyState } from "@/components/EmptyState";
@@ -14,7 +14,7 @@ interface Achievement {
   id: string;
   title: string;
   description: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof MaterialIcons.glyphMap;
   progress: number;
   total: number;
   unlocked: boolean;
@@ -101,7 +101,7 @@ export default function AchievementsScreen() {
             },
           ]}
         >
-          <Ionicons
+          <MaterialIcons
             name={item.icon}
             size={24}
             color={item.unlocked ? "#FFFFFF" : theme.textSecondary}
@@ -145,7 +145,7 @@ export default function AchievementsScreen() {
 
         {item.unlocked ? (
           <View style={styles.unlockedBadge}>
-            <Ionicons name="checkmark-circle-outline" size={24} color={Colors.light.success} />
+            <MaterialIcons name="check_circle_outline" size={24} color={Colors.light.success} />
           </View>
         ) : null}
       </View>
@@ -160,7 +160,7 @@ export default function AchievementsScreen() {
           { backgroundColor: Colors.light.primary + "10" },
         ]}
       >
-        <Ionicons name="ribbon-outline" size={32} color={Colors.light.primary} />
+        <MaterialIcons name="emoji_events" size={32} color={Colors.light.primary} />
         <View style={styles.statsText}>
           <ThemedText style={styles.statsValue}>
             {unlockedCount}/{ACHIEVEMENTS.length}

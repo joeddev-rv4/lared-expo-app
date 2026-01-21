@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -207,14 +207,14 @@ export default function AddListingScreen() {
                 }
                 style={[styles.counterButton, { borderColor: theme.border }]}
               >
-                <Ionicons name="remove" size={18} color={theme.text} />
+                <MaterialIcons name="remove" size={18} color={theme.text} />
               </Pressable>
               <ThemedText style={styles.counterValue}>{bedrooms}</ThemedText>
               <Pressable
                 onPress={() => setBedrooms(String(parseInt(bedrooms) + 1))}
                 style={[styles.counterButton, { borderColor: theme.border }]}
               >
-                <Ionicons name="add" size={18} color={theme.text} />
+                <MaterialIcons name="add" size={18} color={theme.text} />
               </Pressable>
             </View>
           </View>
@@ -230,14 +230,14 @@ export default function AddListingScreen() {
                 }
                 style={[styles.counterButton, { borderColor: theme.border }]}
               >
-                <Ionicons name="remove" size={18} color={theme.text} />
+                <MaterialIcons name="remove" size={18} color={theme.text} />
               </Pressable>
               <ThemedText style={styles.counterValue}>{bathrooms}</ThemedText>
               <Pressable
                 onPress={() => setBathrooms(String(parseInt(bathrooms) + 1))}
                 style={[styles.counterButton, { borderColor: theme.border }]}
               >
-                <Ionicons name="add" size={18} color={theme.text} />
+                <MaterialIcons name="add" size={18} color={theme.text} />
               </Pressable>
             </View>
           </View>
@@ -253,14 +253,14 @@ export default function AddListingScreen() {
                 }
                 style={[styles.counterButton, { borderColor: theme.border }]}
               >
-                <Ionicons name="remove" size={18} color={theme.text} />
+                <MaterialIcons name="remove" size={18} color={theme.text} />
               </Pressable>
               <ThemedText style={styles.counterValue}>{guests}</ThemedText>
               <Pressable
                 onPress={() => setGuests(String(parseInt(guests) + 1))}
                 style={[styles.counterButton, { borderColor: theme.border }]}
               >
-                <Ionicons name="add" size={18} color={theme.text} />
+                <MaterialIcons name="add" size={18} color={theme.text} />
               </Pressable>
             </View>
           </View>

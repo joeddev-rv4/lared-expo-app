@@ -29,7 +29,7 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Haptics from "expo-haptics";
-import { Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 import { PropertyCard } from "@/components/PropertyCard";
@@ -267,7 +267,7 @@ export default function ExploreScreen() {
             onPress={toggleWebSearch}
             style={styles.webSearchButton}
           >
-            <Ionicons name="search-outline" size={20} color="#FFFFFF" />
+            <MaterialIcons name="search" size={20} color="#FFFFFF" />
           </Pressable>
           {webSearchExpanded ? (
             <Animated.View style={[styles.webSearchInputContainer, searchInputAnimatedStyle]}>
@@ -280,7 +280,7 @@ export default function ExploreScreen() {
                 autoFocus
               />
               <Pressable onPress={toggleWebSearch} style={styles.webSearchCloseButton}>
-                <Ionicons name="close" size={18} color="#666666" />
+                <MaterialIcons name="close" size={18} color="#666666" />
               </Pressable>
             </Animated.View>
           ) : null}
@@ -326,7 +326,7 @@ export default function ExploreScreen() {
             {project.nombre_proyecto}
           </ThemedText>
           <View style={styles.projectLocationRow}>
-            <Ionicons name="location-outline" size={12} color={theme.textSecondary} />
+            <MaterialIcons name="location_on" size={12} color={theme.textSecondary} />
             <ThemedText style={[styles.projectLocation, { color: theme.textSecondary }]} numberOfLines={1}>
               {project.ubicacion || project.direccion}
             </ThemedText>
@@ -364,7 +364,7 @@ export default function ExploreScreen() {
             {project.nombre_proyecto}
           </ThemedText>
           <View style={styles.projectLocationRow}>
-            <Ionicons name="location-outline" size={12} color={theme.textSecondary} />
+            <MaterialIcons name="location_on" size={12} color={theme.textSecondary} />
             <ThemedText style={[styles.projectLocation, { color: theme.textSecondary }]} numberOfLines={1}>
               {project.ubicacion || project.direccion}
             </ThemedText>
@@ -398,7 +398,7 @@ export default function ExploreScreen() {
         {showClearButton && selectedProjectId ? (
           <Pressable onPress={() => setSelectedProjectId(null)} style={styles.clearButton}>
             <ThemedText style={styles.clearButtonText}>Ver todos</ThemedText>
-            <Ionicons name="close" size={14} color={Colors.light.primary} />
+            <MaterialIcons name="close" size={14} color={Colors.light.primary} />
           </Pressable>
         ) : null}
         {!hideArrow ? (
@@ -406,7 +406,7 @@ export default function ExploreScreen() {
             onPress={() => handleExpandSection(section)} 
             style={styles.expandArrowButton}
           >
-            <Ionicons name="chevron-forward" size={24} color="#bf0a0a" />
+            <MaterialIcons name="chevron_right" size={24} color="#bf0a0a" />
           </Pressable>
         ) : null}
       </View>
@@ -426,7 +426,7 @@ export default function ExploreScreen() {
   const renderExpandedHeader = () => (
     <View style={styles.expandedHeader}>
       <Pressable onPress={handleBackFromExpanded} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#bf0a0a" />
+        <MaterialIcons name="arrow_back" size={24} color="#bf0a0a" />
       </Pressable>
       <ThemedText style={styles.expandedTitle}>{getSectionTitle(expandedSection)}</ThemedText>
       <View style={styles.backButtonPlaceholder} />

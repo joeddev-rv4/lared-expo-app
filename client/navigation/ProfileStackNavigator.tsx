@@ -6,7 +6,7 @@ import ProfileScreen from "@/screens/ProfileScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { ThemedText } from "@/components/ThemedText";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
-import { Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 
 export type ProfileStackParamList = {
   Profile: undefined;
@@ -44,10 +44,10 @@ export default function ProfileStackNavigator() {
           headerRight: () => (
             <View style={{ flexDirection: 'row', marginRight: 16 }}>
               <Pressable style={{ marginRight: 16 }}>
-                <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+                <MaterialIcons name="notifications_none" size={24} color="#FFFFFF" />
               </Pressable>
               <Pressable>
-                <Ionicons name="menu-outline" size={24} color="#FFFFFF" />
+                <MaterialIcons name="menu" size={24} color="#FFFFFF" />
               </Pressable>
             </View>
           ),

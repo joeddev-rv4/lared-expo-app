@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet, Pressable, Image, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DrawerContentComponentProps } from "@react-navigation/drawer";
-import { Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -10,7 +10,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
 
 interface DrawerMenuItem {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof MaterialIcons.glyphMap;
   label: string;
   onPress: () => void;
 }
@@ -99,7 +99,7 @@ export default function DrawerContent({ navigation }: DrawerContentComponentProp
               },
             ]}
           >
-            <Ionicons name={item.icon} size={22} color={theme.text} />
+            <MaterialIcons name={item.icon} size={22} color={theme.text} />
             <ThemedText style={styles.menuLabel}>{item.label}</ThemedText>
           </Pressable>
         ))}
