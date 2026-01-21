@@ -27,19 +27,16 @@ const NAV_ITEMS: NavItem[] = [
     key: "explore",
     label: "Explorar",
     route: "ExploreTab",
-    icon: require("../../assets/icons/explorar.png"),
   },
   {
     key: "profile",
     label: "Mi Perfil",
     route: "ProfileTab",
-    icon: require("../../assets/icons/mi_perfil.png"),
   },
   {
     key: "achievements",
     label: "Mis Logros",
     route: "AchievementsTab",
-    icon: require("../../assets/icons/mis_logros.png"),
   },
 ];
 
@@ -145,19 +142,6 @@ export function WebNavbar() {
                   ]}
                 >
                   <View style={styles.navItemContent}>
-                    {item.icon ? (
-                      <Image
-                        source={item.icon}
-                        style={isActive ? styles.navIconActive : styles.navIcon}
-                        resizeMode="contain"
-                      />
-                    ) : item.featherIcon ? (
-                      <Feather
-                        name={item.featherIcon as any}
-                        size={isActive ? 24 : 20}
-                        color="#FFFFFF"
-                      />
-                    ) : null}
                     <ThemedText
                       style={[
                         styles.navLabel,
@@ -261,22 +245,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
+    maxWidth: 1280,
+    marginHorizontal: "auto",
     width: "100%",
   },
   logoContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
     height: 62,
     overflow: "visible",
+    paddingTop: 37,
   },
   logoIcon: {
-    width: 124,
-    height: 124,
-    marginTop: -31,
-    marginBottom: -31,
+    width: 300,
+    height: 300,
+    marginVertical: -31,
   },
   navItems: {
     flexDirection: "row",
@@ -291,14 +276,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
-  },
-  navIcon: {
-    width: 40,
-    height: 40,
-  },
-  navIconActive: {
-    width: 48,
-    height: 48,
   },
   navLabel: {
     fontSize: 14,
