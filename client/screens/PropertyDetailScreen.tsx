@@ -11,7 +11,7 @@ import {
   NativeScrollEvent,
   Modal,
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -119,15 +119,15 @@ export default function PropertyDetailScreen() {
           />
           <View style={[styles.floatingHeader, { paddingTop: insets.top + 10 }]}>
             <Pressable onPress={handleBack} style={styles.floatingButton}>
-              <MaterialIcons name="chevron_left" size={24} color="#222222" />
+              <Ionicons name="chevron-back" size={24} color="#222222" />
             </Pressable>
             <View style={styles.floatingHeaderRight}>
               <Pressable onPress={handleShare} style={styles.floatingButton}>
-                <MaterialIcons name="share" size={20} color="#222222" />
+                <Ionicons name="share" size={20} color="#222222" />
               </Pressable>
               <Pressable onPress={handleFavorite} style={styles.floatingButton}>
-                <MaterialIcons 
-                  name="favorite_border" 
+                <Ionicons 
+                  name="heart-outline" 
                   size={20} 
                   color={isFavorite ? Colors.light.primary : "#222222"} 
                 />
@@ -136,7 +136,7 @@ export default function PropertyDetailScreen() {
           </View>
           <View style={styles.paginationContainer}>
             <Pressable style={styles.pagination} onPress={() => setShowGallery(true)}>
-              <MaterialIcons name="grid_view" size={12} color="#FFFFFF" style={{ marginRight: 6 }} />
+              <Ionicons name="grid-outline" size={12} color="#FFFFFF" style={{ marginRight: 6 }} />
               <ThemedText style={styles.paginationText}>
                 {currentImageIndex + 1} / {images.length}
               </ThemedText>
@@ -153,17 +153,17 @@ export default function PropertyDetailScreen() {
           
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <MaterialIcons name="share" size={14} color="#222222" />
+              <Ionicons name="share" size={14} color="#222222" />
               <ThemedText style={styles.statText}>10 veces compartida</ThemedText>
             </View>
             <ThemedText style={styles.statDot}>·</ThemedText>
             <View style={styles.statItem}>
-              <MaterialIcons name="people_outline" size={14} color="#222222" />
+              <Ionicons name="people-outline" size={14} color="#222222" />
               <ThemedText style={styles.statText}>2 personas interesadas</ThemedText>
             </View>
             <ThemedText style={styles.statDot}>·</ThemedText>
             <View style={styles.statItem}>
-              <MaterialIcons name="star_outline" size={14} color="#222222" />
+              <Ionicons name="star-outline" size={14} color="#222222" />
               <ThemedText style={styles.statText}>4.5 estrellas</ThemedText>
             </View>
           </View>
@@ -175,7 +175,7 @@ export default function PropertyDetailScreen() {
               property.caracteristicas.slice(0, 4).map((caracteristica, index) => (
                 <View key={index} style={styles.highlight}>
                   <View style={styles.highlightIcon}>
-                    <MaterialIcons name="check_circle_outline" size={24} color="#222222" />
+                    <Ionicons name="checkmark-circle-outline" size={24} color="#222222" />
                   </View>
                   <View style={styles.highlightContent}>
                     <ThemedText style={styles.highlightTitle}>{caracteristica}</ThemedText>
@@ -186,7 +186,7 @@ export default function PropertyDetailScreen() {
               <>
                 <View style={styles.highlight}>
                   <View style={styles.highlightIcon}>
-                    <MaterialIcons name="home" size={24} color="#222222" />
+                    <Ionicons name="home" size={24} color="#222222" />
                   </View>
                   <View style={styles.highlightContent}>
                     <ThemedText style={styles.highlightTitle}>Propiedad completa</ThemedText>
@@ -198,7 +198,7 @@ export default function PropertyDetailScreen() {
 
                 <View style={styles.highlight}>
                   <View style={styles.highlightIcon}>
-                    <MaterialIcons name="flash_on" size={24} color="#222222" />
+                    <Ionicons name="flash-outline" size={24} color="#222222" />
                   </View>
                   <View style={styles.highlightContent}>
                     <ThemedText style={styles.highlightTitle}>Limpieza mejorada</ThemedText>
@@ -225,7 +225,7 @@ export default function PropertyDetailScreen() {
               <Pressable onPress={() => setShowFullDescription(!showFullDescription)}>
                 <ThemedText style={styles.showMore}>
                   {showFullDescription ? "Mostrar menos" : "Mostrar más"} 
-                  <MaterialIcons name={showFullDescription ? "chevron-up" : "chevron-forward"} size={14} color="#222222" />
+                  <Ionicons name={showFullDescription ? "chevron-up" : "chevron-forward"} size={14} color="#222222" />
                 </ThemedText>
               </Pressable>
             ) : null}
@@ -238,7 +238,7 @@ export default function PropertyDetailScreen() {
             <View style={styles.amenitiesGrid}>
               {amenities.map((amenity, index) => (
                 <View key={index} style={styles.amenityItem}>
-                  <MaterialIcons name={amenity.icon as any} size={24} color="#222222" />
+                  <Ionicons name={amenity.icon as any} size={24} color="#222222" />
                   <ThemedText style={styles.amenityLabel}>{amenity.label}</ThemedText>
                 </View>
               ))}
@@ -266,7 +266,7 @@ export default function PropertyDetailScreen() {
         <View style={[styles.galleryModal, { paddingTop: insets.top }]}>
           <View style={styles.galleryHeader}>
             <Pressable onPress={() => setShowGallery(false)} style={styles.galleryBackButton}>
-              <MaterialIcons name="arrow_back" size={24} color="#222222" />
+              <Ionicons name="arrow-back" size={24} color="#222222" />
             </Pressable>
             <ThemedText style={styles.galleryTitle}>
               {images.length} fotos

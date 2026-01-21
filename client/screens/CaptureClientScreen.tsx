@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -147,9 +147,9 @@ export default function CaptureClientScreen() {
               ]}
             >
               {currentStep > step.id ? (
-                <MaterialIcons name="check" size={16} color="#FFFFFF" />
+                <Ionicons name="check" size={16} color="#FFFFFF" />
               ) : (
-                <MaterialIcons
+                <Ionicons
                   name={step.icon as any}
                   size={16}
                   color={currentStep >= step.id ? "#FFFFFF" : theme.textSecondary}
@@ -213,7 +213,7 @@ export default function CaptureClientScreen() {
             Q{item.precio.toLocaleString()}
           </ThemedText>
         </View>
-        <MaterialIcons name="chevron_right" size={20} color={theme.textSecondary} />
+        <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
       </Pressable>
     );
   };
@@ -231,7 +231,7 @@ export default function CaptureClientScreen() {
           { backgroundColor: theme.backgroundDefault, borderColor: theme.border },
         ]}
       >
-        <MaterialIcons name="search" size={20} color={theme.textSecondary} />
+        <Ionicons name="search-outline" size={20} color={theme.textSecondary} />
         <TextInput
           style={[styles.searchInput, { color: theme.text }]}
           value={searchQuery}
@@ -241,7 +241,7 @@ export default function CaptureClientScreen() {
         />
         {searchQuery.length > 0 && (
           <Pressable onPress={() => setSearchQuery("")}>
-            <MaterialIcons name="close" size={20} color={theme.textSecondary} />
+            <Ionicons name="close" size={20} color={theme.textSecondary} />
           </Pressable>
         )}
       </View>
@@ -255,7 +255,7 @@ export default function CaptureClientScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <MaterialIcons name="archive" size={48} color={theme.textSecondary} />
+            <Ionicons name="archive" size={48} color={theme.textSecondary} />
             <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
               {loading ? "Cargando propiedades..." : "No se encontraron propiedades"}
             </ThemedText>
@@ -389,16 +389,16 @@ export default function CaptureClientScreen() {
             Datos del Cliente
           </ThemedText>
           <View style={styles.summaryRow}>
-            <MaterialIcons name="person_outline" size={18} color={theme.textSecondary} />
+            <Ionicons name="person-outline" size={18} color={theme.textSecondary} />
             <ThemedText style={styles.summaryValue}>{clientName}</ThemedText>
           </View>
           <View style={styles.summaryRow}>
-            <MaterialIcons name="call" size={18} color={theme.textSecondary} />
+            <Ionicons name="call" size={18} color={theme.textSecondary} />
             <ThemedText style={styles.summaryValue}>{clientPhone}</ThemedText>
           </View>
           {clientComment.trim().length > 0 && (
             <View style={styles.summaryRow}>
-              <MaterialIcons name="chat_bubble_outline" size={18} color={theme.textSecondary} />
+              <Ionicons name="chatbox-outline" size={18} color={theme.textSecondary} />
               <ThemedText style={[styles.summaryValue, { flex: 1 }]}>{clientComment}</ThemedText>
             </View>
           )}
@@ -438,7 +438,7 @@ export default function CaptureClientScreen() {
       >
         <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
           <Pressable onPress={() => navigation.goBack()} style={styles.closeButton}>
-            <MaterialIcons name="close" size={24} color={theme.text} />
+            <Ionicons name="close" size={24} color={theme.text} />
           </Pressable>
           <ThemedText style={styles.headerTitle}>Capturar Cliente</ThemedText>
           <View style={styles.closeButton} />

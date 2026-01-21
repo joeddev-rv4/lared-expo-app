@@ -15,7 +15,7 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -34,7 +34,7 @@ import { RootStackParamList } from "@/navigation/RootStackNavigator";
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 interface MenuItem {
-  icon: keyof typeof MaterialIcons.glyphMap;
+  icon: keyof typeof Ionicons.glyphMap;
   label: string;
   value?: string;
   onPress: () => void;
@@ -182,17 +182,17 @@ export default function ProfileScreen() {
             <View style={styles.highlightsContainer}>
               <View style={styles.highlight}>
                 <View style={[styles.highlightCircle, { borderColor: Colors.light.error }]}>
-                  <MaterialIcons name="star" size={24} color={Colors.light.error} />
+                  <Ionicons name="star" size={24} color={Colors.light.error} />
                 </View>
               </View>
               <View style={styles.highlight}>
                 <View style={[styles.highlightCircle, { borderColor: Colors.light.error }]}>
-                  <MaterialIcons name="star" size={24} color={Colors.light.error} />
+                  <Ionicons name="star" size={24} color={Colors.light.error} />
                 </View>
               </View>
               <View style={styles.highlight}>
                 <View style={[styles.highlightCircle, { borderColor: Colors.light.error }]}>
-                  <MaterialIcons name="star" size={24} color={Colors.light.error} />
+                  <Ionicons name="star" size={24} color={Colors.light.error} />
                 </View>
               </View>
             </View>
@@ -213,7 +213,7 @@ export default function ProfileScreen() {
                 onPress={() => setSelectedTab(tab.key)}
                 style={styles.tab}
               >
-                <MaterialIcons
+                <Ionicons
                   name={tab.icon === "grid" ? "grid-outline" : "person-outline"}
                   size={24}
                   color={

@@ -5,7 +5,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -122,7 +122,7 @@ export function PropertyCard({
               style={styles.iconCircle}
               testID={`favorite-button-${property.id}`}
             >
-              <MaterialIcons
+              <Ionicons
                 name={isFavorite ? "heart" : "heart-outline"}
                 size={18}
                 color={isFavorite ? Colors.light.primary : "#333333"}
@@ -136,7 +136,7 @@ export function PropertyCard({
               style={styles.iconCircle}
               testID={`share-button-${property.id}`}
             >
-              <MaterialIcons
+              <Ionicons
                 name="share"
                 size={18}
                 color="#333333"
@@ -164,7 +164,7 @@ export function PropertyCard({
           <ThemedText style={[styles.shareButtonText, { color: "#bf0a0a" }]}>
             COMPARTE Y GANA
           </ThemedText>
-          <MaterialIcons name="chevron_right" size={16} color="#bf0a0a" />
+          <Ionicons name="chevron-forward" size={16} color="#bf0a0a" />
         </Pressable>
       </View>
     </AnimatedPressable>
