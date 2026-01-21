@@ -10,7 +10,7 @@ import {
   Modal,
   useWindowDimensions,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -90,15 +90,15 @@ export default function PropertyDetailScreenWeb() {
       >
         <View style={styles.header}>
           <Pressable onPress={handleBack} style={styles.backButton}>
-            <Feather name="arrow-left" size={20} color="#222222" />
+            <Ionicons name="arrow-back" size={20} color="#222222" />
           </Pressable>
           <View style={styles.headerActions}>
             <Pressable style={styles.headerActionButton}>
-              <Feather name="share" size={18} color="#222222" />
+              <Ionicons name="share-outline" size={18} color="#222222" />
               <ThemedText style={styles.headerActionText}>Compartir</ThemedText>
             </Pressable>
             <Pressable style={styles.headerActionButton}>
-              <Feather name="heart" size={18} color="#222222" />
+              <Ionicons name="heart-outline" size={18} color="#222222" />
               <ThemedText style={styles.headerActionText}>Guardar</ThemedText>
             </Pressable>
           </View>
@@ -117,7 +117,7 @@ export default function PropertyDetailScreenWeb() {
               </View>
             ) : null}
             <Pressable style={[styles.showAllPhotosButton, isMobile && styles.showAllPhotosButtonMobile]} onPress={() => setShowGallery(true)}>
-              <Feather name="grid" size={14} color="#222222" />
+              <Ionicons name="grid-outline" size={14} color="#222222" />
               <ThemedText style={styles.showAllPhotosText}>Mostrar todas las fotos ({galleryImages.length})</ThemedText>
             </Pressable>
           </View>
@@ -128,17 +128,17 @@ export default function PropertyDetailScreenWeb() {
           <View style={[styles.mainContent, isMobile && styles.mainContentMobile]}>
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
-                <Feather name="share-2" size={16} color="#222222" />
+                <Ionicons name="share-social-outline" size={16} color="#222222" />
                 <ThemedText style={styles.statText}>10 veces compartida</ThemedText>
               </View>
               <ThemedText style={styles.statDot}>·</ThemedText>
               <View style={styles.statItem}>
-                <Feather name="users" size={16} color="#222222" />
+                <Ionicons name="people-outline" size={16} color="#222222" />
                 <ThemedText style={styles.statText}>2 personas interesadas</ThemedText>
               </View>
               <ThemedText style={styles.statDot}>·</ThemedText>
               <View style={styles.statItem}>
-                <Feather name="star" size={16} color="#222222" />
+                <Ionicons name="star-outline" size={16} color="#222222" />
                 <ThemedText style={styles.statText}>4.5 estrellas</ThemedText>
               </View>
             </View>
@@ -149,7 +149,7 @@ export default function PropertyDetailScreenWeb() {
               {property.caracteristicas && property.caracteristicas.length > 0 ? (
                 property.caracteristicas.slice(0, 4).map((caracteristica, index) => (
                   <View key={index} style={styles.highlightItem}>
-                    <Feather name="check-circle" size={24} color="#222222" />
+                    <Ionicons name="checkmark-circle-outline" size={24} color="#222222" />
                     <View style={styles.highlightText}>
                       <ThemedText style={styles.highlightTitle}>{caracteristica}</ThemedText>
                     </View>
@@ -158,14 +158,14 @@ export default function PropertyDetailScreenWeb() {
               ) : (
                 <>
                   <View style={styles.highlightItem}>
-                    <Feather name="home" size={24} color="#222222" />
+                    <Ionicons name="home-outline" size={24} color="#222222" />
                     <View style={styles.highlightText}>
                       <ThemedText style={styles.highlightTitle}>Propiedad completa</ThemedText>
                       <ThemedText style={styles.highlightSubtitle}>Tendrás la propiedad solo para ti</ThemedText>
                     </View>
                   </View>
                   <View style={styles.highlightItem}>
-                    <Feather name="check-circle" size={24} color="#222222" />
+                    <Ionicons name="checkmark-circle-outline" size={24} color="#222222" />
                     <View style={styles.highlightText}>
                       <ThemedText style={styles.highlightTitle}>Limpieza mejorada</ThemedText>
                       <ThemedText style={styles.highlightSubtitle}>Este anfitrión sigue el proceso de limpieza</ThemedText>
@@ -190,7 +190,7 @@ export default function PropertyDetailScreenWeb() {
                   <ThemedText style={styles.showMoreText}>
                     {showFullDescription ? "Mostrar menos" : "Mostrar más"}
                   </ThemedText>
-                  <Feather name={showFullDescription ? "chevron-up" : "chevron-right"} size={16} color="#222222" />
+                  <Ionicons name={showFullDescription ? "chevron-up" : "chevron-forward"} size={16} color="#222222" />
                 </Pressable>
               ) : null}
             </View>
@@ -203,22 +203,22 @@ export default function PropertyDetailScreenWeb() {
                 {property.proyectoCaracteristicas && property.proyectoCaracteristicas.length > 0 ? (
                   property.proyectoCaracteristicas.map((caracteristica, index) => (
                     <View key={index} style={styles.amenityItem}>
-                      <Feather name="check" size={24} color="#222222" />
+                      <Ionicons name="checkmark" size={24} color="#222222" />
                       <ThemedText style={styles.amenityText}>{caracteristica}</ThemedText>
                     </View>
                   ))
                 ) : (
                   <>
                     <View style={styles.featureItem}>
-                      <Feather name="layout" size={24} color="#222222" />
+                      <Ionicons name="layers-outline" size={24} color="#222222" />
                       <ThemedText style={styles.featureText}>{property.bedrooms} habitaciones</ThemedText>
                     </View>
                     <View style={styles.featureItem}>
-                      <Feather name="droplet" size={24} color="#222222" />
+                      <Ionicons name="water-outline" size={24} color="#222222" />
                       <ThemedText style={styles.featureText}>{property.bathrooms} baños</ThemedText>
                     </View>
                     <View style={styles.featureItem}>
-                      <Feather name="maximize" size={24} color="#222222" />
+                      <Ionicons name="expand-outline" size={24} color="#222222" />
                       <ThemedText style={styles.featureText}>{property.area} m²</ThemedText>
                     </View>
                   </>
@@ -259,7 +259,7 @@ export default function PropertyDetailScreenWeb() {
         <View style={styles.galleryModal}>
           <View style={styles.galleryHeader}>
             <Pressable onPress={() => setShowGallery(false)} style={styles.galleryBackButton}>
-              <Feather name="arrow-left" size={24} color="#222222" />
+              <Ionicons name="arrow-back" size={24} color="#222222" />
             </Pressable>
             <ThemedText style={styles.galleryTitle}>
               {galleryImages.length} fotos

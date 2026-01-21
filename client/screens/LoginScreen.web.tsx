@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
-import { Feather, FontAwesome } from "@expo/vector-icons";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -164,7 +164,7 @@ export default function LoginScreenWeb() {
                   },
                 ]}
               >
-                <Feather name="mail" size={20} color="#FFFFFF" />
+                <Ionicons name="mail-outline" size={20} color="#FFFFFF" />
                 <ThemedText style={styles.loginButtonText}>
                   Continuar con Email
                 </ThemedText>

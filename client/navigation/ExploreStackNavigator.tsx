@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, Platform } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
-import { Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import ExploreScreen from "@/screens/ExploreScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
@@ -41,13 +41,13 @@ function HeaderRightButtons() {
         hitSlop={8}
         style={{ marginRight: Spacing.lg }}
       >
-        <Text style={{ fontSize: 20 }}>🔔</Text>
+        <Ionicons name="notifications-outline" size={22} color={theme.text} />
       </Pressable>
       <Pressable
         onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
         hitSlop={8}
       >
-        <Text style={{ fontSize: 20 }}>☰</Text>
+        <Ionicons name="menu-outline" size={22} color={theme.text} />
       </Pressable>
     </>
   );

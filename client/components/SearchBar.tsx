@@ -1,6 +1,6 @@
 import React from "react";
 import { View, TextInput, StyleSheet, Pressable, Platform } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
@@ -35,7 +35,7 @@ export function SearchBar({
           isDark ? null : Shadows.card,
         ]}
       >
-        <Feather name="search" size={isWeb ? 18 : 20} color={theme.textSecondary} />
+        <Ionicons name="search-outline" size={isWeb ? 18 : 20} color={theme.textSecondary} />
         <TextInput
           style={[styles.input, isWeb && styles.inputWeb, { color: theme.text }]}
           value={value}
@@ -51,7 +51,7 @@ export function SearchBar({
             hitSlop={8}
             testID="filter-button"
           >
-            <Feather name="sliders" size={isWeb ? 18 : 20} color={theme.text} />
+            <Ionicons name="options-outline" size={isWeb ? 18 : 20} color={theme.text} />
           </Pressable>
         ) : null}
       </View>

@@ -3,7 +3,7 @@ import { View, StyleSheet, Pressable, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
-import { Feather, FontAwesome } from "@expo/vector-icons";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -90,7 +90,7 @@ export default function LoginScreen() {
             ]}
             testID="email-login-button"
           >
-            <Feather name="mail" size={20} color="#FFFFFF" />
+            <Ionicons name="mail-outline" size={20} color="#FFFFFF" />
             <ThemedText style={styles.loginButtonText}>
               Continue with Email
             </ThemedText>

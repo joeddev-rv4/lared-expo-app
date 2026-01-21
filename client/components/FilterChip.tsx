@@ -6,7 +6,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
@@ -16,7 +16,7 @@ interface FilterChipProps {
   label: string;
   isSelected: boolean;
   onPress: () => void;
-  icon?: keyof typeof Feather.glyphMap;
+  icon?: keyof typeof Ionicons.glyphMap;
   emoji?: string;
 }
 
@@ -62,7 +62,7 @@ export function FilterChip({ label, isSelected, onPress, icon, emoji }: FilterCh
           <ThemedText style={styles.emoji}>{emoji}</ThemedText>
         )}
         {icon && (
-          <Feather
+          <Ionicons
             name={icon}
             size={16}
             color={isSelected ? "#FFFFFF" : theme.text}

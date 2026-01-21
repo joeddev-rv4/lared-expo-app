@@ -9,7 +9,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
@@ -205,7 +205,7 @@ export function WebNavbar() {
               style={styles.menuButton}
               onPress={() => setMenuVisible(true)}
             >
-              <Feather name="menu" size={20} color="#222222" />
+              <Ionicons name="menu" size={20} color="#222222" />
             </Pressable>
           </View>
         </View>
@@ -237,7 +237,7 @@ export function WebNavbar() {
                   handleMenuOptionPress(option.key, (option as any).route)
                 }
               >
-                <Feather name={option.icon} size={16} color="#222222" />
+                <Ionicons name={option.icon as keyof typeof Ionicons.glyphMap} size={16} color="#222222" />
                 <ThemedText style={styles.menuOptionText}>
                   {option.label}
                 </ThemedText>

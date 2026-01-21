@@ -6,7 +6,7 @@ import ProfileScreen from "@/screens/ProfileScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { ThemedText } from "@/components/ThemedText";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
-import { Text as RNText } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 export type ProfileStackParamList = {
   Profile: undefined;
@@ -44,10 +44,10 @@ export default function ProfileStackNavigator() {
           headerRight: () => (
             <View style={{ flexDirection: 'row', marginRight: 16 }}>
               <Pressable style={{ marginRight: 16 }}>
-                <RNText style={{ fontSize: 22 }}>🔔</RNText>
+                <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
               </Pressable>
               <Pressable>
-                <RNText style={{ fontSize: 22, color: '#FFFFFF' }}>☰</RNText>
+                <Ionicons name="menu-outline" size={24} color="#FFFFFF" />
               </Pressable>
             </View>
           ),

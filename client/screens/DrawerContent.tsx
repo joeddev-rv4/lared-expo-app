@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet, Pressable, Image, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DrawerContentComponentProps } from "@react-navigation/drawer";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -10,7 +10,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
 
 interface DrawerMenuItem {
-  icon: keyof typeof Feather.glyphMap;
+  icon: keyof typeof Ionicons.glyphMap;
   label: string;
   onPress: () => void;
 }
@@ -21,7 +21,7 @@ export default function DrawerContent({ navigation }: DrawerContentComponentProp
 
   const menuItems: DrawerMenuItem[] = [
     {
-      icon: "map",
+      icon: "map-outline",
       label: "Map View",
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -29,7 +29,7 @@ export default function DrawerContent({ navigation }: DrawerContentComponentProp
       },
     },
     {
-      icon: "calendar",
+      icon: "calendar-outline",
       label: "My Bookings",
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -37,7 +37,7 @@ export default function DrawerContent({ navigation }: DrawerContentComponentProp
       },
     },
     {
-      icon: "message-circle",
+      icon: "chatbubble-outline",
       label: "Messages",
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -45,7 +45,7 @@ export default function DrawerContent({ navigation }: DrawerContentComponentProp
       },
     },
     {
-      icon: "settings",
+      icon: "settings-outline",
       label: "Settings",
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -53,7 +53,7 @@ export default function DrawerContent({ navigation }: DrawerContentComponentProp
       },
     },
     {
-      icon: "info",
+      icon: "information-circle-outline",
       label: "About",
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -99,7 +99,7 @@ export default function DrawerContent({ navigation }: DrawerContentComponentProp
               },
             ]}
           >
-            <Feather name={item.icon} size={22} color={theme.text} />
+            <Ionicons name={item.icon} size={22} color={theme.text} />
             <ThemedText style={styles.menuLabel}>{item.label}</ThemedText>
           </Pressable>
         ))}
@@ -124,24 +124,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: Spacing.xl,
-    paddingBottom: Spacing["2xl"],
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.xl,
+    alignItems: "center",
   },
   logo: {
-    width: 50,
-    height: 50,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     marginBottom: Spacing.md,
-    borderRadius: BorderRadius.sm,
   },
   appName: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "700",
     color: "#FFFFFF",
     marginBottom: Spacing.xs,
   },
   tagline: {
     fontSize: 14,
-    color: "rgba(255,255,255,0.8)",
+    color: "rgba(255, 255, 255, 0.8)",
   },
   menuContainer: {
     flex: 1,
@@ -152,21 +153,24 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: Spacing.lg,
+    paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
-    gap: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    marginHorizontal: Spacing.md,
+    marginVertical: Spacing.xs,
   },
   menuLabel: {
     fontSize: 16,
     fontWeight: "500",
+    marginLeft: Spacing.lg,
   },
   footer: {
-    borderTopWidth: 1,
     paddingTop: Spacing.lg,
     paddingHorizontal: Spacing.xl,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   footerText: {
-    fontSize: 13,
+    fontSize: 12,
     textAlign: "center",
   },
 });

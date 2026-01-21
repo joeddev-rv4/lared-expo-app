@@ -11,7 +11,7 @@ import {
   NativeScrollEvent,
   Modal,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -119,15 +119,15 @@ export default function PropertyDetailScreen() {
           />
           <View style={[styles.floatingHeader, { paddingTop: insets.top + 10 }]}>
             <Pressable onPress={handleBack} style={styles.floatingButton}>
-              <Feather name="chevron-left" size={24} color="#222222" />
+              <Ionicons name="chevron-back" size={24} color="#222222" />
             </Pressable>
             <View style={styles.floatingHeaderRight}>
               <Pressable onPress={handleShare} style={styles.floatingButton}>
-                <Feather name="share" size={20} color="#222222" />
+                <Ionicons name="share-outline" size={20} color="#222222" />
               </Pressable>
               <Pressable onPress={handleFavorite} style={styles.floatingButton}>
-                <Feather 
-                  name="heart" 
+                <Ionicons 
+                  name="heart-outline" 
                   size={20} 
                   color={isFavorite ? Colors.light.primary : "#222222"} 
                 />
@@ -136,7 +136,7 @@ export default function PropertyDetailScreen() {
           </View>
           <View style={styles.paginationContainer}>
             <Pressable style={styles.pagination} onPress={() => setShowGallery(true)}>
-              <Feather name="grid" size={12} color="#FFFFFF" style={{ marginRight: 6 }} />
+              <Ionicons name="grid-outline" size={12} color="#FFFFFF" style={{ marginRight: 6 }} />
               <ThemedText style={styles.paginationText}>
                 {currentImageIndex + 1} / {images.length}
               </ThemedText>
@@ -153,17 +153,17 @@ export default function PropertyDetailScreen() {
           
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <Feather name="share-2" size={14} color="#222222" />
+              <Ionicons name="share-social-outline" size={14} color="#222222" />
               <ThemedText style={styles.statText}>10 veces compartida</ThemedText>
             </View>
             <ThemedText style={styles.statDot}>·</ThemedText>
             <View style={styles.statItem}>
-              <Feather name="users" size={14} color="#222222" />
+              <Ionicons name="people-outline" size={14} color="#222222" />
               <ThemedText style={styles.statText}>2 personas interesadas</ThemedText>
             </View>
             <ThemedText style={styles.statDot}>·</ThemedText>
             <View style={styles.statItem}>
-              <Feather name="star" size={14} color="#222222" />
+              <Ionicons name="star-outline" size={14} color="#222222" />
               <ThemedText style={styles.statText}>4.5 estrellas</ThemedText>
             </View>
           </View>
@@ -175,7 +175,7 @@ export default function PropertyDetailScreen() {
               property.caracteristicas.slice(0, 4).map((caracteristica, index) => (
                 <View key={index} style={styles.highlight}>
                   <View style={styles.highlightIcon}>
-                    <Feather name="check-circle" size={24} color="#222222" />
+                    <Ionicons name="checkmark-circle-outline" size={24} color="#222222" />
                   </View>
                   <View style={styles.highlightContent}>
                     <ThemedText style={styles.highlightTitle}>{caracteristica}</ThemedText>
@@ -186,7 +186,7 @@ export default function PropertyDetailScreen() {
               <>
                 <View style={styles.highlight}>
                   <View style={styles.highlightIcon}>
-                    <Feather name="home" size={24} color="#222222" />
+                    <Ionicons name="home-outline" size={24} color="#222222" />
                   </View>
                   <View style={styles.highlightContent}>
                     <ThemedText style={styles.highlightTitle}>Propiedad completa</ThemedText>
@@ -198,7 +198,7 @@ export default function PropertyDetailScreen() {
 
                 <View style={styles.highlight}>
                   <View style={styles.highlightIcon}>
-                    <Feather name="zap" size={24} color="#222222" />
+                    <Ionicons name="flash-outline" size={24} color="#222222" />
                   </View>
                   <View style={styles.highlightContent}>
                     <ThemedText style={styles.highlightTitle}>Limpieza mejorada</ThemedText>
@@ -225,7 +225,7 @@ export default function PropertyDetailScreen() {
               <Pressable onPress={() => setShowFullDescription(!showFullDescription)}>
                 <ThemedText style={styles.showMore}>
                   {showFullDescription ? "Mostrar menos" : "Mostrar más"} 
-                  <Feather name={showFullDescription ? "chevron-up" : "chevron-right"} size={14} color="#222222" />
+                  <Ionicons name={showFullDescription ? "chevron-up" : "chevron-forward"} size={14} color="#222222" />
                 </ThemedText>
               </Pressable>
             ) : null}
@@ -238,7 +238,7 @@ export default function PropertyDetailScreen() {
             <View style={styles.amenitiesGrid}>
               {amenities.map((amenity, index) => (
                 <View key={index} style={styles.amenityItem}>
-                  <Feather name={amenity.icon as any} size={24} color="#222222" />
+                  <Ionicons name={amenity.icon as any} size={24} color="#222222" />
                   <ThemedText style={styles.amenityLabel}>{amenity.label}</ThemedText>
                 </View>
               ))}
@@ -266,7 +266,7 @@ export default function PropertyDetailScreen() {
         <View style={[styles.galleryModal, { paddingTop: insets.top }]}>
           <View style={styles.galleryHeader}>
             <Pressable onPress={() => setShowGallery(false)} style={styles.galleryBackButton}>
-              <Feather name="arrow-left" size={24} color="#222222" />
+              <Ionicons name="arrow-back" size={24} color="#222222" />
             </Pressable>
             <ThemedText style={styles.galleryTitle}>
               {images.length} fotos

@@ -1,6 +1,7 @@
 import React from "react";
-import { View, StyleSheet, Pressable, Platform, Text } from "react-native";
+import { View, StyleSheet, Pressable, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,7 +13,7 @@ import AchievementsStackNavigator from "@/navigation/AchievementsStackNavigator"
 import AddListingScreen from "@/screens/AddListingScreen";
 import { WebNavbar } from "@/components/WebNavbar";
 import { useTheme } from "@/hooks/useTheme";
-import { Colors, Spacing, Shadows } from "@/constants/theme";
+import { Shadows } from "@/constants/theme";
 
 const isWeb = Platform.OS === "web";
 
@@ -25,20 +26,6 @@ export type MainTabParamList = {
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
-
-interface TabIconProps {
-  symbol: string;
-  color: string;
-  size: number;
-}
-
-function TabIcon({ symbol, color, size }: TabIconProps) {
-  return (
-    <Text style={{ fontSize: size - 4, color, fontWeight: '400' }}>
-      {symbol}
-    </Text>
-  );
-}
 
 function AddListingButton({ onPress }: { onPress: () => void }) {
   const handlePress = () => {
@@ -53,7 +40,7 @@ function AddListingButton({ onPress }: { onPress: () => void }) {
       testID="add-listing-button"
     >
       <View style={styles.fab}>
-        <Text style={styles.fabIcon}>+</Text>
+        <Ionicons name="add" size={28} color="#FFFFFF" />
       </View>
     </Pressable>
   );
@@ -110,7 +97,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Explorar",
           tabBarIcon: ({ color, size }) => (
-            <TabIcon symbol="🔍" color={color} size={size} />
+            <Ionicons name="search-outline" size={size} color={color} />
           ),
         }}
       />
@@ -120,7 +107,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Favoritos",
           tabBarIcon: ({ color, size }) => (
-            <TabIcon symbol="♡" color={color} size={size} />
+            <Ionicons name="heart-outline" size={size} color={color} />
           ),
         }}
       />
@@ -151,7 +138,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Mi Perfil",
           tabBarIcon: ({ color, size }) => (
-            <TabIcon symbol="👤" color={color} size={size} />
+            <Ionicons name="person-outline" size={size} color={color} />
           ),
         }}
       />
@@ -161,7 +148,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Mis Logros",
           tabBarIcon: ({ color, size }) => (
-            <TabIcon symbol="🏆" color={color} size={size} />
+            <Ionicons name="trophy-outline" size={size} color={color} />
           ),
         }}
       />
@@ -187,11 +174,5 @@ const styles = StyleSheet.create({
     backgroundColor: "#bf0a0a",
     alignItems: "center",
     justifyContent: "center",
-  },
-  fabIcon: {
-    fontSize: 32,
-    color: "#FFFFFF",
-    fontWeight: "300",
-    lineHeight: 36,
   },
 });
