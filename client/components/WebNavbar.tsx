@@ -120,9 +120,17 @@ export function WebNavbar() {
         end={{ x: 1, y: 0 }}
         style={styles.topBar}
       >
-        <View style={[styles.innerContainer, isMobile && styles.innerContainerMobile]}>
+        <View
+          style={[
+            styles.innerContainer,
+            isMobile && styles.innerContainerMobile,
+          ]}
+        >
           <Pressable
-            style={[styles.logoContainer, isMobile && styles.logoContainerMobile]}
+            style={[
+              styles.logoContainer,
+              isMobile && styles.logoContainerMobile,
+            ]}
             onPress={() => handleNavPress("ExploreTab")}
           >
             <Image
