@@ -62,6 +62,7 @@ export default function ExploreStackNavigator() {
         name="Explore"
         component={ExploreScreen}
         options={{
+          headerShown: !isWeb,
           headerTitle: "",
           headerLeft: () => <HeaderLeftGreeting />,
           headerRight: () => <HeaderRightButtons />,
