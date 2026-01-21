@@ -415,12 +415,14 @@ const styles = StyleSheet.create({
   },
   imageGalleryContainer: {
     paddingHorizontal: Spacing.xl * 2,
+    marginTop: Spacing.xl,
   },
   propertyTitleOverlay: {
     fontSize: 28,
     fontWeight: "700",
     color: "#222222",
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
+    paddingTop: Spacing.md,
   },
   descriptionBelowImages: {
     fontSize: 16,
