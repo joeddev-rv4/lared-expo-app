@@ -82,20 +82,23 @@ export default function PropertyDetailScreen() {
     }).format(price);
   };
 
-  const amenities = [
-    { icon: "wifi", label: "WiFi" },
-    { icon: "wind", label: "Aire acondicionado" },
-    { icon: "tv", label: "TV" },
-    { icon: "coffee", label: "Cocina" },
-    { icon: "truck", label: "Estacionamiento" },
-    { icon: "droplet", label: "Piscina" },
-  ];
+  const amenities = property.proyectoCaracteristicas && property.proyectoCaracteristicas.length > 0
+    ? property.proyectoCaracteristicas.map(c => ({ icon: "check", label: c }))
+    : [
+        { icon: "wifi", label: "WiFi" },
+        { icon: "wind", label: "Aire acondicionado" },
+        { icon: "tv", label: "TV" },
+        { icon: "coffee", label: "Cocina" },
+        { icon: "truck", label: "Estacionamiento" },
+        { icon: "droplet", label: "Piscina" },
+      ];
 
   const renderImageItem = ({ item }: { item: string }) => (
     <Image source={{ uri: item }} style={styles.carouselImage} />
   );
 
-  const description = property.description || "Esta hermosa propiedad ofrece un espacio cómodo y moderno en una ubicación privilegiada. Disfruta de todas las comodidades que necesitas para una estancia perfecta, ya sea para vacaciones, trabajo o una escapada de fin de semana. El espacio está completamente equipado y listo para recibirte.";
+  const shortDescription = property.descripcionCorta || property.description || "";
+  const fullDescription = property.descripcionLarga || property.description || "Esta hermosa propiedad ofrece un espacio cómodo y moderno en una ubicación privilegiada.";
 
   return (
     <View style={[styles.container, { backgroundColor: "#FFFFFF" }]}>
@@ -144,6 +147,10 @@ export default function PropertyDetailScreen() {
         <View style={styles.content}>
           <ThemedText style={styles.title}>{property.title}</ThemedText>
           
+          {shortDescription ? (
+            <ThemedText style={styles.shortDescription}>{shortDescription}</ThemedText>
+          ) : null}
+          
           <View style={styles.ratingRow}>
             <Feather name="star" size={14} color="#222222" />
             <ThemedText style={styles.rating}>
@@ -181,70 +188,64 @@ export default function PropertyDetailScreen() {
           <View style={styles.divider} />
 
           <View style={styles.highlightsSection}>
-            <View style={styles.highlight}>
-              <View style={styles.highlightIcon}>
-                <Feather name="home" size={24} color="#222222" />
-              </View>
-              <View style={styles.highlightContent}>
-                <ThemedText style={styles.highlightTitle}>Propiedad completa</ThemedText>
-                <ThemedText style={styles.highlightDescription}>
-                  Tendrás la propiedad solo para ti
-                </ThemedText>
-              </View>
-            </View>
+            {property.caracteristicas && property.caracteristicas.length > 0 ? (
+              property.caracteristicas.slice(0, 4).map((caracteristica, index) => (
+                <View key={index} style={styles.highlight}>
+                  <View style={styles.highlightIcon}>
+                    <Feather name="check-circle" size={24} color="#222222" />
+                  </View>
+                  <View style={styles.highlightContent}>
+                    <ThemedText style={styles.highlightTitle}>{caracteristica}</ThemedText>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <>
+                <View style={styles.highlight}>
+                  <View style={styles.highlightIcon}>
+                    <Feather name="home" size={24} color="#222222" />
+                  </View>
+                  <View style={styles.highlightContent}>
+                    <ThemedText style={styles.highlightTitle}>Propiedad completa</ThemedText>
+                    <ThemedText style={styles.highlightDescription}>
+                      Tendrás la propiedad solo para ti
+                    </ThemedText>
+                  </View>
+                </View>
 
-            <View style={styles.highlight}>
-              <View style={styles.highlightIcon}>
-                <Feather name="zap" size={24} color="#222222" />
-              </View>
-              <View style={styles.highlightContent}>
-                <ThemedText style={styles.highlightTitle}>Limpieza mejorada</ThemedText>
-                <ThemedText style={styles.highlightDescription}>
-                  Este anfitrión sigue el proceso de limpieza avanzada
-                </ThemedText>
-              </View>
-            </View>
-
-            <View style={styles.highlight}>
-              <View style={styles.highlightIcon}>
-                <Feather name="map-pin" size={24} color="#222222" />
-              </View>
-              <View style={styles.highlightContent}>
-                <ThemedText style={styles.highlightTitle}>Excelente ubicación</ThemedText>
-                <ThemedText style={styles.highlightDescription}>
-                  El 95% de los huéspedes recientes calificaron la ubicación con 5 estrellas
-                </ThemedText>
-              </View>
-            </View>
-
-            <View style={styles.highlight}>
-              <View style={styles.highlightIcon}>
-                <Feather name="calendar" size={24} color="#222222" />
-              </View>
-              <View style={styles.highlightContent}>
-                <ThemedText style={styles.highlightTitle}>Cancelación gratuita por 48 horas</ThemedText>
-                <ThemedText style={styles.highlightDescription}>
-                  Obtén un reembolso completo si cambias de opinión
-                </ThemedText>
-              </View>
-            </View>
+                <View style={styles.highlight}>
+                  <View style={styles.highlightIcon}>
+                    <Feather name="zap" size={24} color="#222222" />
+                  </View>
+                  <View style={styles.highlightContent}>
+                    <ThemedText style={styles.highlightTitle}>Limpieza mejorada</ThemedText>
+                    <ThemedText style={styles.highlightDescription}>
+                      Este anfitrión sigue el proceso de limpieza avanzada
+                    </ThemedText>
+                  </View>
+                </View>
+              </>
+            )}
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.descriptionSection}>
+            <ThemedText style={styles.sectionTitle}>Acerca de este espacio</ThemedText>
             <ThemedText 
               style={styles.description}
               numberOfLines={showFullDescription ? undefined : 4}
             >
-              {description}
+              {fullDescription}
             </ThemedText>
-            <Pressable onPress={() => setShowFullDescription(!showFullDescription)}>
-              <ThemedText style={styles.showMore}>
-                {showFullDescription ? "Mostrar menos" : "Mostrar más"} 
-                <Feather name={showFullDescription ? "chevron-up" : "chevron-right"} size={14} color="#222222" />
-              </ThemedText>
-            </Pressable>
+            {fullDescription.length > 200 ? (
+              <Pressable onPress={() => setShowFullDescription(!showFullDescription)}>
+                <ThemedText style={styles.showMore}>
+                  {showFullDescription ? "Mostrar menos" : "Mostrar más"} 
+                  <Feather name={showFullDescription ? "chevron-up" : "chevron-right"} size={14} color="#222222" />
+                </ThemedText>
+              </Pressable>
+            ) : null}
           </View>
 
           <View style={styles.divider} />
@@ -387,6 +388,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#222222",
     marginBottom: 8,
+  },
+  shortDescription: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#484848",
+    marginBottom: 12,
   },
   ratingRow: {
     flexDirection: "row",
