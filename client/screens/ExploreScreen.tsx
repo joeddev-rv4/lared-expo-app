@@ -599,7 +599,7 @@ export default function ExploreScreen() {
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: isWeb ? Spacing.md : headerHeight + Spacing.lg,
+            paddingTop: isWeb ? headerHeight : headerHeight + Spacing.lg,
             paddingBottom: isWeb ? Spacing.xl : tabBarHeight + Spacing.xl,
           },
         ]}
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   webSearchHeader: {
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.lg,
   },
   webSearchRow: {
     flexDirection: "row",
