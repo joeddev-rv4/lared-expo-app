@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet, Pressable, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 
@@ -39,7 +39,7 @@ function AddListingButton({ onPress }: { onPress: () => void }) {
       testID="add-listing-button"
     >
       <View style={styles.fab}>
-        <MaterialCommunityIcons name="plus" size={28} color="#FFFFFF" />
+        <Ionicons name="add" size={28} color="#FFFFFF" />
       </View>
     </Pressable>
   );
@@ -91,7 +91,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Explorar",
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="magnify" size={size} color={color} />
+            <Ionicons name="search-outline" size={size} color={color} />
           ),
         }}
       />
@@ -101,7 +101,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Favoritos",
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="heart-outline" size={size} color={color} />
+            <Ionicons name="heart-outline" size={size} color={color} />
           ),
         }}
       />
@@ -132,7 +132,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Mi Perfil",
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="account-outline" size={size} color={color} />
+            <Ionicons name="person-outline" size={size} color={color} />
           ),
         }}
       />
@@ -142,7 +142,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Mis Logros",
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="trophy-outline" size={size} color={color} />
+            <Ionicons name="trophy-outline" size={size} color={color} />
           ),
         }}
       />
