@@ -54,7 +54,7 @@ export default function MainTabNavigator() {
       <Tab.Navigator
         initialRouteName="ExploreTab"
         screenOptions={{
-          tabBarActiveTintColor: Colors.light.primary,
+          tabBarActiveTintColor: "#bf0a0a",
           tabBarInactiveTintColor: theme.tabIconDefault,
           tabBarStyle: isWeb
             ? { display: "none" }
