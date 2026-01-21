@@ -224,77 +224,11 @@ export default function PropertyDetailScreenWeb() {
             <View style={styles.bookingCardInner}>
               <View style={styles.priceRow}>
                 <ThemedText style={styles.priceAmount}>{formatPrice(property.price)}</ThemedText>
-                <ThemedText style={styles.priceUnit}>{property.priceUnit}</ThemedText>
-              </View>
-              
-              <View style={styles.ratingRowSmall}>
-                <Feather name="star" size={12} color="#222222" />
-                <ThemedText style={styles.ratingTextSmall}>{property.rating.toFixed(2)}</ThemedText>
-                <ThemedText style={styles.reviewCountSmall}>({property.reviewCount} evaluaciones)</ThemedText>
-              </View>
-
-              <View style={styles.bookingForm}>
-                <View style={styles.dateInputRow}>
-                  <View style={[styles.dateInput, styles.dateInputLeft]}>
-                    <ThemedText style={styles.dateInputLabel}>LLEGADA</ThemedText>
-                    <TextInput
-                      style={styles.dateInputField}
-                      placeholder="Agregar fecha"
-                      placeholderTextColor="#717171"
-                      value={checkIn}
-                      onChangeText={setCheckIn}
-                    />
-                  </View>
-                  <View style={[styles.dateInput, styles.dateInputRight]}>
-                    <ThemedText style={styles.dateInputLabel}>SALIDA</ThemedText>
-                    <TextInput
-                      style={styles.dateInputField}
-                      placeholder="Agregar fecha"
-                      placeholderTextColor="#717171"
-                      value={checkOut}
-                      onChangeText={setCheckOut}
-                    />
-                  </View>
-                </View>
-                <View style={styles.guestsInput}>
-                  <ThemedText style={styles.dateInputLabel}>HUÉSPEDES</ThemedText>
-                  <TextInput
-                    style={styles.dateInputField}
-                    placeholder="1 huésped"
-                    placeholderTextColor="#717171"
-                    value={guests}
-                    onChangeText={setGuests}
-                  />
-                </View>
               </View>
 
               <Pressable style={styles.reserveButton}>
                 <ThemedText style={styles.reserveButtonText}>Reservar</ThemedText>
               </Pressable>
-
-              <ThemedText style={styles.noChargeText}>No se hará ningún cargo por el momento</ThemedText>
-
-              <View style={styles.priceBreakdown}>
-                <View style={styles.priceBreakdownRow}>
-                  <ThemedText style={styles.priceBreakdownLabel}>{formatPrice(property.price)} x 5 noches</ThemedText>
-                  <ThemedText style={styles.priceBreakdownValue}>{formatPrice(property.price * 5)}</ThemedText>
-                </View>
-                <View style={styles.priceBreakdownRow}>
-                  <ThemedText style={styles.priceBreakdownLabel}>Tarifa de limpieza</ThemedText>
-                  <ThemedText style={styles.priceBreakdownValue}>{formatPrice(500)}</ThemedText>
-                </View>
-                <View style={styles.priceBreakdownRow}>
-                  <ThemedText style={styles.priceBreakdownLabel}>Tarifa de servicio</ThemedText>
-                  <ThemedText style={styles.priceBreakdownValue}>{formatPrice(Math.round(property.price * 0.14))}</ThemedText>
-                </View>
-              </View>
-
-              <View style={styles.totalRow}>
-                <ThemedText style={styles.totalLabel}>Total</ThemedText>
-                <ThemedText style={styles.totalValue}>
-                  {formatPrice(property.price * 5 + 500 + Math.round(property.price * 0.14))}
-                </ThemedText>
-              </View>
             </View>
           </View>
         </View>
