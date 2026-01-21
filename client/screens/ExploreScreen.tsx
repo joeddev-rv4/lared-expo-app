@@ -394,7 +394,7 @@ export default function ExploreScreen() {
             onPress={() => handleExpandSection(section)} 
             style={styles.expandArrowButton}
           >
-            <Feather name="chevron-right" size={24} color={Colors.light.primary} />
+            <Feather name="chevron-right" size={24} color="#bf0a0a" />
           </Pressable>
         ) : null}
       </View>
@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
   },
   webSearchButtonContainer: {
     height: 48,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: "#bf0a0a",
     borderRadius: BorderRadius.full,
     flexDirection: "row",
     alignItems: "center",
@@ -697,7 +697,7 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Colors.light.primary + "15",
+    backgroundColor: "#bf0a0a15",
     borderRadius: BorderRadius.full,
   },
   clearButton: {
