@@ -8,6 +8,7 @@ import {
   Dimensions,
   TextInput,
   Modal,
+  useWindowDimensions,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -29,6 +30,10 @@ export default function PropertyDetailScreenWeb() {
   const route = useRoute<PropertyDetailRouteProp>();
   const { theme } = useTheme();
   const property = route.params?.property as Property;
+  const { width } = useWindowDimensions();
+
+  const isMobile = width < 768;
+  const isTablet = width >= 768 && width < 1024;
 
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
@@ -99,17 +104,19 @@ export default function PropertyDetailScreenWeb() {
           </View>
         </View>
 
-        <View style={styles.imageGalleryContainer}>
-          <ThemedText style={styles.propertyTitleOverlay}>{property.title}</ThemedText>
-          <View style={styles.imageGallery}>
-            <Image source={{ uri: galleryImages[0] || property.imageUrl }} style={styles.mainImage} />
-            <View style={styles.imageGrid}>
-              <Image source={{ uri: galleryImages[1] || galleryImages[0] || property.imageUrl }} style={styles.gridImage} />
-              <Image source={{ uri: galleryImages[2] || galleryImages[0] || property.imageUrl }} style={styles.gridImage} />
-              <Image source={{ uri: galleryImages[3] || galleryImages[0] || property.imageUrl }} style={[styles.gridImage, styles.gridImageTopRight]} />
-              <Image source={{ uri: galleryImages[4] || galleryImages[0] || property.imageUrl }} style={[styles.gridImage, styles.gridImageBottomRight]} />
-            </View>
-            <Pressable style={styles.showAllPhotosButton} onPress={() => setShowGallery(true)}>
+        <View style={[styles.imageGalleryContainer, isMobile && styles.imageGalleryContainerMobile]}>
+          <ThemedText style={[styles.propertyTitleOverlay, isMobile && styles.propertyTitleOverlayMobile]}>{property.title}</ThemedText>
+          <View style={[styles.imageGallery, isMobile && styles.imageGalleryMobile]}>
+            <Image source={{ uri: galleryImages[0] || property.imageUrl }} style={[styles.mainImage, isMobile && styles.mainImageMobile]} />
+            {!isMobile ? (
+              <View style={styles.imageGrid}>
+                <Image source={{ uri: galleryImages[1] || galleryImages[0] || property.imageUrl }} style={styles.gridImage} />
+                <Image source={{ uri: galleryImages[2] || galleryImages[0] || property.imageUrl }} style={styles.gridImage} />
+                <Image source={{ uri: galleryImages[3] || galleryImages[0] || property.imageUrl }} style={[styles.gridImage, styles.gridImageTopRight]} />
+                <Image source={{ uri: galleryImages[4] || galleryImages[0] || property.imageUrl }} style={[styles.gridImage, styles.gridImageBottomRight]} />
+              </View>
+            ) : null}
+            <Pressable style={[styles.showAllPhotosButton, isMobile && styles.showAllPhotosButtonMobile]} onPress={() => setShowGallery(true)}>
               <Feather name="grid" size={14} color="#222222" />
               <ThemedText style={styles.showAllPhotosText}>Mostrar todas las fotos ({galleryImages.length})</ThemedText>
             </Pressable>
@@ -117,8 +124,8 @@ export default function PropertyDetailScreenWeb() {
           <ThemedText style={styles.descriptionBelowImages}>{property.descripcionCorta || property.description}</ThemedText>
         </View>
 
-        <View style={styles.contentContainer}>
-          <View style={styles.mainContent}>
+        <View style={[styles.contentContainer, isMobile && styles.contentContainerMobile]}>
+          <View style={[styles.mainContent, isMobile && styles.mainContentMobile]}>
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
                 <Feather name="share-2" size={16} color="#222222" />
@@ -220,7 +227,7 @@ export default function PropertyDetailScreenWeb() {
             </View>
           </View>
 
-          <View style={styles.bookingCard}>
+          <View style={[styles.bookingCard, isMobile && styles.bookingCardMobile]}>
             <View style={styles.bookingCardInner}>
               <View style={styles.priceRow}>
                 <ThemedText style={styles.priceAmount}>{formatPrice(property.price)}</ThemedText>
@@ -783,5 +790,39 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
     fontSize: 14,
     color: "#717171",
+  },
+  imageGalleryContainerMobile: {
+    paddingHorizontal: Spacing.md,
+  },
+  propertyTitleOverlayMobile: {
+    fontSize: 22,
+  },
+  imageGalleryMobile: {
+    flexDirection: "column",
+  },
+  mainImageMobile: {
+    width: "100%",
+    height: 250,
+    borderRadius: BorderRadius.lg,
+  },
+  showAllPhotosButtonMobile: {
+    position: "relative",
+    bottom: 0,
+    right: 0,
+    marginTop: Spacing.md,
+    alignSelf: "center",
+  },
+  contentContainerMobile: {
+    flexDirection: "column",
+    paddingHorizontal: Spacing.md,
+    gap: Spacing.lg,
+  },
+  mainContentMobile: {
+    maxWidth: "100%",
+  },
+  bookingCardMobile: {
+    position: "relative",
+    top: 0,
+    width: "100%",
   },
 });
