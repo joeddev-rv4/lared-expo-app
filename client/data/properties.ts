@@ -9,6 +9,10 @@ export interface Property {
   rating: number;
   reviewCount: number;
   description: string;
+  descripcionCorta: string;
+  descripcionLarga: string;
+  caracteristicas: string[];
+  proyectoCaracteristicas: string[];
   imageUrl: string;
   bedrooms: number;
   bathrooms: number;
@@ -25,6 +29,12 @@ export function mapAPIPropertyToProperty(apiProp: APIPropiedad): Property {
   const amenities = apiProp.caracteristicas
     ? apiProp.caracteristicas.split(",").map((a) => a.trim())
     : [];
+  const caracteristicas = apiProp.caracteristicas
+    ? apiProp.caracteristicas.split(",").map((a) => a.trim())
+    : [];
+  const proyectoCaracteristicas = apiProp.proyecto?.caracteristicas
+    ? apiProp.proyecto.caracteristicas.split(",").map((a) => a.trim())
+    : [];
 
   return {
     id: apiProp.id.toString(),
@@ -35,6 +45,10 @@ export function mapAPIPropertyToProperty(apiProp: APIPropiedad): Property {
     rating: 0,
     reviewCount: 0,
     description: apiProp.descripcion || apiProp.descripcion_corta || "",
+    descripcionCorta: apiProp.descripcion_corta || "",
+    descripcionLarga: apiProp.descripcion || "",
+    caracteristicas,
+    proyectoCaracteristicas,
     imageUrl: firstImage?.url || "https://via.placeholder.com/400x300?text=Sin+Imagen",
     bedrooms: apiProp.habitaciones || 0,
     bathrooms: apiProp.baños || 0,
