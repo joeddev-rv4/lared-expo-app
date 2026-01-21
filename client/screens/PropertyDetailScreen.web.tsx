@@ -32,6 +32,7 @@ export default function PropertyDetailScreenWeb() {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("1");
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   if (!property) {
     return (
@@ -106,7 +107,7 @@ export default function PropertyDetailScreenWeb() {
               <ThemedText style={styles.showAllPhotosText}>Mostrar todas las fotos</ThemedText>
             </Pressable>
           </View>
-          <ThemedText style={styles.descriptionBelowImages}>{property.description}</ThemedText>
+          <ThemedText style={styles.descriptionBelowImages}>{property.descripcionCorta || property.description}</ThemedText>
         </View>
 
         <View style={styles.contentContainer}>
@@ -131,90 +132,84 @@ export default function PropertyDetailScreenWeb() {
             <View style={styles.divider} />
 
             <View style={styles.highlightsSection}>
-              <View style={styles.highlightItem}>
-                <Feather name="home" size={24} color="#222222" />
-                <View style={styles.highlightText}>
-                  <ThemedText style={styles.highlightTitle}>Propiedad completa</ThemedText>
-                  <ThemedText style={styles.highlightSubtitle}>Tendrás la propiedad solo para ti</ThemedText>
-                </View>
-              </View>
-              <View style={styles.highlightItem}>
-                <Feather name="check-circle" size={24} color="#222222" />
-                <View style={styles.highlightText}>
-                  <ThemedText style={styles.highlightTitle}>Limpieza mejorada</ThemedText>
-                  <ThemedText style={styles.highlightSubtitle}>Este anfitrión sigue el proceso de limpieza</ThemedText>
-                </View>
-              </View>
-              <View style={styles.highlightItem}>
-                <Feather name="map-pin" size={24} color="#222222" />
-                <View style={styles.highlightText}>
-                  <ThemedText style={styles.highlightTitle}>Excelente ubicación</ThemedText>
-                  <ThemedText style={styles.highlightSubtitle}>100% de los huéspedes dieron 5 estrellas</ThemedText>
-                </View>
-              </View>
-              <View style={styles.highlightItem}>
-                <Feather name="calendar" size={24} color="#222222" />
-                <View style={styles.highlightText}>
-                  <ThemedText style={styles.highlightTitle}>Cancelación gratuita por 48 horas</ThemedText>
-                  <ThemedText style={styles.highlightSubtitle}>Obtén un reembolso completo si cambias de opinión</ThemedText>
-                </View>
-              </View>
+              {property.caracteristicas && property.caracteristicas.length > 0 ? (
+                property.caracteristicas.slice(0, 4).map((caracteristica, index) => (
+                  <View key={index} style={styles.highlightItem}>
+                    <Feather name="check-circle" size={24} color="#222222" />
+                    <View style={styles.highlightText}>
+                      <ThemedText style={styles.highlightTitle}>{caracteristica}</ThemedText>
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <>
+                  <View style={styles.highlightItem}>
+                    <Feather name="home" size={24} color="#222222" />
+                    <View style={styles.highlightText}>
+                      <ThemedText style={styles.highlightTitle}>Propiedad completa</ThemedText>
+                      <ThemedText style={styles.highlightSubtitle}>Tendrás la propiedad solo para ti</ThemedText>
+                    </View>
+                  </View>
+                  <View style={styles.highlightItem}>
+                    <Feather name="check-circle" size={24} color="#222222" />
+                    <View style={styles.highlightText}>
+                      <ThemedText style={styles.highlightTitle}>Limpieza mejorada</ThemedText>
+                      <ThemedText style={styles.highlightSubtitle}>Este anfitrión sigue el proceso de limpieza</ThemedText>
+                    </View>
+                  </View>
+                </>
+              )}
             </View>
 
             <View style={styles.divider} />
 
             <View style={styles.descriptionSection}>
               <ThemedText style={styles.sectionTitle}>Acerca de este espacio</ThemedText>
-              <ThemedText style={styles.descriptionText}>{property.description}</ThemedText>
-              <Pressable style={styles.showMoreButton}>
-                <ThemedText style={styles.showMoreText}>Mostrar más</ThemedText>
-                <Feather name="chevron-right" size={16} color="#222222" />
-              </Pressable>
+              <ThemedText 
+                style={styles.descriptionText}
+                numberOfLines={showFullDescription ? undefined : 4}
+              >
+                {property.descripcionLarga || property.description}
+              </ThemedText>
+              {(property.descripcionLarga || property.description).length > 200 ? (
+                <Pressable style={styles.showMoreButton} onPress={() => setShowFullDescription(!showFullDescription)}>
+                  <ThemedText style={styles.showMoreText}>
+                    {showFullDescription ? "Mostrar menos" : "Mostrar más"}
+                  </ThemedText>
+                  <Feather name={showFullDescription ? "chevron-up" : "chevron-right"} size={16} color="#222222" />
+                </Pressable>
+              ) : null}
             </View>
 
             <View style={styles.divider} />
 
             <View style={styles.featuresSection}>
               <ThemedText style={styles.sectionTitle}>Lo que este lugar ofrece</ThemedText>
-              <View style={styles.featuresGrid}>
-                <View style={styles.featureItem}>
-                  <Feather name="layout" size={24} color="#222222" />
-                  <ThemedText style={styles.featureText}>{property.bedrooms} habitaciones</ThemedText>
-                </View>
-                <View style={styles.featureItem}>
-                  <Feather name="droplet" size={24} color="#222222" />
-                  <ThemedText style={styles.featureText}>{property.bathrooms} baños</ThemedText>
-                </View>
-                <View style={styles.featureItem}>
-                  <Feather name="maximize" size={24} color="#222222" />
-                  <ThemedText style={styles.featureText}>{property.area} m²</ThemedText>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.divider} />
-
-            <View style={styles.amenitiesSection}>
-              <ThemedText style={styles.sectionTitle}>Servicios</ThemedText>
               <View style={styles.amenitiesGrid}>
-                {property.amenities.slice(0, 10).map((amenity, index) => (
-                  <View key={index} style={styles.amenityItem}>
-                    <Feather 
-                      name={(amenityIcons[amenity] || "check") as any} 
-                      size={24} 
-                      color="#222222" 
-                    />
-                    <ThemedText style={styles.amenityText}>{amenity}</ThemedText>
-                  </View>
-                ))}
+                {property.proyectoCaracteristicas && property.proyectoCaracteristicas.length > 0 ? (
+                  property.proyectoCaracteristicas.map((caracteristica, index) => (
+                    <View key={index} style={styles.amenityItem}>
+                      <Feather name="check" size={24} color="#222222" />
+                      <ThemedText style={styles.amenityText}>{caracteristica}</ThemedText>
+                    </View>
+                  ))
+                ) : (
+                  <>
+                    <View style={styles.featureItem}>
+                      <Feather name="layout" size={24} color="#222222" />
+                      <ThemedText style={styles.featureText}>{property.bedrooms} habitaciones</ThemedText>
+                    </View>
+                    <View style={styles.featureItem}>
+                      <Feather name="droplet" size={24} color="#222222" />
+                      <ThemedText style={styles.featureText}>{property.bathrooms} baños</ThemedText>
+                    </View>
+                    <View style={styles.featureItem}>
+                      <Feather name="maximize" size={24} color="#222222" />
+                      <ThemedText style={styles.featureText}>{property.area} m²</ThemedText>
+                    </View>
+                  </>
+                )}
               </View>
-              {property.amenities.length > 10 ? (
-                <Pressable style={styles.showAllAmenitiesButton}>
-                  <ThemedText style={styles.showAllAmenitiesText}>
-                    Mostrar los {property.amenities.length} servicios
-                  </ThemedText>
-                </Pressable>
-              ) : null}
             </View>
           </View>
 
