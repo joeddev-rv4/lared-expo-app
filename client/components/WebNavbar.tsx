@@ -29,8 +29,8 @@ const MENU_OPTIONS = [
   { key: "logout", label: "Cerrar sesión", icon: "log-out" as const },
 ];
 
-const HEADER_GRADIENT_START = "#044BB8";
-const HEADER_GRADIENT_END = "#0369D1";
+const HEADER_GRADIENT_EDGE = "#000000";
+const HEADER_GRADIENT_CENTER = "#044BB8";
 
 export function WebNavbar() {
   const navigation = useNavigation<any>();
@@ -66,7 +66,7 @@ export function WebNavbar() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={[HEADER_GRADIENT_START, HEADER_GRADIENT_END, HEADER_GRADIENT_START]}
+        colors={[HEADER_GRADIENT_EDGE, HEADER_GRADIENT_CENTER, HEADER_GRADIENT_EDGE]}
         locations={[0, 0.5, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
