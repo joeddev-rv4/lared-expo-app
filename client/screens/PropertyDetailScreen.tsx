@@ -9,6 +9,7 @@ import {
   FlatList,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Modal,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -37,6 +38,7 @@ export default function PropertyDetailScreen() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
 
   const filteredImages = property?.imagenes
     ?.filter(img => ["Imagen", "Video", "masterplan"].includes(img.tipo))
@@ -133,11 +135,12 @@ export default function PropertyDetailScreen() {
             </View>
           </View>
           <View style={styles.paginationContainer}>
-            <View style={styles.pagination}>
+            <Pressable style={styles.pagination} onPress={() => setShowGallery(true)}>
+              <Feather name="grid" size={12} color="#FFFFFF" style={{ marginRight: 6 }} />
               <ThemedText style={styles.paginationText}>
                 {currentImageIndex + 1} / {images.length}
               </ThemedText>
-            </View>
+            </Pressable>
           </View>
         </View>
 
@@ -315,6 +318,42 @@ export default function PropertyDetailScreen() {
           <ThemedText style={styles.reserveButtonText}>Reservar</ThemedText>
         </Pressable>
       </View>
+
+      <Modal
+        visible={showGallery}
+        animationType="slide"
+        onRequestClose={() => setShowGallery(false)}
+      >
+        <View style={[styles.galleryModal, { paddingTop: insets.top }]}>
+          <View style={styles.galleryHeader}>
+            <Pressable onPress={() => setShowGallery(false)} style={styles.galleryBackButton}>
+              <Feather name="arrow-left" size={24} color="#222222" />
+            </Pressable>
+            <ThemedText style={styles.galleryTitle}>
+              {images.length} fotos
+            </ThemedText>
+            <View style={{ width: 40 }} />
+          </View>
+          <ScrollView 
+            style={styles.galleryScrollView}
+            contentContainerStyle={[styles.galleryContent, { paddingBottom: insets.bottom + 20 }]}
+            showsVerticalScrollIndicator={false}
+          >
+            {images.map((imageUrl, index) => (
+              <View key={index} style={styles.galleryImageContainer}>
+                <Image 
+                  source={{ uri: imageUrl }} 
+                  style={styles.galleryImage}
+                  resizeMode="cover"
+                />
+                <ThemedText style={styles.galleryImageNumber}>
+                  {index + 1} / {images.length}
+                </ThemedText>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -604,5 +643,52 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#FFFFFF",
+  },
+  galleryModal: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  galleryHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EBEBEB",
+  },
+  galleryBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F7F7F7",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  galleryTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#222222",
+  },
+  galleryScrollView: {
+    flex: 1,
+  },
+  galleryContent: {
+    padding: Spacing.md,
+    gap: Spacing.md,
+  },
+  galleryImageContainer: {
+    width: "100%",
+    alignItems: "center",
+  },
+  galleryImage: {
+    width: "100%",
+    aspectRatio: 16 / 10,
+    borderRadius: BorderRadius.lg,
+  },
+  galleryImageNumber: {
+    marginTop: Spacing.sm,
+    fontSize: 14,
+    color: "#717171",
   },
 });
