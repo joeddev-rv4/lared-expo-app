@@ -226,8 +226,18 @@ export default function PropertyDetailScreenWeb() {
                 <ThemedText style={styles.priceAmount}>{formatPrice(property.price)}</ThemedText>
               </View>
 
+              <View style={styles.commissionInfo}>
+                <ThemedText style={styles.commissionLabel}>Cuotas disponibles:</ThemedText>
+                <ThemedText style={styles.commissionValue}>Hasta 12 cuotas</ThemedText>
+              </View>
+
+              <View style={styles.commissionInfo}>
+                <ThemedText style={styles.commissionLabel}>Comisión por referido:</ThemedText>
+                <ThemedText style={styles.commissionValue}>{formatPrice(Math.round(property.price * 0.02))}</ThemedText>
+              </View>
+
               <Pressable style={styles.reserveButton}>
-                <ThemedText style={styles.reserveButtonText}>Reservar</ThemedText>
+                <ThemedText style={styles.reserveButtonText}>Comparte y gana</ThemedText>
               </Pressable>
             </View>
           </View>
@@ -659,12 +669,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#222222",
   },
+  commissionInfo: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: Spacing.sm,
+  },
+  commissionLabel: {
+    fontSize: 14,
+    color: "#717171",
+  },
+  commissionValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#222222",
+  },
   reserveButton: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: "#bf0a0a",
     borderRadius: BorderRadius.sm,
     paddingVertical: Spacing.md,
     alignItems: "center",
-    marginBottom: Spacing.md,
+    marginTop: Spacing.md,
   },
   reserveButtonText: {
     fontSize: 16,

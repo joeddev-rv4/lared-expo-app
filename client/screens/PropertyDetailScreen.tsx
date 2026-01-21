@@ -315,7 +315,7 @@ export default function PropertyDetailScreen() {
           <ThemedText style={styles.priceLabel}> / noche</ThemedText>
         </View>
         <Pressable style={styles.reserveButton}>
-          <ThemedText style={styles.reserveButtonText}>Reservar</ThemedText>
+          <ThemedText style={styles.reserveButtonText}>Comparte y gana</ThemedText>
         </Pressable>
       </View>
 
@@ -634,7 +634,7 @@ const styles = StyleSheet.create({
     color: "#222222",
   },
   reserveButton: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: "#bf0a0a",
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 8,
