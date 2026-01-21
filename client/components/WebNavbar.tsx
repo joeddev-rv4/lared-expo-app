@@ -5,6 +5,7 @@ import { Feather } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface NavItem {
   key: string;
@@ -28,7 +29,8 @@ const MENU_OPTIONS = [
   { key: "logout", label: "Cerrar sesión", icon: "log-out" as const },
 ];
 
-const HEADER_BG_COLOR = "#F5F5F5";
+const HEADER_GRADIENT_START = "#044BB8";
+const HEADER_GRADIENT_END = "#0369D1";
 
 export function WebNavbar() {
   const navigation = useNavigation<any>();
@@ -63,7 +65,12 @@ export function WebNavbar() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
+      <LinearGradient
+        colors={[HEADER_GRADIENT_START, HEADER_GRADIENT_END]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.topBar}
+      >
         <View style={styles.innerContainer}>
           <Pressable style={styles.logoContainer} onPress={() => handleNavPress("ExploreTab")}>
             <Image
@@ -95,7 +102,7 @@ export function WebNavbar() {
                         resizeMode="contain" 
                       />
                     ) : item.featherIcon ? (
-                      <Feather name={item.featherIcon as any} size={isActive ? 24 : 20} color={isActive ? "#222222" : "#717171"} />
+                      <Feather name={item.featherIcon as any} size={isActive ? 24 : 20} color="#FFFFFF" />
                     ) : null}
                     <ThemedText
                       style={[
@@ -144,7 +151,7 @@ export function WebNavbar() {
             </Pressable>
           </View>
         </View>
-      </View>
+      </LinearGradient>
 
       <View style={styles.bottomDivider} />
 
@@ -184,7 +191,6 @@ export function WebNavbar() {
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    backgroundColor: HEADER_BG_COLOR,
   },
   topBar: {
     width: "100%",
@@ -209,9 +215,9 @@ const styles = StyleSheet.create({
     height: 62,
   },
   logoText: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "700",
-    color: "#222222",
+    color: "#FFFFFF",
   },
   navItems: {
     flexDirection: "row",
@@ -237,12 +243,12 @@ const styles = StyleSheet.create({
   },
   navLabel: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "#717171",
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
   navLabelActive: {
-    color: "#222222",
-    fontWeight: "600",
+    color: "#FFFFFF",
+    fontWeight: "700",
   },
   activeIndicator: {
     position: "absolute",
@@ -250,7 +256,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: "#222222",
+    backgroundColor: "#FFFFFF",
     borderRadius: 1,
   },
   rightSection: {
@@ -263,14 +269,17 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
     backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "#FFFFFF",
   },
   sellerButtonHovered: {
-    backgroundColor: "#4A4A4A",
+    backgroundColor: "#bf0a0a",
+    borderColor: "#bf0a0a",
   },
   sellerButtonText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#222222",
+    color: "#FFFFFF",
   },
   sellerButtonTextHovered: {
     color: "#FFFFFF",
