@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Pressable, Image, Modal, ImageSourcePropType } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  Image,
+  Modal,
+  ImageSourcePropType,
+} from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 
@@ -16,13 +23,33 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: "explore", label: "Explorar", route: "ExploreTab", icon: require("../../assets/icons/explorar.png") },
-  { key: "profile", label: "Mi Perfil", route: "ProfileTab", icon: require("../../assets/icons/mi_perfil.png") },
-  { key: "achievements", label: "Mis Logros", route: "AchievementsTab", icon: require("../../assets/icons/mis_logros.png") },
+  {
+    key: "explore",
+    label: "Explorar",
+    route: "ExploreTab",
+    icon: require("../../assets/icons/explorar.png"),
+  },
+  {
+    key: "profile",
+    label: "Mi Perfil",
+    route: "ProfileTab",
+    icon: require("../../assets/icons/mi_perfil.png"),
+  },
+  {
+    key: "achievements",
+    label: "Mis Logros",
+    route: "AchievementsTab",
+    icon: require("../../assets/icons/mis_logros.png"),
+  },
 ];
 
 const MENU_OPTIONS = [
-  { key: "favorites", label: "Favoritos", icon: "heart" as const, route: "FavoritesTab" },
+  {
+    key: "favorites",
+    label: "Favoritos",
+    icon: "heart" as const,
+    route: "FavoritesTab",
+  },
   { key: "notifications", label: "Notificaciones", icon: "bell" as const },
   { key: "settings", label: "Configuración", icon: "settings" as const },
   { key: "help", label: "Centro de ayuda", icon: "help-circle" as const },
@@ -39,12 +66,24 @@ export function WebNavbar() {
   const [sellerHovered, setSellerHovered] = useState(false);
 
   const currentRoute = route.name;
-  
+
   const getIsActive = (itemKey: string, itemRoute: string) => {
     if (currentRoute === itemRoute) return true;
-    if (itemKey === "explore" && (currentRoute === "Explore" || currentRoute === "ExploreScreen" || currentRoute === "MainTabs" || currentRoute.toLowerCase().includes("explore"))) return true;
-    if (itemKey === "profile" && currentRoute.toLowerCase().includes("profile")) return true;
-    if (itemKey === "achievements" && currentRoute.toLowerCase().includes("achievement")) return true;
+    if (
+      itemKey === "explore" &&
+      (currentRoute === "Explore" ||
+        currentRoute === "ExploreScreen" ||
+        currentRoute === "MainTabs" ||
+        currentRoute.toLowerCase().includes("explore"))
+    )
+      return true;
+    if (itemKey === "profile" && currentRoute.toLowerCase().includes("profile"))
+      return true;
+    if (
+      itemKey === "achievements" &&
+      currentRoute.toLowerCase().includes("achievement")
+    )
+      return true;
     return false;
   };
 
@@ -59,21 +98,32 @@ export function WebNavbar() {
     }
   };
 
-  const handleSearch = (query: { property: string; project: string; location: string }) => {
+  const handleSearch = (query: {
+    property: string;
+    project: string;
+    location: string;
+  }) => {
     console.log("Search:", query);
   };
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={[HEADER_GRADIENT_EDGE, HEADER_GRADIENT_CENTER, HEADER_GRADIENT_EDGE]}
+        colors={[
+          HEADER_GRADIENT_EDGE,
+          HEADER_GRADIENT_CENTER,
+          HEADER_GRADIENT_EDGE,
+        ]}
         locations={[0, 0.5, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.topBar}
       >
         <View style={styles.innerContainer}>
-          <Pressable style={styles.logoContainer} onPress={() => handleNavPress("ExploreTab")}>
+          <Pressable
+            style={styles.logoContainer}
+            onPress={() => handleNavPress("ExploreTab")}
+          >
             <Image
               source={require("../../assets/images/icon.png")}
               style={styles.logoIcon}
@@ -84,7 +134,7 @@ export function WebNavbar() {
           <View style={styles.navItems}>
             {NAV_ITEMS.map((item) => {
               const isActive = getIsActive(item.key, item.route);
-              
+
               return (
                 <Pressable
                   key={item.key}
@@ -96,13 +146,17 @@ export function WebNavbar() {
                 >
                   <View style={styles.navItemContent}>
                     {item.icon ? (
-                      <Image 
-                        source={item.icon} 
-                        style={isActive ? styles.navIconActive : styles.navIcon} 
-                        resizeMode="contain" 
+                      <Image
+                        source={item.icon}
+                        style={isActive ? styles.navIconActive : styles.navIcon}
+                        resizeMode="contain"
                       />
                     ) : item.featherIcon ? (
-                      <Feather name={item.featherIcon as any} size={isActive ? 24 : 20} color="#FFFFFF" />
+                      <Feather
+                        name={item.featherIcon as any}
+                        size={isActive ? 24 : 20}
+                        color="#FFFFFF"
+                      />
                     ) : null}
                     <ThemedText
                       style={[
@@ -120,7 +174,7 @@ export function WebNavbar() {
           </View>
 
           <View style={styles.rightSection}>
-            <Pressable 
+            <Pressable
               style={[
                 styles.sellerButton,
                 sellerHovered && styles.sellerButtonHovered,
@@ -128,22 +182,26 @@ export function WebNavbar() {
               onHoverIn={() => setSellerHovered(true)}
               onHoverOut={() => setSellerHovered(false)}
             >
-              <ThemedText style={[
-                styles.sellerButtonText,
-                sellerHovered && styles.sellerButtonTextHovered,
-              ]}>
+              <ThemedText
+                style={[
+                  styles.sellerButtonText,
+                  sellerHovered && styles.sellerButtonTextHovered,
+                ]}
+              >
                 Conviértete en vendedor
               </ThemedText>
             </Pressable>
-            
+
             <Pressable style={styles.profileButton}>
               <Image
-                source={{ uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" }}
+                source={{
+                  uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
+                }}
                 style={styles.profileImage}
               />
             </Pressable>
 
-            <Pressable 
+            <Pressable
               style={styles.menuButton}
               onPress={() => setMenuVisible(true)}
             >
@@ -161,7 +219,7 @@ export function WebNavbar() {
         animationType="fade"
         onRequestClose={() => setMenuVisible(false)}
       >
-        <Pressable 
+        <Pressable
           style={styles.modalOverlay}
           onPress={() => setMenuVisible(false)}
         >
@@ -175,10 +233,14 @@ export function WebNavbar() {
                   index === MENU_OPTIONS.length - 1 && styles.menuOptionLast,
                   { backgroundColor: pressed ? "#F7F7F7" : "#FFFFFF" },
                 ]}
-                onPress={() => handleMenuOptionPress(option.key, (option as any).route)}
+                onPress={() =>
+                  handleMenuOptionPress(option.key, (option as any).route)
+                }
               >
                 <Feather name={option.icon} size={16} color="#222222" />
-                <ThemedText style={styles.menuOptionText}>{option.label}</ThemedText>
+                <ThemedText style={styles.menuOptionText}>
+                  {option.label}
+                </ThemedText>
               </Pressable>
             ))}
           </View>
@@ -199,22 +261,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    maxWidth: 1280,
-    marginHorizontal: "auto",
     width: "100%",
   },
   logoContainer: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     height: 62,
     overflow: "visible",
   },
   logoIcon: {
     width: 124,
     height: 124,
-    marginVertical: -31,
+    marginTop: -31,
+    marginBottom: -31,
   },
   navItems: {
     flexDirection: "row",
