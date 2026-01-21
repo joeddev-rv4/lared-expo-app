@@ -193,9 +193,9 @@ export default function ExploreScreen() {
   const toggleWebSearch = () => {
     const newState = !webSearchExpanded;
     setWebSearchExpanded(newState);
-    searchExpandAnim.value = withSpring(newState ? 1 : 0, {
-      damping: 15,
-      stiffness: 120,
+    searchExpandAnim.value = withTiming(newState ? 1 : 0, {
+      duration: 150,
+      easing: Easing.out(Easing.quad),
     });
     if (!newState) {
       setWebSearchQuery("");
@@ -211,7 +211,7 @@ export default function ExploreScreen() {
   const searchButtonAnimatedStyle = useAnimatedStyle(() => {
     const width = interpolate(searchExpandAnim.value, [0, 1], [48, 400]);
     return {
-      width: withTiming(width, { duration: 300, easing: Easing.bezier(0.25, 0.1, 0.25, 1) }),
+      width,
     };
   });
 
@@ -227,7 +227,7 @@ export default function ExploreScreen() {
 
   const searchInputAnimatedStyle = useAnimatedStyle(() => {
     return {
-      opacity: withTiming(searchExpandAnim.value, { duration: 300 }),
+      opacity: searchExpandAnim.value,
     };
   });
 
