@@ -79,7 +79,6 @@ export function WebNavbar() {
               style={styles.logoIcon}
               resizeMode="contain"
             />
-            <ThemedText style={styles.logoText}>La Red Inmobiliaria</ThemedText>
           </Pressable>
 
           <View style={styles.navItems}>
@@ -209,16 +208,13 @@ const styles = StyleSheet.create({
   logoContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.sm,
+    height: 62,
+    overflow: "visible",
   },
   logoIcon: {
-    width: 62,
-    height: 62,
-  },
-  logoText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#FFFFFF",
+    width: 124,
+    height: 124,
+    marginVertical: -31,
   },
   navItems: {
     flexDirection: "row",
