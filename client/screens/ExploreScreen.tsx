@@ -11,6 +11,7 @@ import {
   Platform,
   ScrollView,
   TextInput,
+  useWindowDimensions,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -58,6 +59,17 @@ export default function ExploreScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme, isDark } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { width: windowWidth } = useWindowDimensions();
+
+  const isMobileWeb = isWeb && windowWidth < 768;
+  const isTabletWeb = isWeb && windowWidth >= 768 && windowWidth < 1024;
+
+  const getGridColumns = () => {
+    if (!isWeb || isMobileWeb) return 1;
+    if (isTabletWeb) return 2;
+    if (windowWidth < 1400) return 3;
+    return 4;
+  };
 
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -249,7 +261,7 @@ export default function ExploreScreen() {
 
   const renderWebSearchHeader = () => (
     <View style={styles.webSearchHeader}>
-      <View style={styles.webSearchRow}>
+      <View style={[styles.webSearchRow, isMobileWeb && styles.webSearchRowMobile]}>
         <Animated.View style={[styles.webSearchButtonContainer, searchButtonAnimatedStyle]}>
           <Pressable
             onPress={toggleWebSearch}
@@ -274,7 +286,7 @@ export default function ExploreScreen() {
           ) : null}
         </Animated.View>
 
-        {!webSearchExpanded ? (
+        {!webSearchExpanded && !isMobileWeb ? (
           <Animated.View style={[styles.webTagsContainer, tagsAnimatedStyle]}>
             <Pressable style={styles.webTag}>
               <ThemedText style={styles.webTagText}>Propiedades</ThemedText>
@@ -520,9 +532,9 @@ export default function ExploreScreen() {
 
         {renderSectionTitle("Todas las propiedades", "all", true, true)}
         {isWeb ? (
-          <View style={styles.webGrid}>
+          <View style={[styles.webGrid, isMobileWeb && styles.webGridMobile, isTabletWeb && styles.webGridTablet]}>
             {filteredProperties.map((item) => (
-              <View key={item.id} style={styles.webGridItem}>
+              <View key={item.id} style={[styles.webGridItem, isMobileWeb && styles.webGridItemMobile, isTabletWeb && styles.webGridItemTablet]}>
                 <PropertyCard
                   property={item}
                   isFavorite={favorites.includes(item.id)}
@@ -823,5 +835,20 @@ const styles = StyleSheet.create({
     color: "#222222",
     textAlign: "center",
     flex: 1,
+  },
+  webGridMobile: {
+    ...(isWeb && { gridTemplateColumns: "1fr" as any }),
+  },
+  webGridTablet: {
+    ...(isWeb && { gridTemplateColumns: "repeat(2, 1fr)" as any }),
+  },
+  webGridItemMobile: {
+    minWidth: "100%",
+  },
+  webGridItemTablet: {
+    minWidth: "auto",
+  },
+  webSearchRowMobile: {
+    justifyContent: "center",
   },
 });

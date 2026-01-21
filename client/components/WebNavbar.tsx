@@ -6,6 +6,7 @@ import {
   Image,
   Modal,
   ImageSourcePropType,
+  useWindowDimensions,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
@@ -59,9 +60,12 @@ const HEADER_GRADIENT_CENTER = "#044BB8";
 export function WebNavbar() {
   const navigation = useNavigation<any>();
   const route = useRoute();
+  const { width } = useWindowDimensions();
   const [menuVisible, setMenuVisible] = useState(false);
   const [sellerHovered, setSellerHovered] = useState(false);
 
+  const isMobile = width < 768;
+  const isTablet = width >= 768 && width < 1024;
   const currentRoute = route.name;
 
   const getIsActive = (itemKey: string, itemRoute: string) => {
@@ -116,65 +120,69 @@ export function WebNavbar() {
         end={{ x: 1, y: 0 }}
         style={styles.topBar}
       >
-        <View style={styles.innerContainer}>
+        <View style={[styles.innerContainer, isMobile && styles.innerContainerMobile]}>
           <Pressable
-            style={styles.logoContainer}
+            style={[styles.logoContainer, isMobile && styles.logoContainerMobile]}
             onPress={() => handleNavPress("ExploreTab")}
           >
             <Image
               source={require("../../assets/images/icon.png")}
-              style={styles.logoIcon}
+              style={[styles.logoIcon, isMobile && styles.logoIconMobile]}
               resizeMode="contain"
             />
           </Pressable>
 
-          <View style={styles.navItems}>
-            {NAV_ITEMS.map((item) => {
-              const isActive = getIsActive(item.key, item.route);
+          {!isMobile ? (
+            <View style={styles.navItems}>
+              {NAV_ITEMS.map((item) => {
+                const isActive = getIsActive(item.key, item.route);
 
-              return (
-                <Pressable
-                  key={item.key}
-                  onPress={() => handleNavPress(item.route)}
-                  style={({ pressed }) => [
-                    styles.navItem,
-                    { opacity: pressed ? 0.7 : 1 },
-                  ]}
-                >
-                  <View style={styles.navItemContent}>
-                    <ThemedText
-                      style={[
-                        styles.navLabel,
-                        isActive && styles.navLabelActive,
-                      ]}
-                    >
-                      {item.label}
-                    </ThemedText>
-                  </View>
-                  {isActive ? <View style={styles.activeIndicator} /> : null}
-                </Pressable>
-              );
-            })}
-          </View>
+                return (
+                  <Pressable
+                    key={item.key}
+                    onPress={() => handleNavPress(item.route)}
+                    style={({ pressed }) => [
+                      styles.navItem,
+                      { opacity: pressed ? 0.7 : 1 },
+                    ]}
+                  >
+                    <View style={styles.navItemContent}>
+                      <ThemedText
+                        style={[
+                          styles.navLabel,
+                          isActive && styles.navLabelActive,
+                        ]}
+                      >
+                        {item.label}
+                      </ThemedText>
+                    </View>
+                    {isActive ? <View style={styles.activeIndicator} /> : null}
+                  </Pressable>
+                );
+              })}
+            </View>
+          ) : null}
 
           <View style={styles.rightSection}>
-            <Pressable
-              style={[
-                styles.sellerButton,
-                sellerHovered && styles.sellerButtonHovered,
-              ]}
-              onHoverIn={() => setSellerHovered(true)}
-              onHoverOut={() => setSellerHovered(false)}
-            >
-              <ThemedText
+            {!isMobile ? (
+              <Pressable
                 style={[
-                  styles.sellerButtonText,
-                  sellerHovered && styles.sellerButtonTextHovered,
+                  styles.sellerButton,
+                  sellerHovered && styles.sellerButtonHovered,
                 ]}
+                onHoverIn={() => setSellerHovered(true)}
+                onHoverOut={() => setSellerHovered(false)}
               >
-                Conviértete en vendedor
-              </ThemedText>
-            </Pressable>
+                <ThemedText
+                  style={[
+                    styles.sellerButtonText,
+                    sellerHovered && styles.sellerButtonTextHovered,
+                  ]}
+                >
+                  Conviértete en vendedor
+                </ThemedText>
+              </Pressable>
+            ) : null}
 
             <Pressable style={styles.profileButton}>
               <Image
@@ -377,5 +385,18 @@ const styles = StyleSheet.create({
   menuOptionText: {
     fontSize: 14,
     color: "#222222",
+  },
+  innerContainerMobile: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  logoContainerMobile: {
+    height: 40,
+    paddingTop: 20,
+  },
+  logoIconMobile: {
+    width: 150,
+    height: 150,
+    marginVertical: -15,
   },
 });
