@@ -12,6 +12,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
+import { useAuth } from "@/contexts/AuthContext";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -62,6 +63,7 @@ const HEADER_GRADIENT_CENTER = "#044BB8";
 export function WebNavbar() {
   const navigation = useNavigation<any>();
   const route = useRoute();
+  const { logout } = useAuth();
   const { width } = useWindowDimensions();
   const [menuVisible, setMenuVisible] = useState(false);
   const [sellerHovered, setSellerHovered] = useState(false);
@@ -96,10 +98,17 @@ export function WebNavbar() {
     navigation.navigate(routeName);
   };
 
-  const handleMenuOptionPress = (key: string, route?: string) => {
+  const handleMenuOptionPress = (key: string) => {
     setMenuVisible(false);
     if (route) {
       navigation.navigate(route);
+    }
+    if (key === 'logout') {
+      await logout();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
     }
   };
 

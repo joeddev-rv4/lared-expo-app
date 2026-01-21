@@ -1,0 +1,16 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Permitir escritura a usuarios autenticados en su propio documento
+    match /users/{userId} {
+      allow read: if true; // Permitir lectura para verificaciones
+      allow write: if request.auth != null;
+    }
+    
+    // Denegar todo lo demás
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

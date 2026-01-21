@@ -43,15 +43,13 @@ export default function RootStackNavigator() {
   const checkInitialRoute = async () => {
     try {
       const onboardingComplete = await hasCompletedOnboarding();
-      const profile = await getUserProfile();
 
       if (!isWeb) {
         setInitialRoute("Onboarding");
       } else if (!onboardingComplete) {
         setInitialRoute("Onboarding");
-      } else if (profile?.isLoggedIn) {
-        setInitialRoute("Main");
       } else {
+        // Always start at Login - let Firebase auth handle user state
         setInitialRoute("Login");
       }
     } catch (error) {

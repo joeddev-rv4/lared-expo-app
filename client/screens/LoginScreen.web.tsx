@@ -7,6 +7,8 @@ import {
   Animated,
   ImageBackground,
   useWindowDimensions,
+  TextInput,
+  Alert,
 } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
@@ -15,9 +17,12 @@ import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTheme } from "@/hooks/useTheme";
-import { setUserProfile } from "@/lib/storage";
+import { useAuth } from "@/contexts/AuthContext";
 import { Colors, Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
+import { getAuth, fetchSignInMethodsForEmail, createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/config';
 
 const SLIDES = [
   {
@@ -37,10 +42,68 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export default function LoginScreenWeb() {
   const navigation = useNavigation<NavigationProp>();
   const { theme, isDark } = useTheme();
-  const { width } = useWindowDimensions();
-  const isMobile = width < 768;
   const [currentPage, setCurrentPage] = useState(0);
+  const [mode, setMode] = useState<'buttons' | 'login' | 'register' | 'register_username' | 'register_phone' | 'verify_phone'>('buttons');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [phone, setPhone] = useState('');
+  const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
+  const [codeColors] = useState([new Animated.Value(0), new Animated.Value(0), new Animated.Value(0), new Animated.Value(0), new Animated.Value(0), new Animated.Value(0)]);
+  const codeInputRefs = useRef<(TextInput | null)[]>([null, null, null, null, null, null]);
+  const [hasAttemptedLogin, setHasAttemptedLogin] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const [formAnim] = useState(new Animated.Value(0));
+  const [buttonsAnim] = useState(new Animated.Value(1));
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+
+  // Clear any old data on mount
+  useEffect(() => {
+    const clearOldData = async () => {
+      const { clearUserProfile } = await import('@/lib/storage');
+      await clearUserProfile();
+      await logout();
+    };
+    clearOldData();
+  }, [logout]);
+
+  useEffect(() => {
+    if (user && hasAttemptedLogin) {
+      navigation.replace('Main');
+    }
+  }, [user, navigation, hasAttemptedLogin]);
+
+  useEffect(() => {
+    if (mode === 'login' || mode === 'register' || mode === 'register_username' || mode === 'register_phone' || mode === 'verify_phone') {
+      // Animar hacia adentro
+      Animated.parallel([
+        Animated.timing(formAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: false,
+        }),
+        Animated.timing(buttonsAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(formAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: false,
+        }),
+        Animated.timing(buttonsAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
+  }, [mode]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -60,43 +123,150 @@ export default function LoginScreenWeb() {
     return () => clearInterval(interval);
   }, [fadeAnim]);
 
-  const handleEmailLogin = async () => {
-    await setUserProfile({
-      name: "Guest User",
-      email: "guest@example.com",
-      isLoggedIn: true,
-      loginMethod: "email",
-    });
-    navigation.replace("Main");
+  const handleSubmit = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Por favor ingresa email y contraseña');
+      return;
+    }
+    
+    setHasAttemptedLogin(true);
+    
+    try {
+      await login(email, password);
+    } catch (error: any) {
+      let errorMessage = 'Error al iniciar sesión';
+      let isCredentialError = false;
+      
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        errorMessage = 'Email o contraseña incorrectos';
+        isCredentialError = true;
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Email inválido';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Demasiados intentos fallidos. Intenta más tarde';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      if (isCredentialError) {
+        setErrorMessage(errorMessage);
+        setShowErrorPopup(true);
+        // Auto-hide after 3 seconds
+        setTimeout(() => setShowErrorPopup(false), 3000);
+      } else {
+        Alert.alert('Error de inicio de sesión', errorMessage);
+      }
+    }
   };
 
-  const handleGoogleLogin = async () => {
-    await setUserProfile({
-      name: "Google User",
-      email: "user@gmail.com",
-      isLoggedIn: true,
-      loginMethod: "google",
+  const handleEmailLogin = () => {
+    // Primero animar los botones hacia fuera
+    Animated.timing(buttonsAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start(() => {
+      // Luego cambiar el modo
+      setMode('login');
     });
-    navigation.replace("Main");
   };
 
-  const handleFacebookLogin = async () => {
-    await setUserProfile({
-      name: "Facebook User",
-      email: "user@facebook.com",
-      isLoggedIn: true,
-      loginMethod: "facebook",
+  const handleRegister = () => {
+    // Primero animar hacia fuera el contenido actual
+    Animated.timing(formAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start(() => {
+      // Luego cambiar el modo
+      setMode('register');
     });
-    navigation.replace("Main");
   };
 
-  const handleSkip = async () => {
-    await setUserProfile({
-      name: "Guest",
-      email: "",
-      isLoggedIn: false,
+  const handleRegisterNext = async () => {
+    if (!email.trim()) {
+      setErrorMessage('Por favor ingresa un email');
+      setShowErrorPopup(true);
+      setTimeout(() => setShowErrorPopup(false), 3000);
+      return;
+    }
+
+    try {
+      const auth = getAuth();
+      
+      console.log('Verificando email:', email);
+      
+      // Verificar en Firebase Auth
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      console.log('Métodos en Auth encontrados:', methods);
+      
+      if (methods.length > 0) {
+        console.log('Email ya existe en Firebase Auth');
+        setErrorMessage('Este email ya está relacionado a una cuenta');
+        setShowErrorPopup(true);
+        setTimeout(() => setShowErrorPopup(false), 3000);
+        return;
+      }
+
+      console.log('Email disponible, procediendo...');
+      // Email no existe, proceder al siguiente paso
+      Animated.timing(formAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }).start(() => {
+        setMode('register_username');
+        formAnim.setValue(0);
+        Animated.timing(formAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: false,
+        }).start();
+      });
+    } catch (error: any) {
+      console.error('Error al verificar email:', error);
+      setErrorMessage('Error al verificar email');
+      setShowErrorPopup(true);
+      setTimeout(() => setShowErrorPopup(false), 3000);
+    }
+  };
+
+  const handleUsernameNext = async () => {
+    if (!username.trim()) {
+      setErrorMessage('Por favor ingresa un usuario');
+      setShowErrorPopup(true);
+      setTimeout(() => setShowErrorPopup(false), 3000);
+      return;
+    }
+
+    console.log('Username ingresado:', username);
+    // NO verificar en Firestore porque no hay autenticación aún
+    // Proceder directamente al siguiente paso
+    Animated.timing(formAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start(() => {
+      setMode('register_phone');
+      formAnim.setValue(0);
+      Animated.timing(formAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: false,
+      }).start();
     });
-    navigation.replace("Main");
+  };
+
+  const handleBack = () => {
+    // Primero animar hacia fuera el contenido actual
+    Animated.timing(formAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start(() => {
+      // Luego cambiar el modo a botones
+      setMode('buttons');
+    });
   };
 
   const currentSlide = SLIDES[currentPage];
@@ -153,22 +323,36 @@ export default function LoginScreenWeb() {
               Hecha por vendedores, para vendedores
             </ThemedText>
 
-            <View style={styles.buttonContainer}>
-              <Pressable
-                onPress={handleEmailLogin}
-                style={({ pressed }) => [
-                  styles.loginButton,
-                  {
-                    backgroundColor: Colors.light.primary,
-                    opacity: pressed ? 0.9 : 1,
-                  },
+            {mode === 'buttons' ? (
+              <Animated.View 
+                style={[
+                  styles.buttonContainer,
+                  { 
+                    opacity: buttonsAnim,
+                    transform: [{ 
+                      translateX: buttonsAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [-10, 0]
+                      })
+                    }]
+                  }
                 ]}
               >
-                <Ionicons name="mail-outline" size={20} color="#FFFFFF" />
-                <ThemedText style={styles.loginButtonText}>
-                  Continuar con Email
-                </ThemedText>
-              </Pressable>
+                <Pressable
+                  onPress={handleEmailLogin}
+                  style={({ pressed }) => [
+                    styles.loginButton,
+                    {
+                      backgroundColor: Colors.light.primary,
+                      opacity: pressed ? 0.9 : 1,
+                    },
+                  ]}
+                >
+                  <Ionicons name="mail-outline" size={20} color="#FFFFFF" />
+                  <ThemedText style={styles.loginButtonText}>
+                    Continuar con Email
+                  </ThemedText>
+                </Pressable>
 
               <Pressable
                 onPress={handleGoogleLogin}
@@ -185,7 +369,7 @@ export default function LoginScreenWeb() {
               >
                 <FontAwesome name="google" size={20} color="#DB4437" />
                 <ThemedText style={[styles.socialButtonText, { color: theme.text }]}>
-                  Continuar con Google
+                  Continue with Google
                 </ThemedText>
               </Pressable>
 
@@ -201,7 +385,7 @@ export default function LoginScreenWeb() {
               >
                 <FontAwesome name="facebook" size={20} color="#FFFFFF" />
                 <ThemedText style={styles.loginButtonText}>
-                  Continuar con Facebook
+                  Continue with Facebook
                 </ThemedText>
               </Pressable>
             </View>
@@ -214,7 +398,7 @@ export default function LoginScreenWeb() {
               ]}
             >
               <ThemedText style={[styles.skipText, { color: theme.textSecondary }]}>
-                Continuar como Invitado
+                Continue as Guest
               </ThemedText>
             </Pressable>
 
@@ -231,6 +415,15 @@ export default function LoginScreenWeb() {
           </View>
         </View>
       </View>
+
+      {showErrorPopup && (
+        <View style={styles.errorPopup}>
+          <View style={styles.errorPopupContent}>
+            <FontAwesome name="exclamation-circle" size={20} color="#FFFFFF" />
+            <ThemedText style={styles.errorPopupText}>{errorMessage}</ThemedText>
+          </View>
+        </View>
+      )}
     </ThemedView>
   );
 }
@@ -317,6 +510,30 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     width: "100%",
   },
+  formContainer: {
+    gap: Spacing.md,
+    width: "100%",
+  },
+  registerContainer: {
+    gap: Spacing.md,
+    width: "100%",
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  registerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: BorderRadius.sm,
+    padding: Spacing.md,
+    fontSize: 16,
+    minHeight: 50,
+  },
   loginButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -337,10 +554,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.md,
+    gap: Spacing.sm,
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  formFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  registerText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
   skipButton: {
     alignItems: "center",
     paddingVertical: Spacing.xl,
-    marginTop: Spacing.md,
+    marginTop: 0,
+    borderWidth: 1,
+    borderRadius: 8,
   },
   skipText: {
     fontSize: 16,
@@ -355,12 +594,5 @@ const styles = StyleSheet.create({
   linkText: {
     fontSize: 13,
     fontWeight: "500",
-  },
-  splitContainerMobile: {
-    flexDirection: "column",
-  },
-  rightPanelMobile: {
-    flex: 1,
-    width: "100%",
   },
 });

@@ -24,6 +24,7 @@ const isWeb = Platform.OS === "web";
 import { ThemedText } from "@/components/ThemedText";
 import { Card } from "@/components/Card";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   getUserProfile,
   clearUserProfile,
@@ -49,6 +50,7 @@ export default function ProfileScreen() {
   const headerHeight = useHeaderHeight();
   const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
   const { theme, isDark } = useTheme();
+  const { logout } = useAuth();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [listings, setListings] = useState<UserListing[]>([]);
@@ -89,7 +91,7 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    await clearUserProfile();
+    await logout();
     navigation.reset({
       index: 0,
       routes: [{ name: "Login" }],
