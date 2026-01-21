@@ -331,8 +331,8 @@ export default function ExploreScreen() {
               {project.ubicacion || project.direccion}
             </ThemedText>
           </View>
-          <View style={[styles.projectTypeBadge, { backgroundColor: Colors.light.primary + "20" }]}>
-            <ThemedText style={[styles.projectTypeLabel, { color: Colors.light.primary }]}>
+          <View style={[styles.projectTypeBadge, { backgroundColor: "#bf0a0a20" }]}>
+            <ThemedText style={[styles.projectTypeLabel, { color: "#bf0a0a" }]}>
               {project.tipo}
             </ThemedText>
           </View>
@@ -369,8 +369,8 @@ export default function ExploreScreen() {
               {project.ubicacion || project.direccion}
             </ThemedText>
           </View>
-          <View style={[styles.projectTypeBadge, { backgroundColor: Colors.light.primary + "20" }]}>
-            <ThemedText style={[styles.projectTypeLabel, { color: Colors.light.primary }]}>
+          <View style={[styles.projectTypeBadge, { backgroundColor: "#bf0a0a20" }]}>
+            <ThemedText style={[styles.projectTypeLabel, { color: "#bf0a0a" }]}>
               {project.tipo}
             </ThemedText>
           </View>
@@ -426,7 +426,7 @@ export default function ExploreScreen() {
   const renderExpandedHeader = () => (
     <View style={styles.expandedHeader}>
       <Pressable onPress={handleBackFromExpanded} style={styles.backButton}>
-        <Feather name="arrow-left" size={24} color={Colors.light.primary} />
+        <Feather name="arrow-left" size={24} color="#bf0a0a" />
       </Pressable>
       <ThemedText style={styles.expandedTitle}>{getSectionTitle(expandedSection)}</ThemedText>
       <View style={styles.backButtonPlaceholder} />

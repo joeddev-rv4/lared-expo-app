@@ -161,10 +161,10 @@ export function PropertyCard({
         </ThemedText>
 
         <Pressable onPress={handleSharePress} style={styles.shareButton}>
-          <ThemedText style={[styles.shareButtonText, { color: Colors.light.primary }]}>
+          <ThemedText style={[styles.shareButtonText, { color: "#bf0a0a" }]}>
             COMPARTE Y GANA
           </ThemedText>
-          <Feather name="chevron-right" size={16} color={Colors.light.primary} />
+          <Feather name="chevron-right" size={16} color="#bf0a0a" />
         </Pressable>
       </View>
     </AnimatedPressable>
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: Spacing.md,
     left: Spacing.md,
-    backgroundColor: "#DC2626",
+    backgroundColor: "#bf0a0a",
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.xs,
