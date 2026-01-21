@@ -275,7 +275,7 @@ export default function ExploreScreen() {
                 value={webSearchQuery}
                 onChangeText={handleWebSearch}
                 placeholder="Buscar propiedades, proyectos..."
-                placeholderTextColor="#999999"
+                placeholderTextColor="rgba(255, 255, 255, 0.6)"
                 style={styles.webSearchInput}
                 autoFocus
               />
@@ -664,6 +664,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#FFFFFF",
     marginLeft: Spacing.sm,
+    ...(isWeb && { outlineWidth: 0 } as any),
   },
   webSearchCloseButton: {
     padding: Spacing.xs,
