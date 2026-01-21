@@ -6,6 +6,7 @@ import {
   Image,
   Animated,
   ImageBackground,
+  useWindowDimensions,
 } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
@@ -36,6 +37,8 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export default function LoginScreenWeb() {
   const navigation = useNavigation<NavigationProp>();
   const { theme, isDark } = useTheme();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const [currentPage, setCurrentPage] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -100,43 +103,45 @@ export default function LoginScreenWeb() {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={styles.splitContainer}>
-        <ImageBackground
-          source={require("../../assets/images/login_image_1.png")}
-          style={styles.leftPanel}
-          resizeMode="cover"
-        >
-          <View style={styles.leftOverlay}>
-            <View style={styles.carouselContainer}>
-              <Animated.View style={[styles.slide, { opacity: fadeAnim }]}>
-                <Image
-                  source={currentSlide.image}
-                  style={styles.slideImage}
-                  resizeMode="contain"
-                />
-              </Animated.View>
-            </View>
+      <View style={[styles.splitContainer, isMobile && styles.splitContainerMobile]}>
+        {!isMobile ? (
+          <ImageBackground
+            source={require("../../assets/images/login_image_1.png")}
+            style={styles.leftPanel}
+            resizeMode="cover"
+          >
+            <View style={styles.leftOverlay}>
+              <View style={styles.carouselContainer}>
+                <Animated.View style={[styles.slide, { opacity: fadeAnim }]}>
+                  <Image
+                    source={currentSlide.image}
+                    style={styles.slideImage}
+                    resizeMode="contain"
+                  />
+                </Animated.View>
+              </View>
 
-            <View style={styles.pagination}>
-              {SLIDES.map((_, index) => (
-                <Pressable
-                  key={index}
-                  onPress={() => setCurrentPage(index)}
-                  style={[
-                    styles.dot,
-                    {
-                      backgroundColor:
-                        index === currentPage ? "#FFFFFF" : "rgba(255, 255, 255, 0.5)",
-                      width: index === currentPage ? 24 : 8,
-                    },
-                  ]}
-                />
-              ))}
+              <View style={styles.pagination}>
+                {SLIDES.map((_, index) => (
+                  <Pressable
+                    key={index}
+                    onPress={() => setCurrentPage(index)}
+                    style={[
+                      styles.dot,
+                      {
+                        backgroundColor:
+                          index === currentPage ? "#FFFFFF" : "rgba(255, 255, 255, 0.5)",
+                        width: index === currentPage ? 24 : 8,
+                      },
+                    ]}
+                  />
+                ))}
+              </View>
             </View>
-          </View>
-        </ImageBackground>
+          </ImageBackground>
+        ) : null}
 
-        <View style={[styles.rightPanel, { backgroundColor: theme.backgroundRoot }]}>
+        <View style={[styles.rightPanel, isMobile && styles.rightPanelMobile, { backgroundColor: theme.backgroundRoot }]}>
           <View style={styles.authContainer}>
             <Image
               source={require("../../assets/images/icon.png")}
@@ -350,5 +355,12 @@ const styles = StyleSheet.create({
   linkText: {
     fontSize: 13,
     fontWeight: "500",
+  },
+  splitContainerMobile: {
+    flexDirection: "column",
+  },
+  rightPanelMobile: {
+    flex: 1,
+    width: "100%",
   },
 });
