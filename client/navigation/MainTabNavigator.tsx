@@ -1,9 +1,9 @@
 import React from "react";
-import { View, StyleSheet, Pressable, Platform } from "react-native";
+import { View, StyleSheet, Pressable, Platform, Text } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ExploreStackNavigator from "@/navigation/ExploreStackNavigator";
 import FavoritesStackNavigator from "@/navigation/FavoritesStackNavigator";
@@ -26,6 +26,20 @@ export type MainTabParamList = {
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
+interface TabIconProps {
+  symbol: string;
+  color: string;
+  size: number;
+}
+
+function TabIcon({ symbol, color, size }: TabIconProps) {
+  return (
+    <Text style={{ fontSize: size - 4, color, fontWeight: '400' }}>
+      {symbol}
+    </Text>
+  );
+}
+
 function AddListingButton({ onPress }: { onPress: () => void }) {
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -39,7 +53,7 @@ function AddListingButton({ onPress }: { onPress: () => void }) {
       testID="add-listing-button"
     >
       <View style={styles.fab}>
-        <Ionicons name="add" size={28} color="#FFFFFF" />
+        <Text style={styles.fabIcon}>+</Text>
       </View>
     </Pressable>
   );
@@ -47,6 +61,10 @@ function AddListingButton({ onPress }: { onPress: () => void }) {
 
 export default function MainTabNavigator() {
   const { theme, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+  
+  const androidBottomPadding = Platform.OS === 'android' ? Math.max(insets.bottom, 16) : 0;
+  const tabBarHeight = Platform.OS === "ios" ? 88 : 64 + androidBottomPadding;
 
   return (
     <View style={styles.webContainer}>
@@ -67,8 +85,9 @@ export default function MainTabNavigator() {
                 }),
                 borderTopWidth: 0,
                 elevation: 0,
-                height: Platform.OS === "ios" ? 88 : 64,
+                height: tabBarHeight,
                 paddingTop: 8,
+                paddingBottom: androidBottomPadding,
               },
           tabBarBackground: () =>
             Platform.OS === "ios" ? (
@@ -91,7 +110,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Explorar",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search-outline" size={size} color={color} />
+            <TabIcon symbol="🔍" color={color} size={size} />
           ),
         }}
       />
@@ -101,7 +120,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Favoritos",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart-outline" size={size} color={color} />
+            <TabIcon symbol="♡" color={color} size={size} />
           ),
         }}
       />
@@ -132,7 +151,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Mi Perfil",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+            <TabIcon symbol="👤" color={color} size={size} />
           ),
         }}
       />
@@ -142,7 +161,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Mis Logros",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="trophy-outline" size={size} color={color} />
+            <TabIcon symbol="🏆" color={color} size={size} />
           ),
         }}
       />
@@ -168,5 +187,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#bf0a0a",
     alignItems: "center",
     justifyContent: "center",
+  },
+  fabIcon: {
+    fontSize: 32,
+    color: "#FFFFFF",
+    fontWeight: "300",
+    lineHeight: 36,
   },
 });
