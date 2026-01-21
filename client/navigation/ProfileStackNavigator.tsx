@@ -6,7 +6,7 @@ import ProfileScreen from "@/screens/ProfileScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { ThemedText } from "@/components/ThemedText";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
-import { Feather } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export type ProfileStackParamList = {
   Profile: undefined;
@@ -44,10 +44,10 @@ export default function ProfileStackNavigator() {
           headerRight: () => (
             <View style={{ flexDirection: 'row', marginRight: 16 }}>
               <Pressable style={{ marginRight: 16 }}>
-                <Feather name="bell" size={24} color="#FFFFFF" />
+                <MaterialCommunityIcons name="bell-outline" size={24} color="#FFFFFF" />
               </Pressable>
               <Pressable>
-                <Feather name="menu" size={24} color="#FFFFFF" />
+                <MaterialCommunityIcons name="menu" size={24} color="#FFFFFF" />
               </Pressable>
             </View>
           ),

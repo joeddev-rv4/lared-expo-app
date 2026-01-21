@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet, Pressable, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Feather } from "@expo/vector-icons";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 
@@ -39,7 +39,7 @@ function AddListingButton({ onPress }: { onPress: () => void }) {
       testID="add-listing-button"
     >
       <View style={styles.fab}>
-        <Feather name="plus" size={28} color="#FFFFFF" />
+        <MaterialCommunityIcons name="plus" size={28} color="#FFFFFF" />
       </View>
     </Pressable>
   );
@@ -91,7 +91,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Explorar",
           tabBarIcon: ({ color, size }) => (
-            <Feather name="search" size={size} color={color} />
+            <MaterialCommunityIcons name="magnify" size={size} color={color} />
           ),
         }}
       />
@@ -101,7 +101,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Favoritos",
           tabBarIcon: ({ color, size }) => (
-            <Feather name="heart" size={size} color={color} />
+            <MaterialCommunityIcons name="heart-outline" size={size} color={color} />
           ),
         }}
       />
@@ -132,7 +132,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Mi Perfil",
           tabBarIcon: ({ color, size }) => (
-            <Feather name="user" size={size} color={color} />
+            <MaterialCommunityIcons name="account-outline" size={size} color={color} />
           ),
         }}
       />
@@ -142,7 +142,7 @@ export default function MainTabNavigator() {
         options={{
           title: "Mis Logros",
           tabBarIcon: ({ color, size }) => (
-            <Feather name="award" size={size} color={color} />
+            <MaterialCommunityIcons name="trophy-outline" size={size} color={color} />
           ),
         }}
       />

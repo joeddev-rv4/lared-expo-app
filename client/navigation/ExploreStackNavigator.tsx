@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, Platform } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
-import { Feather } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import ExploreScreen from "@/screens/ExploreScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
@@ -41,13 +41,13 @@ function HeaderRightButtons() {
         hitSlop={8}
         style={{ marginRight: Spacing.lg }}
       >
-        <Feather name="bell" size={22} color={theme.text} />
+        <MaterialCommunityIcons name="bell-outline" size={22} color={theme.text} />
       </Pressable>
       <Pressable
         onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
         hitSlop={8}
       >
-        <Feather name="menu" size={22} color={theme.text} />
+        <MaterialCommunityIcons name="menu" size={22} color={theme.text} />
       </Pressable>
     </>
   );
