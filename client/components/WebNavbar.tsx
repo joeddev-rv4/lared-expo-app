@@ -66,7 +66,8 @@ export function WebNavbar() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={[HEADER_GRADIENT_START, HEADER_GRADIENT_END]}
+        colors={[HEADER_GRADIENT_START, HEADER_GRADIENT_END, HEADER_GRADIENT_START]}
+        locations={[0, 0.5, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.topBar}
