@@ -305,8 +305,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
     backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#FFFFFF",
   },
   sellerButtonHovered: {
     backgroundColor: "#bf0a0a",
