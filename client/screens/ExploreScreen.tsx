@@ -664,7 +664,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#FFFFFF",
     marginLeft: Spacing.sm,
-    ...(isWeb && { outlineWidth: 0 } as any),
+    ...(isWeb && { outlineWidth: 0, outlineStyle: "none", borderWidth: 0, boxShadow: "none", caretColor: "transparent" } as any),
   },
   webSearchCloseButton: {
     padding: Spacing.xs,
