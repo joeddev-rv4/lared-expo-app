@@ -80,8 +80,7 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     alignItems: "center",
-    //paddingVertical: Spacing.sm,
-    paddingTop: 10,
+    paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.xl,
   },
   searchBar: {
