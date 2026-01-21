@@ -100,8 +100,43 @@ export default function LoginScreenWeb() {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={styles.centerContainer}>
-        <View style={[styles.loginPanel, { backgroundColor: theme.backgroundRoot }]}>
+      <View style={styles.splitContainer}>
+        <ImageBackground
+          source={require("../../assets/images/login_image_1.png")}
+          style={styles.leftPanel}
+          resizeMode="cover"
+        >
+          <View style={styles.leftOverlay}>
+            <View style={styles.carouselContainer}>
+              <Animated.View style={[styles.slide, { opacity: fadeAnim }]}>
+                <Image
+                  source={currentSlide.image}
+                  style={styles.slideImage}
+                  resizeMode="contain"
+                />
+              </Animated.View>
+            </View>
+
+            <View style={styles.pagination}>
+              {SLIDES.map((_, index) => (
+                <Pressable
+                  key={index}
+                  onPress={() => setCurrentPage(index)}
+                  style={[
+                    styles.dot,
+                    {
+                      backgroundColor:
+                        index === currentPage ? "#FFFFFF" : "rgba(255, 255, 255, 0.5)",
+                      width: index === currentPage ? 24 : 8,
+                    },
+                  ]}
+                />
+              ))}
+            </View>
+          </View>
+        </ImageBackground>
+
+        <View style={[styles.rightPanel, { backgroundColor: theme.backgroundRoot }]}>
           <View style={styles.authContainer}>
             <Image
               source={require("../../assets/images/icon.png")}
