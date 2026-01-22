@@ -1,9 +1,11 @@
 import React from "react";
-import { View, StyleSheet, FlatList } from "react-native";
+import { View, StyleSheet, FlatList, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+
+const isWeb = Platform.OS === "web";
 
 import { ThemedText } from "@/components/ThemedText";
 import { EmptyState } from "@/components/EmptyState";
@@ -71,7 +73,7 @@ const ACHIEVEMENTS: Achievement[] = [
 export default function AchievementsScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
   const { theme } = useTheme();
 
   const unlockedCount = ACHIEVEMENTS.filter((a) => a.unlocked).length;

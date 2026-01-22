@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, FlatList, StyleSheet, RefreshControl } from "react-native";
+import { View, FlatList, StyleSheet, RefreshControl, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -13,10 +13,12 @@ import { PLACEHOLDER_PROPERTIES, Property } from "@/data/properties";
 import { getFavorites, toggleFavorite } from "@/lib/storage";
 import { Spacing } from "@/constants/theme";
 
+const isWeb = Platform.OS === "web";
+
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
   const { theme } = useTheme();
 
   const [favorites, setFavorites] = useState<string[]>([]);

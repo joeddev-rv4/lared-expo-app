@@ -9,6 +9,7 @@ import {
   Dimensions,
   Share,
   Animated,
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -17,6 +18,8 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+
+const isWeb = Platform.OS === "web";
 
 import { ThemedText } from "@/components/ThemedText";
 import { Card } from "@/components/Card";
@@ -44,7 +47,7 @@ export default function ProfileScreen() {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
   const { theme, isDark } = useTheme();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
