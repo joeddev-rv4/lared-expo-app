@@ -35,6 +35,7 @@ const NAV_ITEMS: NavItem[] = [
     key: "favorites",
     label: "Favoritos",
     route: "FavoritesTab",
+    icon: require("../../assets/icons/icon_4.png"),
   },
   {
     key: "profile",
