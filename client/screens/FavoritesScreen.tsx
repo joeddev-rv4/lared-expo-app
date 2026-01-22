@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { PLACEHOLDER_PROPERTIES, Property } from "@/data/properties";
 import { getFavorites, toggleFavorite } from "@/lib/storage";
+import { togglePropertyInPortfolio } from "@/lib/portfolioService";
 import { Spacing } from "@/constants/theme";
 
 const isWeb = Platform.OS === "web";
@@ -43,8 +44,11 @@ export default function FavoritesScreen() {
   };
 
   const handleFavoriteToggle = async (propertyId: string) => {
+    const isCurrentlyFavorite = favorites.includes(propertyId);
     const newFavorites = await toggleFavorite(propertyId);
     setFavorites(newFavorites);
+    
+    await togglePropertyInPortfolio(propertyId, isCurrentlyFavorite);
   };
 
   const handlePropertyPress = (property: Property) => {

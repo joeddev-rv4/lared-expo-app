@@ -39,6 +39,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { Property, mapAPIPropertyToProperty } from "@/data/properties";
 import { getFavorites, toggleFavorite } from "@/lib/storage";
+import { togglePropertyInPortfolio } from "@/lib/portfolioService";
 import {
   fetchPropiedades,
   fetchProyectos,
@@ -120,8 +121,11 @@ export default function ExploreScreen() {
   };
 
   const handleFavoriteToggle = async (propertyId: string) => {
+    const isCurrentlyFavorite = favorites.includes(propertyId);
     const newFavorites = await toggleFavorite(propertyId);
     setFavorites(newFavorites);
+    
+    await togglePropertyInPortfolio(propertyId, isCurrentlyFavorite);
   };
 
   const handlePropertyPress = (property: Property) => {
