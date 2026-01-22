@@ -318,8 +318,8 @@ const styles = StyleSheet.create({
     height: 20,
   },
   navIconActive: {
-    width: 30,
-    height: 30,
+    width: 40,
+    height: 40,
   },
   navLabel: {
     fontSize: 14,
