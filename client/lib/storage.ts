@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
   FAVORITES: "favorites",
   USER_PROFILE: "user_profile",
   LISTINGS: "user_listings",
+  USER_ID: "user_id",
 };
 
 export async function hasCompletedOnboarding(): Promise<boolean> {
@@ -130,5 +131,29 @@ export async function clearAllData(): Promise<void> {
     await AsyncStorage.multiRemove(Object.values(STORAGE_KEYS));
   } catch (error) {
     console.error("Error clearing data:", error);
+  }
+}
+
+export async function getUserId(): Promise<string | null> {
+  try {
+    return await AsyncStorage.getItem(STORAGE_KEYS.USER_ID);
+  } catch {
+    return null;
+  }
+}
+
+export async function setUserId(userId: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.USER_ID, userId);
+  } catch (error) {
+    console.error("Error saving user ID:", error);
+  }
+}
+
+export async function clearUserId(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(STORAGE_KEYS.USER_ID);
+  } catch (error) {
+    console.error("Error clearing user ID:", error);
   }
 }

@@ -8,6 +8,7 @@ import { loginUser, loginWithGoogle, loginWithFacebook } from '../lib/auth';
 import { FirestoreUser, UserStatus } from '../lib/user.interface';
 import { pagesConfig } from '../lib/pagesConfig';
 import { RootStackParamList } from '../navigation/RootStackNavigator';
+import { setUserId, clearUserId } from '../lib/storage';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -70,6 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('User is blocked');
       }
       queryClient.setQueryData(['user'], userData);
+      await setUserId(userData.id);
       navigation.navigate('Main' as any);
     } catch (error) {
       throw error;
@@ -89,8 +91,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       queryClient.setQueryData(['user'], result.user);
+      await setUserId(result.user.id);
       
-      // Retornar si es usuario nuevo
       return result.isNewUser;
     } catch (error) {
       throw error;
@@ -110,8 +112,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       queryClient.setQueryData(['user'], result.user);
+      await setUserId(result.user.id);
       
-      // Retornar si es usuario nuevo
       return result.isNewUser;
     } catch (error) {
       throw error;
@@ -122,6 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     await signOut(auth);
+    await clearUserId();
     queryClient.setQueryData(['user'], null);
   };
 
