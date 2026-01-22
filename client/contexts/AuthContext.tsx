@@ -16,7 +16,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginGoogle: () => Promise<boolean>;
-  loginFacebook: () => Promise<void>;
+  loginFacebook: () => Promise<boolean>;
   logout: () => Promise<void>;
 }
 
@@ -99,17 +99,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const loginFacebook = async () => {
+  const loginFacebook = async (): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const userData = await loginWithFacebook();
+      const result = await loginWithFacebook();
       
-      if (userData.status === UserStatus.BLOCKED) {
+      if (result.user.status === UserStatus.BLOCKED) {
         await logout();
         throw new Error('User is blocked');
       }
-      queryClient.setQueryData(['user'], userData);
-      navigation.navigate('Main' as any);
+      
+      queryClient.setQueryData(['user'], result.user);
+      
+      // Retornar si es usuario nuevo
+      return result.isNewUser;
     } catch (error) {
       throw error;
     } finally {

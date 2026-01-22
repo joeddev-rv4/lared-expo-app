@@ -27,7 +27,3 @@ export const auth = Platform.OS === 'web'
 // Initialize Cloud Firestore and get a reference to the service
 const databaseId = process.env.EXPO_PUBLIC_FIREBASE_DATABASE_ID || '(default)';
 export const db = getFirestore(app, databaseId);
-
-// Log para verificar qué base de datos está usando
-console.log('🔥 Firebase Firestore Database ID configurado:', databaseId);
-console.log('🔥 Variable de entorno EXPO_PUBLIC_FIREBASE_DATABASE_ID:', process.env.EXPO_PUBLIC_FIREBASE_DATABASE_ID);

@@ -424,7 +424,41 @@ export default function LoginScreenWeb() {
                 <Pressable
                   onPress={async () => {
                     try {
-                      await loginFacebook();
+                      const isNewUser = await loginFacebook();
+                      console.log('Login Facebook completado, isNewUser:', isNewUser);
+                      
+                      // Guardar datos del usuario de Facebook inmediatamente
+                      const auth = getAuth();
+                      const currentUser = auth.currentUser;
+                      if (currentUser) {
+                        setGoogleUserData({
+                          uid: currentUser.uid,
+                          email: currentUser.email || '',
+                          displayName: currentUser.displayName || ''
+                        });
+                      }
+                      
+                      if (isNewUser) {
+                        // Usuario nuevo, mostrar pantalla de teléfono
+                        setIsFromGoogle(true);
+                        Animated.timing(buttonsAnim, {
+                          toValue: 0,
+                          duration: 200,
+                          useNativeDriver: false,
+                        }).start(() => {
+                          setMode('google_phone');
+                          formAnim.setValue(0);
+                          Animated.timing(formAnim, {
+                            toValue: 1,
+                            duration: 300,
+                            useNativeDriver: false,
+                          }).start();
+                        });
+                      } else {
+                        // Usuario existente, ir a Main
+                        setHasAttemptedLogin(true);
+                        navigation.replace('Main');
+                      }
                     } catch (error: any) {
                       if (error.message.includes('credenciales') || error.message.includes('Cuenta no existe')) {
                         setErrorMessage(error.message);
@@ -888,13 +922,24 @@ export default function LoginScreenWeb() {
                       // Esperar un poco más para asegurar que la sesión esté completamente establecida
                       await new Promise(resolve => setTimeout(resolve, 1000));
                       
-                      // Guardar datos adicionales en Firestore con merge
+                      // Guardar datos completos en Firestore con merge
                       await setDoc(doc(db, 'users', currentUser.uid), {
+                        id: currentUser.uid,
                         email: email,
-                        username: username,
-                        phone: phone,
-                        createdAt: new Date().toISOString(),
-                        verificationCode: code,
+                        name: username,
+                        phone: `+502${phone}`,
+                        createdAt: new Date(),
+                        status: 'Verified',
+                        isAdmin: false,
+                        isVerifiedBroker: false,
+                        avatar: '',
+                        bank: '',
+                        card: '',
+                        dpiDocument: {
+                          back: '',
+                          front: ''
+                        },
+                        dpiNumber: ''
                       }, { merge: true });
                       
                       console.log('Datos guardados en Firestore correctamente');
@@ -936,6 +981,337 @@ export default function LoginScreenWeb() {
                       useNativeDriver: false,
                     }).start(() => {
                       setMode('register_phone');
+                      formAnim.setValue(0);
+                      Animated.timing(formAnim, {
+                        toValue: 1,
+                        duration: 300,
+                        useNativeDriver: false,
+                      }).start();
+                    });
+                  }}
+                  style={({ pressed }) => [
+                    styles.backButton,
+                    { opacity: pressed ? 0.7 : 1 },
+                  ]}
+                >
+                  <Feather name="arrow-left" size={20} color={theme.textSecondary} />
+                  <ThemedText style={[styles.backButtonText, { color: theme.textSecondary }]}>
+                    Volver
+                  </ThemedText>
+                </Pressable>
+              </Animated.View>
+            ) : mode === 'google_phone' ? (
+              <Animated.View 
+                style={[
+                  styles.registerContainer,
+                  { 
+                    opacity: formAnim,
+                    transform: [{ 
+                      translateX: formAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [50, 0]
+                      })
+                    }]
+                  }
+                ]}
+              >
+                <ThemedText style={[styles.registerTitle, { color: theme.text }]}>
+                  Ingresa tu teléfono
+                </ThemedText>
+                <TextInput
+                  style={[styles.input, { 
+                    borderColor: theme.border, 
+                    color: theme.text,
+                    backgroundColor: theme.backgroundDefault 
+                  }]}
+                  placeholder="Teléfono"
+                  placeholderTextColor={theme.textSecondary}
+                  value={phone}
+                  onChangeText={setPhone}
+                  keyboardType="phone-pad"
+                  autoFocus
+                />
+                <View style={styles.buttonRow}>
+                  <Pressable
+                    onPress={async () => {
+                      if (!phone.trim()) {
+                        setErrorMessage('Por favor ingresa tu teléfono');
+                        setShowErrorPopup(true);
+                        setTimeout(() => setShowErrorPopup(false), 3000);
+                        return;
+                      }
+                      
+                      // Ir a verificación de código con animación
+                      Animated.timing(formAnim, {
+                        toValue: 0,
+                        duration: 200,
+                        useNativeDriver: false,
+                      }).start(() => {
+                        setMode('google_verify_phone');
+                        formAnim.setValue(0);
+                        Animated.timing(formAnim, {
+                          toValue: 1,
+                          duration: 300,
+                          useNativeDriver: false,
+                        }).start();
+                      });
+                    }}
+                    style={({ pressed }) => [
+                      styles.loginButton,
+                      {
+                        backgroundColor: Colors.light.primary,
+                        opacity: pressed ? 0.9 : 1,
+                        flex: 1,
+                        marginRight: Spacing.sm,
+                        height: 50,
+                        paddingVertical: 0,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      },
+                    ]}
+                  >
+                    <ThemedText style={styles.loginButtonText}>
+                      Siguiente
+                    </ThemedText>
+                  </Pressable>
+                  <Pressable
+                    onPress={async () => {
+                      try {
+                        // Usar los datos guardados del usuario de Google
+                        if (!googleUserData) {
+                          setErrorMessage('Error de autenticación. Por favor intenta de nuevo.');
+                          setShowErrorPopup(true);
+                          setTimeout(() => setShowErrorPopup(false), 3000);
+                          return;
+                        }
+                        
+                        // Crear usuario en Firestore sin teléfono
+                        await setDoc(doc(db, 'users', googleUserData.uid), {
+                          id: googleUserData.uid,
+                          email: googleUserData.email,
+                          name: googleUserData.displayName,
+                          phone: '',
+                          createdAt: new Date(),
+                          status: 'notVerified',
+                          isAdmin: false,
+                          isVerifiedBroker: false,
+                          avatar: '',
+                          bank: '',
+                          card: '',
+                          dpiDocument: {
+                            back: '',
+                            front: ''
+                          },
+                          dpiNumber: ''
+                        }, { merge: true });
+                        
+                        console.log('Usuario de Google creado sin teléfono');
+                        
+                        // Ir a la pantalla principal
+                        setHasAttemptedLogin(true);
+                        navigation.replace('Main');
+                      } catch (error: any) {
+                        console.error('Error al crear usuario:', error);
+                        setErrorMessage('Error al crear usuario');
+                        setShowErrorPopup(true);
+                        setTimeout(() => setShowErrorPopup(false), 3000);
+                      }
+                    }}
+                    style={({ pressed }) => [
+                      styles.skipButton,
+                      {
+                        opacity: pressed ? 0.7 : 1,
+                        flex: 1,
+                        marginLeft: Spacing.sm,
+                        height: 50,
+                        paddingVertical: 0,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderColor: '#cccccc',
+                      },
+                    ]}
+                  >
+                    <ThemedText style={[styles.skipText, { color: theme.textSecondary, marginTop: 0 }]}>
+                      Saltar
+                    </ThemedText>
+                  </Pressable>
+                </View>
+                <Pressable
+                  onPress={() => {
+                    // Volver a los botones principales
+                    Animated.timing(formAnim, {
+                      toValue: 0,
+                      duration: 200,
+                      useNativeDriver: false,
+                    }).start(() => {
+                      setMode('buttons');
+                      setIsFromGoogle(false);
+                      formAnim.setValue(0);
+                      Animated.timing(buttonsAnim, {
+                        toValue: 1,
+                        duration: 300,
+                        useNativeDriver: false,
+                      }).start();
+                    });
+                  }}
+                  style={({ pressed }) => [
+                    styles.backButton,
+                    { opacity: pressed ? 0.7 : 1 },
+                  ]}
+                >
+                  <Feather name="arrow-left" size={20} color={theme.textSecondary} />
+                  <ThemedText style={[styles.backButtonText, { color: theme.textSecondary }]}>
+                    Volver
+                  </ThemedText>
+                </Pressable>
+              </Animated.View>
+            ) : mode === 'google_verify_phone' ? (
+              <Animated.View 
+                style={[
+                  styles.registerContainer,
+                  { 
+                    opacity: formAnim,
+                    transform: [{ 
+                      translateX: formAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [50, 0]
+                      })
+                    }]
+                  }
+                ]}
+              >
+                <ThemedText style={[styles.registerTitle, { color: theme.text }]}>
+                  Verifica tu teléfono
+                </ThemedText>
+                <View style={styles.codeContainer}>
+                  {verificationCode.map((digit, index) => {
+                    const borderColor = codeColors[index].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['#cccccc', Colors.light.primary]
+                    });
+                    
+                    return (
+                      <Animated.View key={index} style={[styles.codeSlotWrapper, { borderColor }]}>
+                        <TextInput
+                          ref={(ref) => { codeInputRefs.current[index] = ref; }}
+                          style={[styles.codeSlot, { color: theme.text, outlineStyle: 'none' } as any]}
+                          value={digit}
+                          onChangeText={(text) => {
+                            if (text.length <= 1 && /^[0-9]*$/.test(text)) {
+                              const newCode = [...verificationCode];
+                              newCode[index] = text;
+                              setVerificationCode(newCode);
+                              
+                              if (text) {
+                                Animated.timing(codeColors[index], {
+                                  toValue: 1,
+                                  duration: 200,
+                                  useNativeDriver: false,
+                                }).start();
+                                
+                                // Auto-focus next input
+                                if (index < 5) {
+                                  setTimeout(() => {
+                                    codeInputRefs.current[index + 1]?.focus();
+                                  }, 10);
+                                }
+                              } else {
+                                Animated.timing(codeColors[index], {
+                                  toValue: 0,
+                                  duration: 200,
+                                  useNativeDriver: false,
+                                }).start();
+                              }
+                            }
+                          }}
+                          onKeyPress={(e: any) => {
+                            if (e.nativeEvent.key === 'Backspace' && !digit && index > 0) {
+                              setTimeout(() => {
+                                codeInputRefs.current[index - 1]?.focus();
+                              }, 10);
+                            }
+                          }}
+                          keyboardType="number-pad"
+                          maxLength={1}
+                          autoFocus={index === 0}
+                        />
+                      </Animated.View>
+                    );
+                  })}
+                </View>
+                <Pressable
+                  onPress={async () => {
+                    const code = verificationCode.join('');
+                    if (code.length !== 6) {
+                      setErrorMessage('Por favor ingresa el código completo');
+                      setShowErrorPopup(true);
+                      setTimeout(() => setShowErrorPopup(false), 3000);
+                      return;
+                    }
+                    
+                    try {
+                      // Usar los datos guardados del usuario de Google
+                      if (!googleUserData) {
+                        console.log('Error: Datos de Google no disponibles');
+                        setErrorMessage('Error de autenticación. Por favor intenta de nuevo.');
+                        setShowErrorPopup(true);
+                        setTimeout(() => setShowErrorPopup(false), 3000);
+                        return;
+                      }
+                      
+                      // Guardar teléfono y código en Firestore para usuario de Google
+                      await setDoc(doc(db, 'users', googleUserData.uid), {
+                        id: googleUserData.uid,
+                        email: googleUserData.email,
+                        name: googleUserData.displayName,
+                        phone: `+502${phone}`,
+                        createdAt: new Date(),
+                        status: 'Verified',
+                        isAdmin: false,
+                        isVerifiedBroker: false,
+                        avatar: '',
+                        bank: '',
+                        card: '',
+                        dpiDocument: {
+                          back: '',
+                          front: ''
+                        },
+                        dpiNumber: ''
+                      }, { merge: true });
+                      
+                      console.log('Teléfono y código guardados para usuario de Google');
+                      
+                      // Ir a la pantalla principal
+                      setHasAttemptedLogin(true);
+                      navigation.replace('Main');
+                    } catch (error: any) {
+                      console.error('Error al guardar datos:', error);
+                      setErrorMessage('Error al guardar datos');
+                      setShowErrorPopup(true);
+                      setTimeout(() => setShowErrorPopup(false), 3000);
+                    }
+                  }}
+                  style={({ pressed }) => [
+                    styles.loginButton,
+                    {
+                      backgroundColor: Colors.light.primary,
+                      opacity: pressed ? 0.9 : 1,
+                      marginTop: Spacing.xl,
+                    },
+                  ]}
+                >
+                  <ThemedText style={styles.loginButtonText}>
+                    Siguiente
+                  </ThemedText>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    Animated.timing(formAnim, {
+                      toValue: 0,
+                      duration: 200,
+                      useNativeDriver: false,
+                    }).start(() => {
+                      setMode('google_phone');
                       formAnim.setValue(0);
                       Animated.timing(formAnim, {
                         toValue: 1,

@@ -22,6 +22,14 @@ export const loginUser = async (email: string, password: string): Promise<Firest
       status: UserStatus.NOT_VERIFIED,
       isAdmin: false,
       isVerifiedBroker: false,
+      avatar: '',
+      bank: '',
+      card: '',
+      dpiDocument: {
+        back: '',
+        front: ''
+      },
+      dpiNumber: ''
     };
     await setDocument(COLLECTIONS.USERS, user.uid, newUser);
     userData = newUser;
@@ -108,6 +116,14 @@ export const loginWithGoogle = async (): Promise<{ user: FirestoreUser; isNewUse
         status: UserStatus.NOT_VERIFIED,
         isAdmin: false,
         isVerifiedBroker: false,
+        avatar: '',
+        bank: '',
+        card: '',
+        dpiDocument: {
+          back: '',
+          front: ''
+        },
+        dpiNumber: ''
       };
       
       // Crear documento básico en Firestore
@@ -141,7 +157,7 @@ export const loginWithGoogle = async (): Promise<{ user: FirestoreUser; isNewUse
   }
 };
 
-export const loginWithFacebook = async (): Promise<FirestoreUser> => {
+export const loginWithFacebook = async (): Promise<{ user: FirestoreUser; isNewUser: boolean }> => {
   try {
     if (Platform.OS === 'web') {
       // Web implementation using Firebase directly
@@ -151,11 +167,33 @@ export const loginWithFacebook = async (): Promise<FirestoreUser> => {
       const userCredential = await signInWithPopup(auth, provider);
       const user = userCredential.user;
       
-      // Buscar usuario por email en lugar de por UID
+      // Buscar usuario por email
       const userData = await getUserByEmail<FirestoreUser>(user.email!);
       
       if (!userData) {
-        throw new Error('Cuenta no existe');
+        // Usuario nuevo - crear perfil básico
+        const newUser: FirestoreUser = {
+          id: user.uid,
+          email: user.email!,
+          name: user.displayName || '',
+          phone: '',
+          createdAt: new Date(),
+          status: UserStatus.NOT_VERIFIED,
+          isAdmin: false,
+          isVerifiedBroker: false,
+          avatar: '',
+          bank: '',
+          card: '',
+          dpiDocument: {
+            back: '',
+            front: ''
+          },
+          dpiNumber: ''
+        };
+        
+        // Crear documento básico en Firestore
+        await setDocument(COLLECTIONS.USERS, user.uid, newUser);
+        return { user: newUser, isNewUser: true };
       }
       
       // Si el usuario existe pero con un UID diferente, actualizar el documento
@@ -163,20 +201,22 @@ export const loginWithFacebook = async (): Promise<FirestoreUser> => {
         // Copiar el usuario existente al nuevo UID de Facebook
         const updatedUser = { ...userData, id: user.uid };
         await setDocument(COLLECTIONS.USERS, user.uid, updatedUser);
-        return updatedUser;
+        return { user: updatedUser, isNewUser: false };
       }
       
-      return userData;
+      return { user: userData, isNewUser: false };
     } else {
       // Mobile implementation - Facebook SDK would be needed here
       throw new Error('Facebook login en móvil requiere configuración adicional');
     }
   } catch (error: any) {
     console.error('Facebook login error:', error);
-    // Re-throw the error without wrapping it if it's our custom error
-    if (error.message === 'Cuenta no existe') {
-      throw error;
+    
+    // Manejar cancelación del usuario
+    if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+      throw new Error('Inicio de sesión cancelado');
     }
+    
     throw new Error(`Error al iniciar sesión con Facebook: ${error.message}`);
   }
 };

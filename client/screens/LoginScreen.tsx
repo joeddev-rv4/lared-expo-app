@@ -346,7 +346,41 @@ export default function LoginScreen() {
               onPress={async () => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 try {
-                  await loginFacebook();
+                  const isNewUser = await loginFacebook();
+                  console.log('Login Facebook completado, isNewUser:', isNewUser);
+                  
+                  // Save Facebook user data immediately
+                  const auth = getAuth();
+                  const currentUser = auth.currentUser;
+                  if (currentUser) {
+                    setGoogleUserData({
+                      uid: currentUser.uid,
+                      email: currentUser.email || '',
+                      displayName: currentUser.displayName || ''
+                    });
+                  }
+                  
+                  if (isNewUser) {
+                    // New user, show phone screen
+                    setIsFromGoogle(true);
+                    Animated.timing(buttonsAnim, {
+                      toValue: 0,
+                      duration: 200,
+                      useNativeDriver: false,
+                    }).start(() => {
+                      setMode('google_phone');
+                      formAnim.setValue(0);
+                      Animated.timing(formAnim, {
+                        toValue: 1,
+                        duration: 300,
+                        useNativeDriver: false,
+                      }).start();
+                    });
+                  } else {
+                    // Existing user, go to Main
+                    setHasAttemptedLogin(true);
+                    navigation.replace('Main');
+                  }
                 } catch (error: any) {
                   if (error.message.includes('credenciales') || error.message.includes('Cuenta no existe')) {
                     setErrorMessage(error.message);
@@ -824,13 +858,24 @@ export default function LoginScreen() {
                   // Wait a bit to ensure session is fully established
                   await new Promise(resolve => setTimeout(resolve, 1000));
                   
-                  // Save additional data in Firestore with merge
+                  // Save complete data in Firestore with merge
                   await setDoc(doc(db, 'users', currentUser.uid), {
+                    id: currentUser.uid,
                     email: email,
-                    username: username,
-                    phone: phone,
-                    createdAt: new Date().toISOString(),
-                    verificationCode: code,
+                    name: username,
+                    phone: `+502${phone}`,
+                    createdAt: new Date(),
+                    status: 'Verified',
+                    isAdmin: false,
+                    isVerifiedBroker: false,
+                    avatar: '',
+                    bank: '',
+                    card: '',
+                    dpiDocument: {
+                      back: '',
+                      front: ''
+                    },
+                    dpiNumber: ''
                   }, { merge: true });
                   
                   console.log('Datos guardados en Firestore correctamente');
@@ -981,11 +1026,22 @@ export default function LoginScreen() {
                     
                     // Create user in Firestore without phone
                     await setDoc(doc(db, 'users', googleUserData.uid), {
+                      id: googleUserData.uid,
                       email: googleUserData.email,
                       name: googleUserData.displayName,
                       phone: '',
-                      createdAt: new Date().toISOString(),
-                      provider: 'google',
+                      createdAt: new Date(),
+                      status: 'notVerified',
+                      isAdmin: false,
+                      isVerifiedBroker: false,
+                      avatar: '',
+                      bank: '',
+                      card: '',
+                      dpiDocument: {
+                        back: '',
+                        front: ''
+                      },
+                      dpiNumber: ''
                     }, { merge: true });
                     
                     console.log('Usuario de Google creado sin teléfono');
@@ -1146,12 +1202,22 @@ export default function LoginScreen() {
                   
                   // Save phone and code in Firestore for Google user
                   await setDoc(doc(db, 'users', googleUserData.uid), {
+                    id: googleUserData.uid,
                     email: googleUserData.email,
                     name: googleUserData.displayName,
-                    phone: phone,
-                    verificationCode: code,
-                    createdAt: new Date().toISOString(),
-                    provider: 'google',
+                    phone: `+502${phone}`,
+                    createdAt: new Date(),
+                    status: 'Verified',
+                    isAdmin: false,
+                    isVerifiedBroker: false,
+                    avatar: '',
+                    bank: '',
+                    card: '',
+                    dpiDocument: {
+                      back: '',
+                      front: ''
+                    },
+                    dpiNumber: ''
                   }, { merge: true });
                   
                   console.log('Teléfono y código guardados para usuario de Google');
