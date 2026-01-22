@@ -61,7 +61,11 @@ const MENU_OPTIONS = [
 const HEADER_GRADIENT_EDGE = "#000000";
 const HEADER_GRADIENT_CENTER = "#044BB8";
 
-export function WebNavbar() {
+interface WebNavbarProps {
+  activeTabOverride?: string;
+}
+
+export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
   const navigation = useNavigation<any>();
   const { logout } = useAuth();
   const { width } = useWindowDimensions();
@@ -70,9 +74,9 @@ export function WebNavbar() {
 
   const isMobile = width < 768;
   const isTablet = width >= 768 && width < 1024;
-  
+
   // Get the active tab route from nested navigation state
-  const activeTabRoute = useNavigationState((state) => {
+  const detectedTabRoute = useNavigationState((state) => {
     // Navigate through: DrawerNavigator -> MainTabs -> Tab.Navigator
     const drawerRoute = state?.routes?.[state.index];
     if (drawerRoute?.name === 'MainTabs' && drawerRoute.state) {
@@ -82,6 +86,9 @@ export function WebNavbar() {
     }
     return 'ExploreTab';
   });
+
+  // Use override if provided, otherwise use detected route
+  const activeTabRoute = activeTabOverride || detectedTabRoute;
 
   const getIsActive = (itemKey: string, itemRoute: string) => {
     if (activeTabRoute === itemRoute) return true;

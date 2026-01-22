@@ -11,25 +11,29 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 import { ThemedText } from "@/components/ThemedText";
 import { WebNavbar } from "@/components/WebNavbar";
 import { useTheme } from "@/hooks/useTheme";
 import { Property } from "@/data/properties";
 import { Spacing, Colors, BorderRadius, Shadows } from "@/constants/theme";
-import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-type PropertyDetailRouteProp = RouteProp<RootStackParamList, "PropertyDetail">;
+// Generic route params type that works with both RootStack and FavoritesStack
+type PropertyDetailParams = {
+  property: Property;
+  sourceTab?: string;
+};
 
 export default function PropertyDetailScreenWeb() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const route = useRoute<PropertyDetailRouteProp>();
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const { theme } = useTheme();
-  const property = route.params?.property as Property;
+  const params = route.params as PropertyDetailParams;
+  const property = params?.property;
+  const sourceTab = params?.sourceTab;
   const { width } = useWindowDimensions();
 
   const isMobile = width < 768;
@@ -82,7 +86,7 @@ export default function PropertyDetailScreenWeb() {
 
   return (
     <View style={[styles.container, { backgroundColor: "#FFFFFF" }]}>
-      <WebNavbar />
+      <WebNavbar activeTabOverride={sourceTab} />
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

@@ -26,7 +26,7 @@ import { getPortfolioProperties, togglePropertyInPortfolio } from "@/lib/portfol
 import { useAuth } from "@/contexts/AuthContext";
 import { auth } from "@/lib/config";
 import { fetchPropiedades } from "@/lib/api";
-import { RootStackParamList } from "@/navigation/RootStackNavigator";
+import { FavoritesStackParamList } from "@/navigation/FavoritesStackNavigator";
 import { Spacing, Colors } from "@/constants/theme";
 
 const isWeb = Platform.OS === "web";
@@ -37,7 +37,7 @@ export default function FavoritesScreen() {
   const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<FavoritesStackParamList>>();
   const { width: windowWidth } = useWindowDimensions();
 
   const isMobileWeb = isWeb && windowWidth < 768;
@@ -153,7 +153,7 @@ export default function FavoritesScreen() {
     if (!isWeb) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    navigation.navigate("PropertyDetail", { property });
+    navigation.navigate("FavoritesPropertyDetail", { property, sourceTab: "FavoritesTab" });
   };
 
   const handleSharePress = (property: Property) => {

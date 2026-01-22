@@ -1,11 +1,18 @@
 import React from "react";
+import { Platform } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import FavoritesScreen from "@/screens/FavoritesScreen";
+import PropertyDetailScreen from "@/screens/PropertyDetailScreen";
+import PropertyDetailScreenWeb from "@/screens/PropertyDetailScreen.web";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
+import { Property } from "@/data/properties";
+
+const isWeb = Platform.OS === "web";
 
 export type FavoritesStackParamList = {
-  Favorites: undefined;
+  FavoritesList: undefined;
+  FavoritesPropertyDetail: { property: Property; sourceTab?: string };
 };
 
 const Stack = createNativeStackNavigator<FavoritesStackParamList>();
@@ -16,10 +23,17 @@ export default function FavoritesStackNavigator() {
   return (
     <Stack.Navigator screenOptions={screenOptions}>
       <Stack.Screen
-        name="Favorites"
+        name="FavoritesList"
         component={FavoritesScreen}
         options={{
-          headerTitle: "Favorites",
+          headerTitle: "Favoritos",
+        }}
+      />
+      <Stack.Screen
+        name="FavoritesPropertyDetail"
+        component={isWeb ? PropertyDetailScreenWeb : PropertyDetailScreen}
+        options={{
+          headerShown: false,
         }}
       />
     </Stack.Navigator>
