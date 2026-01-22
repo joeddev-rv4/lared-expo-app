@@ -50,8 +50,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        console.log('Firebase user detected, maintaining session');
+        console.log('Firebase user detected, UID:', firebaseUser.uid);
         await setUserId(firebaseUser.uid);
+        console.log('User ID saved to storage');
       } else {
         queryClient.setQueryData(['user'], null);
         await clearUserId();

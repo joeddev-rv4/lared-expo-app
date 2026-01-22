@@ -23,6 +23,7 @@ interface PortfolioProperty {
 export async function addPropertyToPortfolio(propertyId: string): Promise<boolean> {
   try {
     const userId = await getUserId();
+    console.log('Portfolio service - getUserId returned:', userId);
     if (!userId) {
       console.error('No user ID found');
       return false;
