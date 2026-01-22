@@ -9,6 +9,7 @@ export interface FirestoreUser {
   email: string;
   name: string;
   phone: string;
+  phoneVerified: boolean;
   createdAt: Date;
   status: UserStatus;
   isAdmin: boolean;

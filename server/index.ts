@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
@@ -226,6 +227,12 @@ function setupErrorHandler(app: express.Application) {
 }
 
 (async () => {
+  // Log de variables de entorno al inicio
+  console.log("🔐 Variables de entorno cargadas:");
+  console.log("   LARED_API_EMAIL:", process.env.LARED_API_EMAIL ? '✓ Configurado' : '✗ NO configurado');
+  console.log("   LARED_API_PASSWORD:", process.env.LARED_API_PASSWORD ? '✓ Configurado' : '✗ NO configurado');
+  console.log("");
+
   setupCors(app);
   setupBodyParsing(app);
   setupRequestLogging(app);
@@ -237,14 +244,7 @@ function setupErrorHandler(app: express.Application) {
   setupErrorHandler(app);
 
   const port = parseInt(process.env.PORT || "5000", 10);
-  server.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`express server serving on port ${port}`);
-    },
-  );
+  server.listen(port, () => {
+    log(`express server serving on port ${port}`);
+  });
 })();

@@ -29,7 +29,8 @@ export const loginUser = async (email: string, password: string): Promise<Firest
         back: '',
         front: ''
       },
-      dpiNumber: ''
+      dpiNumber: '',
+      phoneVerified: false
     };
     await setDocument(COLLECTIONS.USERS, user.uid, newUser);
     userData = newUser;
@@ -123,7 +124,8 @@ export const loginWithGoogle = async (): Promise<{ user: FirestoreUser; isNewUse
           back: '',
           front: ''
         },
-        dpiNumber: ''
+        dpiNumber: '',
+        phoneVerified: false
       };
       
       // Crear documento básico en Firestore
@@ -188,7 +190,8 @@ export const loginWithFacebook = async (): Promise<{ user: FirestoreUser; isNewU
             back: '',
             front: ''
           },
-          dpiNumber: ''
+          dpiNumber: '',
+          phoneVerified: false
         };
         
         // Crear documento básico en Firestore

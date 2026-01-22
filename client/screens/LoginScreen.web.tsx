@@ -985,7 +985,7 @@ export default function LoginScreenWeb() {
                     </ThemedText>
                   </Pressable>
                   <Pressable
-                    onPress={() => {
+                    onPress={async () => {
                       if (!phone.trim()) {
                         setErrorMessage('Por favor ingresa tu teléfono');
                         setShowErrorPopup(true);
@@ -998,6 +998,39 @@ export default function LoginScreenWeb() {
                         setTimeout(() => setShowErrorPopup(false), 3000);
                         return;
                       }
+                      
+                      console.log('📱 Enviando código de verificación al número:', `+502${phone}`);
+                      
+                      try {
+                        // Enviar código de verificación por WhatsApp
+                        const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+                        const response = await fetch(`${API_URL}/api/auth/send-verification`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({ phoneNumber: `+502${phone}` }),
+                        });
+                        
+                        const result = await response.json();
+                        console.log('📨 Respuesta del servidor:', result);
+                        
+                        if (!result.success) {
+                          setErrorMessage(result.message || 'Error al enviar código');
+                          setShowErrorPopup(true);
+                          setTimeout(() => setShowErrorPopup(false), 3000);
+                          return;
+                        }
+                        
+                        console.log('✅ Código enviado exitosamente');
+                      } catch (error) {
+                        console.error('❌ Error al enviar código:', error);
+                        setErrorMessage('Error de conexión. Verifica tu internet.');
+                        setShowErrorPopup(true);
+                        setTimeout(() => setShowErrorPopup(false), 3000);
+                        return;
+                      }
+                      
                       Animated.timing(formAnim, {
                         toValue: 0,
                         duration: 200,
@@ -1137,6 +1170,32 @@ export default function LoginScreenWeb() {
                     }
                     
                     try {
+                      // Verificar el código con el servidor
+                      console.log('🔍 Verificando código:', code);
+                      const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+                      const verifyResponse = await fetch(`${API_URL}/api/auth/verify-code`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                          phoneNumber: `+502${phone}`, 
+                          code: code 
+                        }),
+                      });
+                      
+                      const verifyResult = await verifyResponse.json();
+                      console.log('📨 Resultado de verificación:', verifyResult);
+                      
+                      if (!verifyResult.success) {
+                        setErrorMessage(verifyResult.message || 'Código incorrecto');
+                        setShowErrorPopup(true);
+                        setTimeout(() => setShowErrorPopup(false), 3000);
+                        return;
+                      }
+                      
+                      console.log('✅ Código verificado correctamente');
+                      
                       // Crear usuario en Firebase Auth
                       const auth = getAuth();
                       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
