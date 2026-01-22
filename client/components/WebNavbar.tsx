@@ -8,7 +8,7 @@ import {
   ImageSourcePropType,
   useWindowDimensions,
 } from "react-native";
-import { useNavigation, useRoute, CommonActions } from "@react-navigation/native";
+import { useNavigation, useNavigationState } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -63,7 +63,6 @@ const HEADER_GRADIENT_CENTER = "#044BB8";
 
 export function WebNavbar() {
   const navigation = useNavigation<any>();
-  const route = useRoute();
   const { logout } = useAuth();
   const { width } = useWindowDimensions();
   const [menuVisible, setMenuVisible] = useState(false);
@@ -71,27 +70,25 @@ export function WebNavbar() {
 
   const isMobile = width < 768;
   const isTablet = width >= 768 && width < 1024;
-  const currentRoute = route.name;
+  
+  // Get the active tab route from nested navigation state
+  const activeTabRoute = useNavigationState((state) => {
+    // Navigate through: DrawerNavigator -> MainTabs -> Tab.Navigator
+    const drawerRoute = state?.routes?.[state.index];
+    if (drawerRoute?.name === 'MainTabs' && drawerRoute.state) {
+      const tabState = drawerRoute.state;
+      const activeTab = tabState.routes?.[tabState.index ?? 0];
+      return activeTab?.name || 'ExploreTab';
+    }
+    return 'ExploreTab';
+  });
 
   const getIsActive = (itemKey: string, itemRoute: string) => {
-    if (currentRoute === itemRoute) return true;
-    if (
-      itemKey === "explore" &&
-      (currentRoute === "Explore" ||
-        currentRoute === "ExploreScreen" ||
-        currentRoute === "MainTabs" ||
-        currentRoute.toLowerCase().includes("explore"))
-    )
-      return true;
-    if (itemKey === "favorites" && currentRoute.toLowerCase().includes("favorite"))
-      return true;
-    if (itemKey === "profile" && currentRoute.toLowerCase().includes("profile"))
-      return true;
-    if (
-      itemKey === "achievements" &&
-      currentRoute.toLowerCase().includes("achievement")
-    )
-      return true;
+    if (activeTabRoute === itemRoute) return true;
+    if (itemKey === "explore" && activeTabRoute === "ExploreTab") return true;
+    if (itemKey === "favorites" && activeTabRoute === "FavoritesTab") return true;
+    if (itemKey === "profile" && activeTabRoute === "ProfileTab") return true;
+    if (itemKey === "achievements" && activeTabRoute === "AchievementsTab") return true;
     return false;
   };
 
