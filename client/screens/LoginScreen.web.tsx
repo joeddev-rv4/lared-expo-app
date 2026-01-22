@@ -67,15 +67,15 @@ export default function LoginScreenWeb() {
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const errorSlideAnim = useRef(new Animated.Value(300)).current;
 
-  // Clear any old data on mount
+  // Clear old profile data on mount (but NOT logout - that would clear valid sessions)
   useEffect(() => {
     const clearOldData = async () => {
       const { clearUserProfile } = await import('@/lib/storage');
       await clearUserProfile();
-      await logout();
+      // REMOVED: await logout(); - This was incorrectly clearing valid Firebase sessions
     };
     clearOldData();
-  }, [logout]);
+  }, []);
 
   useEffect(() => {
     if (user && hasAttemptedLogin) {

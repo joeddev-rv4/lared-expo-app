@@ -1,19 +1,33 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { View, FlatList, StyleSheet, RefreshControl, Platform } from "react-native";
+import React, { useState, useCallback } from "react";
+import {
+  View,
+  StyleSheet,
+  RefreshControl,
+  ActivityIndicator,
+  Platform,
+  ScrollView,
+  useWindowDimensions,
+  Alert,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Haptics from "expo-haptics";
 
 import { PropertyCard } from "@/components/PropertyCard";
 import { EmptyState } from "@/components/EmptyState";
+import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
-import { PLACEHOLDER_PROPERTIES, Property } from "@/data/properties";
-import { getFavorites, toggleFavorite } from "@/lib/storage";
-import { togglePropertyInPortfolio } from "@/lib/portfolioService";
+import { Property, mapAPIPropertyToProperty } from "@/data/properties";
+import { toggleFavorite } from "@/lib/storage";
+import { getPortfolioProperties, togglePropertyInPortfolio } from "@/lib/portfolioService";
 import { useAuth } from "@/contexts/AuthContext";
-import { Spacing } from "@/constants/theme";
+import { auth } from "@/lib/config";
+import { fetchPropiedades } from "@/lib/api";
+import { RootStackParamList } from "@/navigation/RootStackNavigator";
+import { Spacing, Colors } from "@/constants/theme";
 
 const isWeb = Platform.OS === "web";
 
@@ -21,89 +35,244 @@ export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { user } = useAuth();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { width: windowWidth } = useWindowDimensions();
 
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const isMobileWeb = isWeb && windowWidth < 768;
+  const isTabletWeb = isWeb && windowWidth >= 768 && windowWidth < 1024;
+
+  const [favoriteProperties, setFavoriteProperties] = useState<Property[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       loadFavorites();
-    }, [])
+    }, [user])
   );
 
   const loadFavorites = async () => {
-    const favs = await getFavorites();
-    setFavorites(favs);
+    try {
+      setLoading(true);
+      setError(null);
+
+      const userId = user?.id || auth.currentUser?.uid;
+
+      if (!userId) {
+        setFavoriteProperties([]);
+        setFavoriteIds([]);
+        setLoading(false);
+        return;
+      }
+
+      // Obtener IDs de propiedades favoritas desde Firebase
+      const portfolioPropertyIds = await getPortfolioProperties(userId);
+      setFavoriteIds(portfolioPropertyIds);
+
+      if (portfolioPropertyIds.length === 0) {
+        setFavoriteProperties([]);
+        setLoading(false);
+        return;
+      }
+
+      // Obtener todas las propiedades de la API
+      const apiProperties = await fetchPropiedades();
+      const allProperties = apiProperties.map(mapAPIPropertyToProperty);
+
+      // Filtrar solo las propiedades favoritas
+      const favorites = allProperties.filter((property) =>
+        portfolioPropertyIds.includes(parseInt(property.id, 10))
+      );
+
+      setFavoriteProperties(favorites);
+    } catch (err) {
+      console.error("Error loading favorites:", err);
+      setError("Error al cargar los favoritos. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     await loadFavorites();
-    setTimeout(() => setRefreshing(false), 500);
+    setRefreshing(false);
   };
 
   const handleFavoriteToggle = async (propertyId: string) => {
-    const isCurrentlyFavorite = favorites.includes(propertyId);
-    const newFavorites = await toggleFavorite(propertyId);
-    setFavorites(newFavorites);
-    
-    if (user?.id) {
-      await togglePropertyInPortfolio(propertyId, isCurrentlyFavorite, user.id);
+    const userId = user?.id || auth.currentUser?.uid;
+
+    if (!userId) {
+      Alert.alert(
+        "Inicia sesión",
+        "Necesitas iniciar sesión para gestionar tus favoritos.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    // Actualización optimista - remover de la lista local
+    const previousProperties = [...favoriteProperties];
+    setFavoriteProperties((prev) => prev.filter((p) => p.id !== propertyId));
+
+    try {
+      // Actualizar en Firebase (isCurrentlyFavorite = true porque estamos en la pantalla de favoritos)
+      const success = await togglePropertyInPortfolio(propertyId, true, userId);
+
+      // También actualizar storage local
+      await toggleFavorite(propertyId);
+
+      if (!success) {
+        // Revertir si falla
+        setFavoriteProperties(previousProperties);
+        Alert.alert(
+          "Error",
+          "No se pudo eliminar de tu portafolio. Intenta de nuevo.",
+          [{ text: "OK" }]
+        );
+      }
+    } catch (error) {
+      console.error("Error removing favorite:", error);
+      setFavoriteProperties(previousProperties);
+      Alert.alert(
+        "Error",
+        "Error de conexión. Intenta de nuevo.",
+        [{ text: "OK" }]
+      );
     }
   };
 
   const handlePropertyPress = (property: Property) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    navigation.navigate("PropertyDetail", { property });
   };
 
-  const favoriteProperties = PLACEHOLDER_PROPERTIES.filter((p) =>
-    favorites.includes(p.id)
-  );
+  const handleSharePress = (property: Property) => {
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  };
 
-  const renderEmpty = () => (
-    <EmptyState
-      image={require("../../assets/images/empty-states/favorites.png")}
-      title="No Favorites Yet"
-      description="Start exploring and save the properties you love by tapping the heart icon."
-    />
-  );
+  const renderEmpty = () => {
+    const userId = user?.id || auth.currentUser?.uid;
+
+    if (!userId) {
+      return (
+        <EmptyState
+          image={require("../../assets/images/empty-states/favorites.png")}
+          title="Inicia sesión"
+          description="Inicia sesión para ver y gestionar tus propiedades favoritas."
+        />
+      );
+    }
+
+    return (
+      <EmptyState
+        image={require("../../assets/images/empty-states/favorites.png")}
+        title="Sin favoritos"
+        description="Comienza a explorar y guarda las propiedades que te gusten tocando el ícono de corazón."
+      />
+    );
+  };
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.light.primary} />
+          <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>
+            Cargando favoritos...
+          </ThemedText>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <EmptyState
+          image={require("../../assets/images/empty-states/search.png")}
+          title="Error de conexión"
+          description={error}
+          actionLabel="Reintentar"
+          onAction={loadFavorites}
+        />
+      );
+    }
+
+    if (favoriteProperties.length === 0) {
+      return renderEmpty();
+    }
+
+    // Renderizado responsive igual que ExploreScreen
+    return isWeb ? (
+      <View style={[styles.webGrid, isMobileWeb && styles.webGridMobile, isTabletWeb && styles.webGridTablet]}>
+        {favoriteProperties.map((property) => (
+          <View key={property.id} style={[styles.webGridItem, isMobileWeb && styles.webGridItemMobile, isTabletWeb && styles.webGridItemTablet]}>
+            <PropertyCard
+              property={property}
+              isFavorite={true}
+              onPress={() => handlePropertyPress(property)}
+              onFavoritePress={() => handleFavoriteToggle(property.id)}
+              onSharePress={() => handleSharePress(property)}
+            />
+          </View>
+        ))}
+      </View>
+    ) : (
+      <View style={styles.mobileList}>
+        {favoriteProperties.map((property) => (
+          <PropertyCard
+            key={property.id}
+            property={property}
+            isFavorite={true}
+            onPress={() => handlePropertyPress(property)}
+            onFavoritePress={() => handleFavoriteToggle(property.id)}
+            onSharePress={() => handleSharePress(property)}
+          />
+        ))}
+      </View>
+    );
+  };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-      <FlatList
-        data={favoriteProperties}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <PropertyCard
-            property={item}
-            isFavorite={true}
-            onPress={() => handlePropertyPress(item)}
-            onFavoritePress={() => handleFavoriteToggle(item.id)}
-          />
-        )}
+    <View style={[styles.container, { backgroundColor: isWeb ? "#FFFFFF" : theme.backgroundRoot }]}>
+      <ScrollView
         contentContainerStyle={[
-          styles.listContent,
+          styles.scrollContent,
           {
-            paddingTop: headerHeight + Spacing.xl,
-            paddingBottom: tabBarHeight + Spacing.xl,
+            paddingTop: headerHeight + Spacing.lg,
+            paddingBottom: isWeb ? Spacing.xl : tabBarHeight + Spacing.xl,
           },
-          favoriteProperties.length === 0 ? styles.emptyList : null,
+          favoriteProperties.length === 0 && !loading ? styles.emptyContent : null,
         ]}
-        scrollIndicatorInsets={{ bottom: insets.bottom }}
-        ListEmptyComponent={renderEmpty}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={theme.textSecondary}
-            progressViewOffset={headerHeight}
-          />
+          !isWeb ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={theme.textSecondary}
+              progressViewOffset={headerHeight}
+            />
+          ) : undefined
         }
-      />
+      >
+        {favoriteProperties.length > 0 && !loading && (
+          <ThemedText style={styles.sectionTitle}>
+            Mis Favoritos ({favoriteProperties.length})
+          </ThemedText>
+        )}
+        {renderContent()}
+      </ScrollView>
     </View>
   );
 }
@@ -112,10 +281,52 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  listContent: {
-    paddingHorizontal: Spacing.lg,
+  scrollContent: {
+    paddingHorizontal: isWeb ? 90 : Spacing.lg,
   },
-  emptyList: {
+  emptyContent: {
     flexGrow: 1,
+    justifyContent: "center",
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#222222",
+    marginBottom: Spacing.lg,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: Spacing.xl * 3,
+  },
+  loadingText: {
+    marginTop: Spacing.md,
+    fontSize: 16,
+  },
+  webGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.lg,
+    ...(isWeb && { display: "grid" as any, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" as any }),
+  },
+  webGridItem: {
+    width: isWeb ? "100%" : "100%",
+    minWidth: 280,
+  },
+  webGridMobile: {
+    ...(isWeb && { gridTemplateColumns: "1fr" as any }),
+  },
+  webGridTablet: {
+    ...(isWeb && { gridTemplateColumns: "repeat(2, 1fr)" as any }),
+  },
+  webGridItemMobile: {
+    minWidth: "100%",
+  },
+  webGridItemTablet: {
+    minWidth: "auto",
+  },
+  mobileList: {
+    gap: Spacing.md,
   },
 });

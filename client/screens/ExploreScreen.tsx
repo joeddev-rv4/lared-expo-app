@@ -12,6 +12,7 @@ import {
   ScrollView,
   TextInput,
   useWindowDimensions,
+  Alert,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -32,6 +33,7 @@ import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { useAuth } from "@/contexts/AuthContext";
+import { auth } from "@/lib/config";
 
 import { PropertyCard } from "@/components/PropertyCard";
 import { SearchBar } from "@/components/SearchBar";
@@ -124,11 +126,56 @@ export default function ExploreScreen() {
 
   const handleFavoriteToggle = async (propertyId: string) => {
     const isCurrentlyFavorite = favorites.includes(propertyId);
+    const previousFavorites = [...favorites];
+
+    // Obtener userId del contexto o directamente de Firebase Auth como fallback
+    const userId = user?.id || auth.currentUser?.uid;
+
+    console.log("handleFavoriteToggle - propertyId:", propertyId);
+    console.log("handleFavoriteToggle - isCurrentlyFavorite:", isCurrentlyFavorite);
+    console.log("handleFavoriteToggle - userId from context:", user?.id);
+    console.log("handleFavoriteToggle - userId from Firebase Auth:", auth.currentUser?.uid);
+    console.log("handleFavoriteToggle - using userId:", userId);
+
+    // Actualización optimista del estado local
     const newFavorites = await toggleFavorite(propertyId);
     setFavorites(newFavorites);
-    
-    if (user?.id) {
-      await togglePropertyInPortfolio(propertyId, isCurrentlyFavorite, user.id);
+
+    // Sincronizar con Firebase si el usuario está autenticado
+    if (userId) {
+      try {
+        const success = await togglePropertyInPortfolio(propertyId, isCurrentlyFavorite, userId);
+        if (!success) {
+          // Revertir si Firebase falla
+          await toggleFavorite(propertyId);
+          setFavorites(previousFavorites);
+          Alert.alert(
+            "Error",
+            "No se pudo guardar en tu portafolio. Intenta de nuevo.",
+            [{ text: "OK" }]
+          );
+        }
+      } catch (error) {
+        console.error("Error syncing favorite with Firebase:", error);
+        // Revertir el estado local
+        await toggleFavorite(propertyId);
+        setFavorites(previousFavorites);
+        Alert.alert(
+          "Error",
+          "Error de conexión. No se pudo guardar en tu portafolio.",
+          [{ text: "OK" }]
+        );
+      }
+    } else {
+      console.log("No user authenticated, saving locally only");
+      // Usuario no autenticado - mostrar mensaje informativo
+      if (!isCurrentlyFavorite) {
+        Alert.alert(
+          "Favorito guardado localmente",
+          "Inicia sesión para sincronizar tus favoritos en todos tus dispositivos.",
+          [{ text: "OK" }]
+        );
+      }
     }
   };
 
