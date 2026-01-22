@@ -31,6 +31,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { PropertyCard } from "@/components/PropertyCard";
 import { SearchBar } from "@/components/SearchBar";
@@ -59,6 +60,7 @@ export default function ExploreScreen() {
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
   const { theme, isDark } = useTheme();
+  const { user } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { width: windowWidth } = useWindowDimensions();
 
@@ -125,7 +127,9 @@ export default function ExploreScreen() {
     const newFavorites = await toggleFavorite(propertyId);
     setFavorites(newFavorites);
     
-    await togglePropertyInPortfolio(propertyId, isCurrentlyFavorite);
+    if (user?.id) {
+      await togglePropertyInPortfolio(propertyId, isCurrentlyFavorite, user.id);
+    }
   };
 
   const handlePropertyPress = (property: Property) => {

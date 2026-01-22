@@ -12,6 +12,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { PLACEHOLDER_PROPERTIES, Property } from "@/data/properties";
 import { getFavorites, toggleFavorite } from "@/lib/storage";
 import { togglePropertyInPortfolio } from "@/lib/portfolioService";
+import { useAuth } from "@/contexts/AuthContext";
 import { Spacing } from "@/constants/theme";
 
 const isWeb = Platform.OS === "web";
@@ -21,6 +22,7 @@ export default function FavoritesScreen() {
   const headerHeight = useHeaderHeight();
   const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
   const { theme } = useTheme();
+  const { user } = useAuth();
 
   const [favorites, setFavorites] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -48,7 +50,9 @@ export default function FavoritesScreen() {
     const newFavorites = await toggleFavorite(propertyId);
     setFavorites(newFavorites);
     
-    await togglePropertyInPortfolio(propertyId, isCurrentlyFavorite);
+    if (user?.id) {
+      await togglePropertyInPortfolio(propertyId, isCurrentlyFavorite, user.id);
+    }
   };
 
   const handlePropertyPress = (property: Property) => {

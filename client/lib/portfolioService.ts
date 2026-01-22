@@ -10,7 +10,7 @@ import {
   deleteDoc,
   Timestamp 
 } from 'firebase/firestore';
-import { db, auth } from './config';
+import { db } from './config';
 
 interface PortfolioProperty {
   addedAt: Timestamp;
@@ -19,13 +19,11 @@ interface PortfolioProperty {
   userId: string;
 }
 
-export async function addPropertyToPortfolio(propertyId: string): Promise<boolean> {
+export async function addPropertyToPortfolio(propertyId: string, userId: string): Promise<boolean> {
   try {
-    const currentUser = auth.currentUser;
-    const userId = currentUser?.uid;
-    console.log('Portfolio service - Firebase auth user:', userId);
+    console.log('Portfolio service - adding property for user:', userId);
     if (!userId) {
-      console.error('No user ID found - user not authenticated');
+      console.error('No user ID provided');
       return false;
     }
 
@@ -67,12 +65,10 @@ export async function addPropertyToPortfolio(propertyId: string): Promise<boolea
   }
 }
 
-export async function removePropertyFromPortfolio(propertyId: string): Promise<boolean> {
+export async function removePropertyFromPortfolio(propertyId: string, userId: string): Promise<boolean> {
   try {
-    const currentUser = auth.currentUser;
-    const userId = currentUser?.uid;
     if (!userId) {
-      console.error('No user ID found - user not authenticated');
+      console.error('No user ID provided');
       return false;
     }
 
@@ -101,18 +97,16 @@ export async function removePropertyFromPortfolio(propertyId: string): Promise<b
   }
 }
 
-export async function togglePropertyInPortfolio(propertyId: string, isCurrentlyFavorite: boolean): Promise<boolean> {
+export async function togglePropertyInPortfolio(propertyId: string, isCurrentlyFavorite: boolean, userId: string): Promise<boolean> {
   if (isCurrentlyFavorite) {
-    return await removePropertyFromPortfolio(propertyId);
+    return await removePropertyFromPortfolio(propertyId, userId);
   } else {
-    return await addPropertyToPortfolio(propertyId);
+    return await addPropertyToPortfolio(propertyId, userId);
   }
 }
 
-export async function getPortfolioProperties(): Promise<number[]> {
+export async function getPortfolioProperties(userId: string): Promise<number[]> {
   try {
-    const currentUser = auth.currentUser;
-    const userId = currentUser?.uid;
     if (!userId) {
       return [];
     }
