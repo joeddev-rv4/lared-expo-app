@@ -49,13 +49,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      // Mantener la sesión activa si hay un usuario autenticado en Firebase
-      // pero NO navegar automáticamente (auto-login deshabilitado)
       if (firebaseUser) {
         console.log('Firebase user detected, maintaining session');
+        await setUserId(firebaseUser.uid);
       } else {
-        // Solo limpiar si no hay usuario autenticado
         queryClient.setQueryData(['user'], null);
+        await clearUserId();
       }
     });
 
