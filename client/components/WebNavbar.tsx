@@ -98,11 +98,8 @@ export function WebNavbar() {
     navigation.navigate(routeName);
   };
 
-  const handleMenuOptionPress = (key: string) => {
+  const handleMenuOptionPress = async (key: string) => {
     setMenuVisible(false);
-    if (route) {
-      navigation.navigate(route);
-    }
     if (key === 'logout') {
       await logout();
       navigation.reset({
@@ -257,7 +254,7 @@ export function WebNavbar() {
                   { backgroundColor: pressed ? "#F7F7F7" : "#FFFFFF" },
                 ]}
                 onPress={() =>
-                  handleMenuOptionPress(option.key, (option as any).route)
+                  handleMenuOptionPress(option.key)
                 }
               >
                 <Ionicons name={option.icon as keyof typeof Ionicons.glyphMap} size={16} color="#222222" />

@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { Ionicons, FontAwesome, Feather } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -42,6 +42,9 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export default function LoginScreenWeb() {
   const navigation = useNavigation<NavigationProp>();
   const { theme, isDark } = useTheme();
+  const { login, isLoading, user, logout, loginGoogle, loginFacebook } = useAuth();
+  const { width: windowWidth } = useWindowDimensions();
+  const isMobile = windowWidth < 768;
   const [currentPage, setCurrentPage] = useState(0);
   const [mode, setMode] = useState<'buttons' | 'login' | 'register' | 'register_username' | 'register_phone' | 'verify_phone' | 'google_phone' | 'google_verify_phone'>('buttons');
   const [email, setEmail] = useState('');
@@ -59,6 +62,7 @@ export default function LoginScreenWeb() {
   const [buttonsAnim] = useState(new Animated.Value(1));
   const [errorMessage, setErrorMessage] = useState('');
   const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const errorSlideAnim = useRef(new Animated.Value(300)).current;
 
   // Clear any old data on mount
   useEffect(() => {
@@ -75,6 +79,24 @@ export default function LoginScreenWeb() {
       navigation.replace('Main');
     }
   }, [user, navigation, hasAttemptedLogin]);
+
+  // Animate error popup
+  useEffect(() => {
+    if (showErrorPopup) {
+      Animated.spring(errorSlideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 8,
+      }).start();
+    } else {
+      Animated.timing(errorSlideAnim, {
+        toValue: 300,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showErrorPopup]);
 
   useEffect(() => {
     if (mode === 'login' || mode === 'register' || mode === 'register_username' || mode === 'register_phone' || mode === 'verify_phone' || mode === 'google_phone' || mode === 'google_verify_phone') {
@@ -204,6 +226,19 @@ export default function LoginScreenWeb() {
       
       if (methods.length > 0) {
         console.log('Email ya existe en Firebase Auth');
+        setErrorMessage('Este email ya está relacionado a una cuenta');
+        setShowErrorPopup(true);
+        setTimeout(() => setShowErrorPopup(false), 3000);
+        return;
+      }
+
+      // También verificar en Firestore
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('email', '==', email));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        console.log('Email ya existe en Firestore');
         setErrorMessage('Este email ya está relacionado a una cuenta');
         setShowErrorPopup(true);
         setTimeout(() => setShowErrorPopup(false), 3000);
@@ -727,8 +762,13 @@ export default function LoginScreenWeb() {
                   placeholder="Teléfono"
                   placeholderTextColor={theme.textSecondary}
                   value={phone}
-                  onChangeText={setPhone}
+                  onChangeText={(text) => {
+                    // Solo permitir números y máximo 8 dígitos
+                    const cleanedText = text.replace(/[^0-9]/g, '').slice(0, 8);
+                    setPhone(cleanedText);
+                  }}
                   keyboardType="phone-pad"
+                  maxLength={8}
                   autoFocus
                 />
                 <View style={styles.buttonRow}>
@@ -736,6 +776,12 @@ export default function LoginScreenWeb() {
                     onPress={() => {
                       if (!phone.trim()) {
                         setErrorMessage('Por favor ingresa tu teléfono');
+                        setShowErrorPopup(true);
+                        setTimeout(() => setShowErrorPopup(false), 3000);
+                        return;
+                      }
+                      if (phone.length !== 8) {
+                        setErrorMessage('El teléfono debe tener exactamente 8 dígitos');
                         setShowErrorPopup(true);
                         setTimeout(() => setShowErrorPopup(false), 3000);
                         return;
@@ -1027,8 +1073,13 @@ export default function LoginScreenWeb() {
                   placeholder="Teléfono"
                   placeholderTextColor={theme.textSecondary}
                   value={phone}
-                  onChangeText={setPhone}
+                  onChangeText={(text) => {
+                    // Solo permitir números y máximo 8 dígitos
+                    const cleanedText = text.replace(/[^0-9]/g, '').slice(0, 8);
+                    setPhone(cleanedText);
+                  }}
                   keyboardType="phone-pad"
+                  maxLength={8}
                   autoFocus
                 />
                 <View style={styles.buttonRow}>
@@ -1036,6 +1087,12 @@ export default function LoginScreenWeb() {
                     onPress={async () => {
                       if (!phone.trim()) {
                         setErrorMessage('Por favor ingresa tu teléfono');
+                        setShowErrorPopup(true);
+                        setTimeout(() => setShowErrorPopup(false), 3000);
+                        return;
+                      }
+                      if (phone.length !== 8) {
+                        setErrorMessage('El teléfono debe tener exactamente 8 dígitos');
                         setShowErrorPopup(true);
                         setTimeout(() => setShowErrorPopup(false), 3000);
                         return;
@@ -1348,12 +1405,17 @@ export default function LoginScreenWeb() {
       </View>
 
       {showErrorPopup && (
-        <View style={styles.errorPopup}>
+        <Animated.View 
+          style={[
+            styles.errorPopup,
+            { transform: [{ translateX: errorSlideAnim }] }
+          ]}
+        >
           <View style={styles.errorPopupContent}>
             <FontAwesome name="exclamation-circle" size={20} color="#FFFFFF" />
             <ThemedText style={styles.errorPopupText}>{errorMessage}</ThemedText>
           </View>
-        </View>
+        </Animated.View>
       )}
     </ThemedView>
   );
@@ -1525,5 +1587,61 @@ const styles = StyleSheet.create({
   linkText: {
     fontSize: 13,
     fontWeight: "500",
+  },
+  splitContainerMobile: {
+    flexDirection: "column",
+  },
+  rightPanelMobile: {
+    padding: Spacing.lg,
+  },
+  codeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    marginVertical: Spacing.xl,
+  },
+  codeSlotWrapper: {
+    width: 50,
+    height: 60,
+    borderWidth: 2,
+    borderRadius: BorderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  codeSlot: {
+    fontSize: 24,
+    fontWeight: '600',
+    textAlign: 'center',
+    width: '100%',
+  },
+  errorPopup: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 1000,
+  },
+  errorPopupContent: {
+    backgroundColor: '#DC2626',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    minWidth: 250,
+  },
+  errorPopupText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: Spacing.sm,
+    flex: 1,
   },
 });

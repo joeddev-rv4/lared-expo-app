@@ -3,7 +3,7 @@ import { View, StyleSheet, Pressable, Image, TextInput, Alert, Animated, ScrollV
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { Ionicons, FontAwesome, Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Colors, Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { getAuth, fetchSignInMethodsForEmail, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/config';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -38,6 +38,7 @@ export default function LoginScreen() {
   const [buttonsAnim] = useState(new Animated.Value(1));
   const [errorMessage, setErrorMessage] = useState('');
   const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const errorSlideAnim = useRef(new Animated.Value(300)).current;
 
   // Clear any old data on mount
   useEffect(() => {
@@ -48,6 +49,24 @@ export default function LoginScreen() {
     };
     clearOldData();
   }, [logout]);
+
+  // Animate error popup
+  useEffect(() => {
+    if (showErrorPopup) {
+      Animated.spring(errorSlideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 8,
+      }).start();
+    } else {
+      Animated.timing(errorSlideAnim, {
+        toValue: 300,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showErrorPopup]);
 
   useEffect(() => {
     if (user && hasAttemptedLogin) {
@@ -163,6 +182,19 @@ export default function LoginScreen() {
       
       if (methods.length > 0) {
         console.log('Email ya existe en Firebase Auth');
+        setErrorMessage('Este email ya está relacionado a una cuenta');
+        setShowErrorPopup(true);
+        setTimeout(() => setShowErrorPopup(false), 3000);
+        return;
+      }
+
+      // Also verify in Firestore
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('email', '==', email));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        console.log('Email ya existe en Firestore');
         setErrorMessage('Este email ya está relacionado a una cuenta');
         setShowErrorPopup(true);
         setTimeout(() => setShowErrorPopup(false), 3000);
@@ -659,8 +691,13 @@ export default function LoginScreen() {
               placeholder="Teléfono"
               placeholderTextColor={theme.textSecondary}
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={(text) => {
+                // Solo permitir números y máximo 8 dígitos
+                const cleanedText = text.replace(/[^0-9]/g, '').slice(0, 8);
+                setPhone(cleanedText);
+              }}
               keyboardType="phone-pad"
+              maxLength={8}
               autoFocus
             />
             <View style={styles.buttonRow}>
@@ -964,8 +1001,13 @@ export default function LoginScreen() {
               placeholder="Teléfono"
               placeholderTextColor={theme.textSecondary}
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={(text) => {
+                // Solo permitir números y máximo 8 dígitos
+                const cleanedText = text.replace(/[^0-9]/g, '').slice(0, 8);
+                setPhone(cleanedText);
+              }}
               keyboardType="phone-pad"
+              maxLength={8}
               autoFocus
             />
             <View style={styles.buttonRow}>
@@ -974,6 +1016,12 @@ export default function LoginScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   if (!phone.trim()) {
                     setErrorMessage('Por favor ingresa tu teléfono');
+                    setShowErrorPopup(true);
+                    setTimeout(() => setShowErrorPopup(false), 3000);
+                    return;
+                  }
+                  if (phone.length !== 8) {
+                    setErrorMessage('El teléfono debe tener exactamente 8 dígitos');
                     setShowErrorPopup(true);
                     setTimeout(() => setShowErrorPopup(false), 3000);
                     return;
@@ -1288,12 +1336,20 @@ export default function LoginScreen() {
       </ScrollView>
 
       {showErrorPopup && (
-        <View style={[styles.errorPopup, { top: insets.top + 20 }]}>
+        <Animated.View 
+          style={[
+            styles.errorPopup, 
+            { 
+              top: insets.top + 20,
+              transform: [{ translateX: errorSlideAnim }]
+            }
+          ]}
+        >
           <View style={styles.errorPopupContent}>
             <FontAwesome name="exclamation-circle" size={20} color="#FFFFFF" />
             <ThemedText style={styles.errorPopupText}>{errorMessage}</ThemedText>
           </View>
-        </View>
+        </Animated.View>
       )}
     </ThemedView>
   );
@@ -1415,6 +1471,7 @@ const styles = StyleSheet.create({
   },
   errorPopup: {
     position: 'absolute',
+    top: 20,
     right: 20,
     zIndex: 1000,
   },
