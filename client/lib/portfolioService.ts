@@ -10,8 +10,7 @@ import {
   deleteDoc,
   Timestamp 
 } from 'firebase/firestore';
-import { db } from './config';
-import { getUserId } from './storage';
+import { db, auth } from './config';
 
 interface PortfolioProperty {
   addedAt: Timestamp;
@@ -22,10 +21,11 @@ interface PortfolioProperty {
 
 export async function addPropertyToPortfolio(propertyId: string): Promise<boolean> {
   try {
-    const userId = await getUserId();
-    console.log('Portfolio service - getUserId returned:', userId);
+    const currentUser = auth.currentUser;
+    const userId = currentUser?.uid;
+    console.log('Portfolio service - Firebase auth user:', userId);
     if (!userId) {
-      console.error('No user ID found');
+      console.error('No user ID found - user not authenticated');
       return false;
     }
 
@@ -69,9 +69,10 @@ export async function addPropertyToPortfolio(propertyId: string): Promise<boolea
 
 export async function removePropertyFromPortfolio(propertyId: string): Promise<boolean> {
   try {
-    const userId = await getUserId();
+    const currentUser = auth.currentUser;
+    const userId = currentUser?.uid;
     if (!userId) {
-      console.error('No user ID found');
+      console.error('No user ID found - user not authenticated');
       return false;
     }
 
@@ -110,7 +111,8 @@ export async function togglePropertyInPortfolio(propertyId: string, isCurrentlyF
 
 export async function getPortfolioProperties(): Promise<number[]> {
   try {
-    const userId = await getUserId();
+    const currentUser = auth.currentUser;
+    const userId = currentUser?.uid;
     if (!userId) {
       return [];
     }
