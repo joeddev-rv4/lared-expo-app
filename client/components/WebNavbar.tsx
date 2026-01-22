@@ -30,6 +30,11 @@ const NAV_ITEMS: NavItem[] = [
     route: "ExploreTab",
   },
   {
+    key: "favorites",
+    label: "Favoritos",
+    route: "FavoritesTab",
+  },
+  {
     key: "profile",
     label: "Mi Perfil",
     route: "ProfileTab",
@@ -42,12 +47,6 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const MENU_OPTIONS = [
-  {
-    key: "favorites",
-    label: "Favoritos",
-    icon: "heart" as const,
-    route: "FavoritesTab",
-  },
   { key: "notifications", label: "Notificaciones", icon: "bell" as const },
   { key: "settings", label: "Configuración", icon: "settings" as const },
   { key: "help", label: "Centro de ayuda", icon: "help-circle" as const },
@@ -77,6 +76,8 @@ export function WebNavbar() {
         currentRoute === "MainTabs" ||
         currentRoute.toLowerCase().includes("explore"))
     )
+      return true;
+    if (itemKey === "favorites" && currentRoute.toLowerCase().includes("favorite"))
       return true;
     if (itemKey === "profile" && currentRoute.toLowerCase().includes("profile"))
       return true;
