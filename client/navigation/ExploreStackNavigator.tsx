@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import ExploreScreen from "@/screens/ExploreScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/contexts/AuthContext";
 import { Spacing } from "@/constants/theme";
 import { ThemedText } from "@/components/ThemedText";
 
@@ -19,11 +20,15 @@ export type ExploreStackParamList = {
 const Stack = createNativeStackNavigator<ExploreStackParamList>();
 
 function HeaderLeftGreeting() {
+  const { user } = useAuth();
+  
   if (isWeb) return null;
+  
+  const firstName = user?.name?.split(' ')[0] || 'Usuario';
   
   return (
     <ThemedText style={{ fontSize: 20, fontWeight: "700" }}>
-      Hola, Ada Lovelace
+      Hola, {firstName}
     </ThemedText>
   );
 }
