@@ -46,9 +46,12 @@ export default function LoginScreenWeb() {
   const { width: windowWidth } = useWindowDimensions();
   const isMobile = windowWidth < 768;
   const [currentPage, setCurrentPage] = useState(0);
-  const [mode, setMode] = useState<'buttons' | 'login' | 'register' | 'register_username' | 'register_phone' | 'verify_phone' | 'google_phone' | 'google_verify_phone'>('buttons');
+  const [mode, setMode] = useState<'buttons' | 'login' | 'register' | 'register_password' | 'register_username' | 'register_phone' | 'verify_phone' | 'google_phone' | 'google_verify_phone'>('buttons');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
   const [isFromGoogle, setIsFromGoogle] = useState(false);
@@ -99,7 +102,7 @@ export default function LoginScreenWeb() {
   }, [showErrorPopup]);
 
   useEffect(() => {
-    if (mode === 'login' || mode === 'register' || mode === 'register_username' || mode === 'register_phone' || mode === 'verify_phone' || mode === 'google_phone' || mode === 'google_verify_phone') {
+    if (mode === 'login' || mode === 'register' || mode === 'register_password' || mode === 'register_username' || mode === 'register_phone' || mode === 'verify_phone' || mode === 'google_phone' || mode === 'google_verify_phone') {
       // Animar hacia adentro
       Animated.parallel([
         Animated.timing(formAnim, {
@@ -162,7 +165,7 @@ export default function LoginScreenWeb() {
       let isCredentialError = false;
       
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        errorMessage = 'Email o contraseña incorrectos';
+        errorMessage = 'Credenciales incorrectas';
         isCredentialError = true;
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = 'Email inválido';
@@ -252,7 +255,7 @@ export default function LoginScreenWeb() {
         duration: 200,
         useNativeDriver: false,
       }).start(() => {
-        setMode('register_username');
+        setMode('register_password');
         formAnim.setValue(0);
         Animated.timing(formAnim, {
           toValue: 1,
@@ -268,6 +271,45 @@ export default function LoginScreenWeb() {
     }
   };
 
+  const handlePasswordNext = async () => {
+    if (!password.trim()) {
+      setErrorMessage('Por favor ingresa una contraseña');
+      setShowErrorPopup(true);
+      setTimeout(() => setShowErrorPopup(false), 3000);
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage('La contraseña debe tener al menos 6 caracteres');
+      setShowErrorPopup(true);
+      setTimeout(() => setShowErrorPopup(false), 3000);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage('Las contraseñas no coinciden');
+      setShowErrorPopup(true);
+      setTimeout(() => setShowErrorPopup(false), 3000);
+      return;
+    }
+
+    // Solo validar, no crear usuario todavía
+    console.log('Contraseña validada, procediendo a username');
+    Animated.timing(formAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start(() => {
+      setMode('register_username');
+      formAnim.setValue(0);
+      Animated.timing(formAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: false,
+      }).start();
+    });
+  };
+
   const handleUsernameNext = async () => {
     if (!username.trim()) {
       setErrorMessage('Por favor ingresa un usuario');
@@ -277,8 +319,6 @@ export default function LoginScreenWeb() {
     }
 
     console.log('Username ingresado:', username);
-    // NO verificar en Firestore porque no hay autenticación aún
-    // Proceder directamente al siguiente paso
     Animated.timing(formAnim, {
       toValue: 0,
       duration: 200,
@@ -669,6 +709,100 @@ export default function LoginScreenWeb() {
                   </ThemedText>
                 </Pressable>
               </Animated.View>
+            ) : mode === 'register_password' ? (
+              <Animated.View 
+                style={[
+                  styles.registerContainer,
+                  { 
+                    opacity: formAnim,
+                    transform: [{ 
+                      translateX: formAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [50, 0]
+                      })
+                    }]
+                  }
+                ]}
+              >
+                <ThemedText style={[styles.registerTitle, { color: theme.text }]}>
+                  Ingrese su contraseña
+                </ThemedText>
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={[styles.input, styles.passwordInput, { 
+                      borderColor: theme.border, 
+                      color: theme.text,
+                      backgroundColor: theme.backgroundDefault 
+                    }]}
+                    placeholder="Contraseña"
+                    placeholderTextColor={theme.textSecondary}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    autoFocus
+                  />
+                  <Pressable
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.eyeButton}
+                  >
+                    <Feather 
+                      name={showPassword ? "eye" : "eye-off"} 
+                      size={20} 
+                      color={theme.textSecondary} 
+                    />
+                  </Pressable>
+                </View>
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={[styles.input, styles.passwordInput, { 
+                      borderColor: theme.border, 
+                      color: theme.text,
+                      backgroundColor: theme.backgroundDefault 
+                    }]}
+                    placeholder="Repetir Contraseña"
+                    placeholderTextColor={theme.textSecondary}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry={!showConfirmPassword}
+                  />
+                  <Pressable
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={styles.eyeButton}
+                  >
+                    <Feather 
+                      name={showConfirmPassword ? "eye" : "eye-off"} 
+                      size={20} 
+                      color={theme.textSecondary} 
+                    />
+                  </Pressable>
+                </View>
+                <Pressable
+                  onPress={handlePasswordNext}
+                  style={({ pressed }) => [
+                    styles.loginButton,
+                    {
+                      backgroundColor: Colors.light.primary,
+                      opacity: pressed ? 0.9 : 1,
+                    },
+                  ]}
+                >
+                  <ThemedText style={styles.loginButtonText}>
+                    Siguiente
+                  </ThemedText>
+                </Pressable>
+                <Pressable
+                  onPress={handleBack}
+                  style={({ pressed }) => [
+                    styles.backButton,
+                    { opacity: pressed ? 0.7 : 1 },
+                  ]}
+                >
+                  <Feather name="arrow-left" size={20} color={theme.textSecondary} />
+                  <ThemedText style={[styles.backButtonText, { color: theme.textSecondary }]}>
+                    Volver
+                  </ThemedText>
+                </Pressable>
+              </Animated.View>
             ) : mode === 'register_username' ? (
               <Animated.View 
                 style={[
@@ -819,8 +953,56 @@ export default function LoginScreenWeb() {
                     </ThemedText>
                   </Pressable>
                   <Pressable
-                    onPress={() => {
-                      // Sin funcionalidad por ahora
+                    onPress={async () => {
+                      try {
+                        // Crear usuario en Firebase Auth
+                        const auth = getAuth();
+                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                        console.log('Usuario creado en Firebase Auth (sin teléfono):', userCredential.user.uid);
+                        
+                        // Guardar en Firestore sin teléfono
+                        await setDoc(doc(db, 'users', userCredential.user.uid), {
+                          id: userCredential.user.uid,
+                          email: email,
+                          name: username,
+                          phone: '',
+                          createdAt: new Date(),
+                          status: 'notVerified',
+                          isAdmin: false,
+                          isVerifiedBroker: false,
+                          avatar: '',
+                          bank: '',
+                          card: '',
+                          dpiDocument: {
+                            back: '',
+                            front: ''
+                          },
+                          dpiNumber: ''
+                        });
+                        
+                        console.log('Usuario creado sin teléfono');
+                        
+                        // Ir a la pantalla principal
+                        setHasAttemptedLogin(true);
+                        navigation.replace('Main');
+                      } catch (error: any) {
+                        console.error('Error al crear usuario:', error);
+                        let errorMessage = 'Error al crear cuenta';
+                        
+                        if (error.code === 'auth/email-already-in-use') {
+                          errorMessage = 'Este email ya está en uso';
+                        } else if (error.code === 'auth/invalid-email') {
+                          errorMessage = 'Email inválido';
+                        } else if (error.code === 'auth/weak-password') {
+                          errorMessage = 'La contraseña es muy débil';
+                        } else if (error.message) {
+                          errorMessage = error.message;
+                        }
+                        
+                        setErrorMessage(errorMessage);
+                        setShowErrorPopup(true);
+                        setTimeout(() => setShowErrorPopup(false), 3000);
+                      }
                     }}
                     style={({ pressed }) => [
                       styles.skipButton,
@@ -832,7 +1014,7 @@ export default function LoginScreenWeb() {
                         paddingVertical: 0,
                         alignItems: 'center',
                         justifyContent: 'center',
-                        borderColor: '#cccccc', // Bordes grises
+                        borderColor: '#cccccc',
                       },
                     ]}
                   >
@@ -949,28 +1131,12 @@ export default function LoginScreenWeb() {
                     try {
                       // Crear usuario en Firebase Auth
                       const auth = getAuth();
-                      const tempPassword = `Temp${Date.now()}!`; // Contraseña temporal
-                      await createUserWithEmailAndPassword(auth, email, tempPassword);
+                      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                      console.log('Usuario creado en Firebase Auth:', userCredential.user.uid);
                       
-                      console.log('Usuario creado en Auth, iniciando sesión...');
-                      
-                      // Hacer login para establecer la sesión correctamente
-                      await login(email, tempPassword);
-                      
-                      // Ahora obtener el usuario autenticado
-                      const currentUser = auth.currentUser;
-                      if (!currentUser) {
-                        throw new Error('No se pudo autenticar el usuario');
-                      }
-                      
-                      console.log('Usuario autenticado:', currentUser.uid);
-                      
-                      // Esperar un poco más para asegurar que la sesión esté completamente establecida
-                      await new Promise(resolve => setTimeout(resolve, 1000));
-                      
-                      // Guardar datos completos en Firestore con merge
-                      await setDoc(doc(db, 'users', currentUser.uid), {
-                        id: currentUser.uid,
+                      // Guardar datos completos en Firestore
+                      await setDoc(doc(db, 'users', userCredential.user.uid), {
+                        id: userCredential.user.uid,
                         email: email,
                         name: username,
                         phone: `+502${phone}`,
@@ -986,7 +1152,7 @@ export default function LoginScreenWeb() {
                           front: ''
                         },
                         dpiNumber: ''
-                      }, { merge: true });
+                      });
                       
                       console.log('Datos guardados en Firestore correctamente');
                       
@@ -1526,6 +1692,18 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     fontSize: 16,
     minHeight: 50,
+  },
+  passwordContainer: {
+    position: 'relative',
+  },
+  passwordInput: {
+    paddingRight: 50,
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 15,
+    top: 15,
+    padding: 5,
   },
   loginButton: {
     flexDirection: "row",

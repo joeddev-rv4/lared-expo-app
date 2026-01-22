@@ -23,9 +23,12 @@ export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
   const { login, isLoading, user, logout, loginGoogle, loginFacebook } = useAuth();
-  const [mode, setMode] = useState<'buttons' | 'login' | 'register' | 'register_username' | 'register_phone' | 'verify_phone' | 'google_phone' | 'google_verify_phone'>('buttons');
+  const [mode, setMode] = useState<'buttons' | 'login' | 'register' | 'register_password' | 'register_username' | 'register_phone' | 'verify_phone' | 'google_phone' | 'google_verify_phone'>('buttons');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
   const [isFromGoogle, setIsFromGoogle] = useState(false);
@@ -75,7 +78,7 @@ export default function LoginScreen() {
   }, [user, navigation, hasAttemptedLogin]);
 
   useEffect(() => {
-    if (mode === 'login' || mode === 'register' || mode === 'register_username' || mode === 'register_phone' || mode === 'verify_phone' || mode === 'google_phone' || mode === 'google_verify_phone') {
+    if (mode === 'login' || mode === 'register' || mode === 'register_password' || mode === 'register_username' || mode === 'register_phone' || mode === 'verify_phone' || mode === 'google_phone' || mode === 'google_verify_phone') {
       // Animate in
       Animated.parallel([
         Animated.timing(formAnim, {
@@ -121,7 +124,7 @@ export default function LoginScreen() {
       let isCredentialError = false;
       
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        errorMessage = 'Email o contraseña incorrectos';
+        errorMessage = 'Credenciales incorrectas';
         isCredentialError = true;
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = 'Email inválido';
@@ -208,7 +211,7 @@ export default function LoginScreen() {
         duration: 200,
         useNativeDriver: false,
       }).start(() => {
-        setMode('register_username');
+        setMode('register_password');
         formAnim.setValue(0);
         Animated.timing(formAnim, {
           toValue: 1,
@@ -222,6 +225,45 @@ export default function LoginScreen() {
       setShowErrorPopup(true);
       setTimeout(() => setShowErrorPopup(false), 3000);
     }
+  };
+
+  const handlePasswordNext = async () => {
+    if (!password.trim()) {
+      setErrorMessage('Por favor ingresa una contraseña');
+      setShowErrorPopup(true);
+      setTimeout(() => setShowErrorPopup(false), 3000);
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage('La contraseña debe tener al menos 6 caracteres');
+      setShowErrorPopup(true);
+      setTimeout(() => setShowErrorPopup(false), 3000);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage('Las contraseñas no coinciden');
+      setShowErrorPopup(true);
+      setTimeout(() => setShowErrorPopup(false), 3000);
+      return;
+    }
+
+    // Solo validar, no crear usuario todavía
+    console.log('Contraseña validada, procediendo a username');
+    Animated.timing(formAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start(() => {
+      setMode('register_username');
+      formAnim.setValue(0);
+      Animated.timing(formAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: false,
+      }).start();
+    });
   };
 
   const handleUsernameNext = async () => {
@@ -594,6 +636,109 @@ export default function LoginScreen() {
               </ThemedText>
             </Pressable>
           </Animated.View>
+        ) : mode === 'register_password' ? (
+          <Animated.View 
+            style={[
+              styles.registerContainer,
+              { 
+                opacity: formAnim,
+                transform: [{ 
+                  translateY: formAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [50, 0]
+                  })
+                }]
+              }
+            ]}
+          >
+            <ThemedText style={[styles.registerTitle, { color: theme.text }]}>
+              Ingrese su contraseña
+            </ThemedText>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[styles.input, styles.passwordInput, { 
+                  borderColor: theme.border, 
+                  color: theme.text,
+                  backgroundColor: theme.backgroundDefault 
+                }]}
+                placeholder="Contraseña"
+                placeholderTextColor={theme.textSecondary}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoFocus
+              />
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setShowPassword(!showPassword);
+                }}
+                style={styles.eyeButton}
+              >
+                <Feather 
+                  name={showPassword ? "eye" : "eye-off"} 
+                  size={20} 
+                  color={theme.textSecondary} 
+                />
+              </Pressable>
+            </View>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[styles.input, styles.passwordInput, { 
+                  borderColor: theme.border, 
+                  color: theme.text,
+                  backgroundColor: theme.backgroundDefault 
+                }]}
+                placeholder="Repetir Contraseña"
+                placeholderTextColor={theme.textSecondary}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+              />
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setShowConfirmPassword(!showConfirmPassword);
+                }}
+                style={styles.eyeButton}
+              >
+                <Feather 
+                  name={showConfirmPassword ? "eye" : "eye-off"} 
+                  size={20} 
+                  color={theme.textSecondary} 
+                />
+              </Pressable>
+            </View>
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                handlePasswordNext();
+              }}
+              style={({ pressed }) => [
+                styles.loginButton,
+                {
+                  backgroundColor: Colors.light.primary,
+                  opacity: pressed ? 0.9 : 1,
+                },
+              ]}
+            >
+              <ThemedText style={styles.loginButtonText}>
+                Siguiente
+              </ThemedText>
+            </Pressable>
+            <Pressable
+              onPress={handleBack}
+              style={({ pressed }) => [
+                styles.backButton,
+                { opacity: pressed ? 0.7 : 1 },
+              ]}
+            >
+              <Feather name="arrow-left" size={20} color={theme.textSecondary} />
+              <ThemedText style={[styles.backButtonText, { color: theme.textSecondary }]}>
+                Volver
+              </ThemedText>
+            </Pressable>
+          </Animated.View>
         ) : mode === 'register_username' ? (
           <Animated.View 
             style={[
@@ -743,9 +888,57 @@ export default function LoginScreen() {
                 </ThemedText>
               </Pressable>
               <Pressable
-                onPress={() => {
+                onPress={async () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  // No functionality for now
+                  try {
+                    // Crear usuario en Firebase Auth
+                    const auth = getAuth();
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    console.log('Usuario creado en Firebase Auth (sin teléfono):', userCredential.user.uid);
+                    
+                    // Guardar en Firestore sin teléfono
+                    await setDoc(doc(db, 'users', userCredential.user.uid), {
+                      id: userCredential.user.uid,
+                      email: email,
+                      name: username,
+                      phone: '',
+                      createdAt: new Date(),
+                      status: 'notVerified',
+                      isAdmin: false,
+                      isVerifiedBroker: false,
+                      avatar: '',
+                      bank: '',
+                      card: '',
+                      dpiDocument: {
+                        back: '',
+                        front: ''
+                      },
+                      dpiNumber: ''
+                    });
+                    
+                    console.log('Usuario creado sin teléfono');
+                    
+                    // Ir a la pantalla principal
+                    setHasAttemptedLogin(true);
+                    navigation.replace('Main');
+                  } catch (error: any) {
+                    console.error('Error al crear usuario:', error);
+                    let errorMessage = 'Error al crear cuenta';
+                    
+                    if (error.code === 'auth/email-already-in-use') {
+                      errorMessage = 'Este email ya está en uso';
+                    } else if (error.code === 'auth/invalid-email') {
+                      errorMessage = 'Email inválido';
+                    } else if (error.code === 'auth/weak-password') {
+                      errorMessage = 'La contraseña es muy débil';
+                    } else if (error.message) {
+                      errorMessage = error.message;
+                    }
+                    
+                    setErrorMessage(errorMessage);
+                    setShowErrorPopup(true);
+                    setTimeout(() => setShowErrorPopup(false), 3000);
+                  }
                 }}
                 style={({ pressed }) => [
                   styles.skipButton,
@@ -874,30 +1067,14 @@ export default function LoginScreen() {
                 }
                 
                 try {
-                  // Create user in Firebase Auth
+                  // Crear usuario en Firebase Auth
                   const auth = getAuth();
-                  const tempPassword = `Temp${Date.now()}!`; // Temporary password
-                  await createUserWithEmailAndPassword(auth, email, tempPassword);
+                  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                  console.log('Usuario creado en Firebase Auth:', userCredential.user.uid);
                   
-                  console.log('Usuario creado en Auth, iniciando sesión...');
-                  
-                  // Login to establish session correctly
-                  await login(email, tempPassword);
-                  
-                  // Now get authenticated user
-                  const currentUser = auth.currentUser;
-                  if (!currentUser) {
-                    throw new Error('No se pudo autenticar el usuario');
-                  }
-                  
-                  console.log('Usuario autenticado:', currentUser.uid);
-                  
-                  // Wait a bit to ensure session is fully established
-                  await new Promise(resolve => setTimeout(resolve, 1000));
-                  
-                  // Save complete data in Firestore with merge
-                  await setDoc(doc(db, 'users', currentUser.uid), {
-                    id: currentUser.uid,
+                  // Guardar datos completos en Firestore
+                  await setDoc(doc(db, 'users', userCredential.user.uid), {
+                    id: userCredential.user.uid,
                     email: email,
                     name: username,
                     phone: `+502${phone}`,
@@ -1407,6 +1584,18 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     fontSize: 16,
     minHeight: 50,
+  },
+  passwordContainer: {
+    position: 'relative',
+  },
+  passwordInput: {
+    paddingRight: 50,
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 15,
+    top: 15,
+    padding: 5,
   },
   loginButton: {
     flexDirection: "row",
