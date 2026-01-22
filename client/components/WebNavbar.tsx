@@ -8,7 +8,7 @@ import {
   ImageSourcePropType,
   useWindowDimensions,
 } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute, CommonActions } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -96,7 +96,11 @@ export function WebNavbar() {
   };
 
   const handleNavPress = (routeName: string) => {
-    navigation.navigate(routeName);
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: routeName,
+      })
+    );
   };
 
   const handleMenuOptionPress = async (key: string) => {
