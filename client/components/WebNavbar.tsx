@@ -28,6 +28,7 @@ const NAV_ITEMS: NavItem[] = [
     key: "explore",
     label: "Explorar",
     route: "ExploreTab",
+    icon: require("../../assets/icons/icon_2.png"),
   },
   {
     key: "favorites",
@@ -38,11 +39,13 @@ const NAV_ITEMS: NavItem[] = [
     key: "profile",
     label: "Mi Perfil",
     route: "ProfileTab",
+    icon: require("../../assets/icons/icon_1.png"),
   },
   {
     key: "achievements",
     label: "Mis Logros",
     route: "AchievementsTab",
+    icon: require("../../assets/icons/icon_3.png"),
   },
 ];
 
@@ -156,6 +159,16 @@ export function WebNavbar() {
                     ]}
                   >
                     <View style={styles.navItemContent}>
+                      {item.icon ? (
+                        <Image
+                          source={item.icon}
+                          style={[
+                            styles.navIcon,
+                            isActive && styles.navIconActive,
+                          ]}
+                          resizeMode="contain"
+                        />
+                      ) : null}
                       <ThemedText
                         style={[
                           styles.navLabel,
@@ -294,12 +307,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.sm,
   },
+  navIcon: {
+    width: 20,
+    height: 20,
+  },
+  navIconActive: {
+    width: 26,
+    height: 26,
+  },
   navLabel: {
     fontSize: 14,
     fontWeight: "700",
     color: "#FFFFFF",
   },
   navLabelActive: {
+    fontSize: 16,
     color: "#FFFFFF",
     fontWeight: "700",
   },
