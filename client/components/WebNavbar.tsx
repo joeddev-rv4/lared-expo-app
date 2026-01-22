@@ -312,8 +312,8 @@ const styles = StyleSheet.create({
     height: 20,
   },
   navIconActive: {
-    width: 26,
-    height: 26,
+    width: 30,
+    height: 30,
   },
   navLabel: {
     fontSize: 14,
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   navLabelActive: {
-    fontSize: 16,
+    fontSize: 20,
     color: "#FFFFFF",
     fontWeight: "700",
   },
