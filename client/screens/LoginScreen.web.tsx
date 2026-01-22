@@ -335,6 +335,14 @@ export default function LoginScreenWeb() {
   };
 
   const handleBack = () => {
+    // Limpiar todos los estados del formulario
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setUsername('');
+    setPhone('');
+    setVerificationCode(['', '', '', '', '', '']);
+    
     // Primero animar hacia fuera el contenido actual
     Animated.timing(formAnim, {
       toValue: 0,
@@ -819,7 +827,7 @@ export default function LoginScreenWeb() {
                 ]}
               >
                 <ThemedText style={[styles.registerTitle, { color: theme.text }]}>
-                  Ingresa tu usuario
+                  Ingresa tu nombre
                 </ThemedText>
                 <TextInput
                   style={[styles.input, { 
@@ -827,7 +835,7 @@ export default function LoginScreenWeb() {
                     color: theme.text,
                     backgroundColor: theme.backgroundDefault 
                   }]}
-                  placeholder="Usuario"
+                  placeholder="Nombre"
                   placeholderTextColor={theme.textSecondary}
                   value={username}
                   onChangeText={setUsername}
@@ -907,52 +915,6 @@ export default function LoginScreenWeb() {
                 />
                 <View style={styles.buttonRow}>
                   <Pressable
-                    onPress={() => {
-                      if (!phone.trim()) {
-                        setErrorMessage('Por favor ingresa tu teléfono');
-                        setShowErrorPopup(true);
-                        setTimeout(() => setShowErrorPopup(false), 3000);
-                        return;
-                      }
-                      if (phone.length !== 8) {
-                        setErrorMessage('El teléfono debe tener exactamente 8 dígitos');
-                        setShowErrorPopup(true);
-                        setTimeout(() => setShowErrorPopup(false), 3000);
-                        return;
-                      }
-                      Animated.timing(formAnim, {
-                        toValue: 0,
-                        duration: 200,
-                        useNativeDriver: false,
-                      }).start(() => {
-                        setMode('verify_phone');
-                        formAnim.setValue(0);
-                        Animated.timing(formAnim, {
-                          toValue: 1,
-                          duration: 300,
-                          useNativeDriver: false,
-                        }).start();
-                      });
-                    }}
-                    style={({ pressed }) => [
-                      styles.loginButton,
-                      {
-                        backgroundColor: Colors.light.primary,
-                        opacity: pressed ? 0.9 : 1,
-                        flex: 1,
-                        marginRight: Spacing.sm,
-                        height: 50,
-                        paddingVertical: 0,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      },
-                    ]}
-                  >
-                    <ThemedText style={styles.loginButtonText}>
-                      Siguiente
-                    </ThemedText>
-                  </Pressable>
-                  <Pressable
                     onPress={async () => {
                       try {
                         // Crear usuario en Firebase Auth
@@ -1009,7 +971,7 @@ export default function LoginScreenWeb() {
                       {
                         opacity: pressed ? 0.7 : 1,
                         flex: 1,
-                        marginLeft: Spacing.sm,
+                        marginRight: Spacing.sm,
                         height: 50,
                         paddingVertical: 0,
                         alignItems: 'center',
@@ -1020,6 +982,52 @@ export default function LoginScreenWeb() {
                   >
                     <ThemedText style={[styles.skipText, { color: theme.textSecondary, marginTop: 0 }]}>
                       Saltar
+                    </ThemedText>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      if (!phone.trim()) {
+                        setErrorMessage('Por favor ingresa tu teléfono');
+                        setShowErrorPopup(true);
+                        setTimeout(() => setShowErrorPopup(false), 3000);
+                        return;
+                      }
+                      if (phone.length !== 8) {
+                        setErrorMessage('El teléfono debe tener exactamente 8 dígitos');
+                        setShowErrorPopup(true);
+                        setTimeout(() => setShowErrorPopup(false), 3000);
+                        return;
+                      }
+                      Animated.timing(formAnim, {
+                        toValue: 0,
+                        duration: 200,
+                        useNativeDriver: false,
+                      }).start(() => {
+                        setMode('verify_phone');
+                        formAnim.setValue(0);
+                        Animated.timing(formAnim, {
+                          toValue: 1,
+                          duration: 300,
+                          useNativeDriver: false,
+                        }).start();
+                      });
+                    }}
+                    style={({ pressed }) => [
+                      styles.loginButton,
+                      {
+                        backgroundColor: Colors.light.primary,
+                        opacity: pressed ? 0.9 : 1,
+                        flex: 1,
+                        marginLeft: Spacing.sm,
+                        height: 50,
+                        paddingVertical: 0,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      },
+                    ]}
+                  >
+                    <ThemedText style={styles.loginButtonText}>
+                      Siguiente
                     </ThemedText>
                   </Pressable>
                 </View>

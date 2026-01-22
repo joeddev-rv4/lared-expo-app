@@ -292,6 +292,15 @@ export default function LoginScreen() {
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    // Limpiar todos los estados del formulario
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setUsername('');
+    setPhone('');
+    setVerificationCode(['', '', '', '', '', '']);
+    
     Animated.timing(formAnim, {
       toValue: 0,
       duration: 200,
@@ -763,7 +772,7 @@ export default function LoginScreen() {
                 color: theme.text,
                 backgroundColor: theme.backgroundDefault 
               }]}
-              placeholder="Usuario"
+              placeholder="Nombre"
               placeholderTextColor={theme.textSecondary}
               value={username}
               onChangeText={setUsername}
@@ -847,47 +856,6 @@ export default function LoginScreen() {
             />
             <View style={styles.buttonRow}>
               <Pressable
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  if (!phone.trim()) {
-                    setErrorMessage('Por favor ingresa tu teléfono');
-                    setShowErrorPopup(true);
-                    setTimeout(() => setShowErrorPopup(false), 3000);
-                    return;
-                  }
-                  Animated.timing(formAnim, {
-                    toValue: 0,
-                    duration: 200,
-                    useNativeDriver: false,
-                  }).start(() => {
-                    setMode('verify_phone');
-                    formAnim.setValue(0);
-                    Animated.timing(formAnim, {
-                      toValue: 1,
-                      duration: 300,
-                      useNativeDriver: false,
-                    }).start();
-                  });
-                }}
-                style={({ pressed }) => [
-                  styles.loginButton,
-                  {
-                    backgroundColor: Colors.light.primary,
-                    opacity: pressed ? 0.9 : 1,
-                    flex: 1,
-                    marginRight: Spacing.sm,
-                    height: 50,
-                    paddingVertical: 0,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  },
-                ]}
-              >
-                <ThemedText style={styles.loginButtonText}>
-                  Siguiente
-                </ThemedText>
-              </Pressable>
-              <Pressable
                 onPress={async () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   try {
@@ -945,7 +913,7 @@ export default function LoginScreen() {
                   {
                     opacity: pressed ? 0.7 : 1,
                     flex: 1,
-                    marginLeft: Spacing.sm,
+                    marginRight: Spacing.sm,
                     height: 50,
                     paddingVertical: 0,
                     alignItems: 'center',
@@ -958,7 +926,118 @@ export default function LoginScreen() {
                   Saltar
                 </ThemedText>
               </Pressable>
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  if (!phone.trim()) {
+                    setErrorMessage('Por favor ingresa tu teléfono');
+                    setShowErrorPopup(true);
+                    setTimeout(() => setShowErrorPopup(false), 3000);
+                    return;
+                  }
+                  if (phone.length !== 8) {
+                    setErrorMessage('El teléfono debe tener exactamente 8 dígitos');
+                    setShowErrorPopup(true);
+                    setTimeout(() => setShowErrorPopup(false), 3000);
+                    return;
+                  }
+                  Animated.timing(formAnim, {
+                    toValue: 0,
+                    duration: 200,
+                    useNativeDriver: false,
+                  }).start(() => {
+                    setMode('verify_phone');
+                    formAnim.setValue(0);
+                    Animated.timing(formAnim, {
+                      toValue: 1,
+                      duration: 300,
+                      useNativeDriver: false,
+                    }).start();
+                  });
+                }}
+                style={({ pressed }) => [
+                  styles.loginButton,
+                  {
+                    backgroundColor: Colors.light.primary,
+                    opacity: pressed ? 0.9 : 1,
+                    flex: 1,
+                    marginLeft: Spacing.sm,
+                    height: 50,
+                    paddingVertical: 0,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  },
+                ]}
+              >
+                <ThemedText style={styles.loginButtonText}>
+                  Siguiente
+                </ThemedText>
+              </Pressable>
             </View>
+            <Pressable
+                onPress={async () => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  try {
+                    // Crear usuario en Firebase Auth
+                    const auth = getAuth();
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    console.log('Usuario creado en Firebase Auth (sin teléfono):', userCredential.user.uid);
+                    
+                    // Guardar en Firestore sin teléfono
+                    await setDoc(doc(db, 'users', userCredential.user.uid), {
+                      id: userCredential.user.uid,
+                      email: email,
+                      name: username,
+                      phone: '',
+                      createdAt: new Date(),
+                      status: 'notVerified',
+                      isAdmin: false,
+                      isVerifiedBroker: false,
+                      avatar: '',
+                      bank: '',
+                      card: '',
+                      dpiDocument: {
+                        back: '',
+                        front: ''
+                      },
+                      dpiNumber: ''
+                    });
+                    
+                    console.log('Usuario creado sin teléfono');
+                    
+                    // Ir a la pantalla principal
+                    setHasAttemptedLogin(true);
+                    navigation.replace('Main');
+                  } catch (error: any) {
+                    console.error('Error al crear usuario:', error);
+                    let errorMessage = 'Error al crear cuenta';
+                    
+                    if (error.code === 'auth/email-already-in-use') {
+                      errorMessage = 'Este email ya está en uso';
+                    } else if (error.code === 'auth/invalid-email') {
+                      errorMessage = 'Email inválido';
+                    } else if (error.code === 'auth/weak-password') {
+                      errorMessage = 'La contraseña es muy débil';
+                    } else if (error.message) {
+                      errorMessage = error.message;
+                    }
+                    
+                    setErrorMessage(errorMessage);
+                    setShowErrorPopup(true);
+                    setTimeout(() => setShowErrorPopup(false), 3000);
+                  }
+                }}
+                style={({ pressed }) => [
+                  styles.skipButton,
+                  {
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <ThemedText style={[styles.skipText, { color: theme.textSecondary }]}>
+                  Saltar
+                </ThemedText>
+              </Pressable>
             <Pressable
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
