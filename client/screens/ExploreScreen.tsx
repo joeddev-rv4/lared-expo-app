@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: isWeb ? 30 : Spacing.lg,
   },
   webSearchHeader: {
     marginTop: Spacing.xl,

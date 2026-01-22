@@ -281,11 +281,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
-    maxWidth: 1280,
-    marginHorizontal: "auto",
     width: "100%",
+    position: "relative",
   },
   logoContainer: {
     flexDirection: "row",
@@ -303,6 +302,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.xl,
+    position: "absolute",
+    left: "50%",
+    transform: [{ translateX: "-50%" }],
   },
   navItem: {
     paddingVertical: Spacing.sm,
