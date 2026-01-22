@@ -96,11 +96,8 @@ export function WebNavbar() {
   };
 
   const handleNavPress = (routeName: string) => {
-    navigation.dispatch(
-      CommonActions.navigate({
-        name: routeName,
-      })
-    );
+    // Navigate to nested tab screen through the drawer navigator
+    navigation.navigate('MainTabs', { screen: routeName });
   };
 
   const handleMenuOptionPress = async (key: string) => {
