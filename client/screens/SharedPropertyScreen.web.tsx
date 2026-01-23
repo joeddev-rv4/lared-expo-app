@@ -21,7 +21,6 @@ import { Spacing, Colors, BorderRadius, Shadows } from "@/constants/theme";
 type SharedPropertyParams = {
   propertyId: string;
   odooId: string;
-  odooContactId: string;
 };
 
 export default function SharedPropertyScreenWeb() {
@@ -131,9 +130,9 @@ export default function SharedPropertyScreenWeb() {
             <View style={[styles.brokerCard, isMobile && styles.brokerCardMobile]}>
               <View style={styles.brokerAvatarContainer}>
                 <View style={styles.brokerAvatar}>
-                  {broker.photoURL ? (
+                  {broker.avatar ? (
                     <Image
-                      source={{ uri: broker.photoURL }}
+                      source={{ uri: broker.avatar }}
                       style={styles.brokerAvatarImage}
                     />
                   ) : (
@@ -146,7 +145,7 @@ export default function SharedPropertyScreenWeb() {
               </View>
               <View style={styles.brokerInfo}>
                 <ThemedText style={styles.brokerName}>
-                  {broker.displayName || broker.nombre || "Asesor Inmobiliario"}
+                  {broker.name || "Asesor Inmobiliario"}
                 </ThemedText>
                 <ThemedText style={styles.brokerLabel}>Asesor verificado</ThemedText>
               </View>
@@ -157,10 +156,10 @@ export default function SharedPropertyScreenWeb() {
                     <ThemedText style={styles.contactValue}>{broker.email}</ThemedText>
                   </View>
                 )}
-                {broker.telefono && (
+                {broker.phone && (
                   <View style={styles.contactItem}>
                     <ThemedText style={styles.contactLabel}>Teléfono</ThemedText>
-                    <ThemedText style={styles.contactValue}>{broker.telefono}</ThemedText>
+                    <ThemedText style={styles.contactValue}>{broker.phone}</ThemedText>
                   </View>
                 )}
               </View>
@@ -276,11 +275,11 @@ export default function SharedPropertyScreenWeb() {
             <ThemedText style={styles.ctaText}>
               Contacta al asesor para más información o para agendar una visita.
             </ThemedText>
-            {broker?.telefono && (
+            {broker?.phone && (
               <Pressable
                 style={styles.ctaButton}
                 onPress={() => {
-                  const phone = broker.telefono?.replace(/[^0-9]/g, "");
+                  const phone = broker.phone?.replace(/[^0-9]/g, "");
                   window.open(`https://wa.me/${phone}?text=Hola, me interesa la propiedad: ${property.title}`, "_blank");
                 }}
               >

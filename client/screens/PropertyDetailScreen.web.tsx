@@ -12,10 +12,14 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import * as Clipboard from "expo-clipboard";
 
 import { ThemedText } from "@/components/ThemedText";
 import { WebNavbar } from "@/components/WebNavbar";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/contexts/AuthContext";
+import { auth } from "@/lib/config";
+import { getPortfolioProperties } from "@/lib/portfolioService";
 import { Property } from "@/data/properties";
 import { Spacing, Colors, BorderRadius, Shadows } from "@/constants/theme";
 
@@ -39,11 +43,49 @@ export default function PropertyDetailScreenWeb() {
   const isMobile = width < 768;
   const isTablet = width >= 768 && width < 1024;
 
+  const { user } = useAuth();
+  
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("1");
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  useEffect(() => {
+    checkIfFavorite();
+  }, [property?.id, user?.id]);
+
+  const checkIfFavorite = async () => {
+    const userId = user?.id || auth.currentUser?.uid;
+    if (!userId || !property?.id) return;
+    
+    try {
+      const favorites = await getPortfolioProperties(userId);
+      const isFav = favorites.includes(parseInt(property.id, 10));
+      setIsFavorite(isFav);
+    } catch (error) {
+      console.error("Error checking favorite status:", error);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    const userId = user?.id || auth.currentUser?.uid;
+    
+    if (!userId || !property?.id) return;
+    
+    const baseUrl = window.location.origin;
+    const shareUrl = `${baseUrl}/shared/${property.id}/${userId}`;
+    
+    try {
+      await Clipboard.setStringAsync(shareUrl);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 3000);
+    } catch (error) {
+      console.error("Error copying link:", error);
+    }
+  };
 
   const filteredImages = property?.imagenes
     ?.filter(img => ["Imagen", "Video", "masterplan"].includes(img.tipo))
@@ -247,9 +289,31 @@ export default function PropertyDetailScreenWeb() {
                 <ThemedText style={styles.commissionValue}>{formatPrice(Math.round(property.price * 0.02))}</ThemedText>
               </View>
 
-              <Pressable style={styles.reserveButton}>
-                <ThemedText style={styles.reserveButtonText}>Comparte y gana</ThemedText>
-              </Pressable>
+              {isFavorite ? (
+                <View style={styles.favoriteButtons}>
+                  <Pressable 
+                    style={[styles.copyLinkButton, linkCopied && styles.copyLinkButtonCopied]} 
+                    onPress={handleCopyLink}
+                  >
+                    <Ionicons 
+                      name={linkCopied ? "checkmark-circle" : "link"} 
+                      size={18} 
+                      color={linkCopied ? "#FFFFFF" : "#bf0a0a"} 
+                    />
+                    <ThemedText style={[styles.copyLinkButtonText, linkCopied && styles.copyLinkButtonTextCopied]}>
+                      {linkCopied ? "Link copiado" : "Copiar link"}
+                    </ThemedText>
+                  </Pressable>
+                  <Pressable style={styles.reserveButton}>
+                    <Ionicons name="share-social" size={18} color="#FFFFFF" style={{ marginRight: Spacing.xs }} />
+                    <ThemedText style={styles.reserveButtonText}>Comparte y gana</ThemedText>
+                  </Pressable>
+                </View>
+              ) : (
+                <Pressable style={styles.reserveButton}>
+                  <ThemedText style={styles.reserveButtonText}>Comparte y gana</ThemedText>
+                </Pressable>
+              )}
             </View>
           </View>
         </View>
@@ -829,5 +893,32 @@ const styles = StyleSheet.create({
     position: "relative",
     top: 0,
     width: "100%",
+  },
+  favoriteButtons: {
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  copyLinkButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.xs,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 2,
+    borderColor: "#bf0a0a",
+    borderRadius: BorderRadius.sm,
+    paddingVertical: Spacing.md,
+  },
+  copyLinkButtonCopied: {
+    backgroundColor: "#25D366",
+    borderColor: "#25D366",
+  },
+  copyLinkButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#bf0a0a",
+  },
+  copyLinkButtonTextCopied: {
+    color: "#FFFFFF",
   },
 });

@@ -27,7 +27,7 @@ export type RootStackParamList = {
   Main: undefined;
   AddListingModal: undefined;
   PropertyDetail: { property: Property };
-  SharedProperty: { propertyId: string; odooId: string; odooContactId: string };
+  SharedProperty: { propertyId: string; odooId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
