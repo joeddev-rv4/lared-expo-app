@@ -147,7 +147,7 @@ export default function BlogScreenWeb() {
         <View style={styles.headerContent}>
           <View style={styles.logoContainer}>
             <Image
-              source={require("../../assets/images/la-red-logo.png")}
+              source={require("../../assets/images/la_red_blanco_negro3.png")}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -434,7 +434,7 @@ export default function BlogScreenWeb() {
 
         <View style={styles.footer}>
           <Image
-            source={require("../../assets/images/la-red-logo.png")}
+            source={require("../../assets/images/la_red_blanco_negro3.png")}
             style={styles.footerLogo}
             resizeMode="contain"
           />
