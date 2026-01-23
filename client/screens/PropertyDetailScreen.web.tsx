@@ -302,13 +302,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    paddingTop: 70 + Spacing.lg,
     paddingBottom: Spacing.xl * 2,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: Spacing.xl * 2,
+    paddingHorizontal: 90,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: "#EBEBEB",
@@ -342,7 +343,7 @@ const styles = StyleSheet.create({
   },
   imageGallery: {
     flexDirection: "row",
-    paddingHorizontal: Spacing.xl * 2,
+    paddingHorizontal: 90,
     paddingTop: Spacing.lg,
     gap: Spacing.sm,
     position: "relative",
@@ -374,7 +375,7 @@ const styles = StyleSheet.create({
   showAllPhotosButton: {
     position: "absolute",
     bottom: Spacing.lg,
-    right: Spacing.xl * 2 + Spacing.lg,
+    right: 90 + Spacing.lg,
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.xs,
@@ -392,7 +393,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flexDirection: "row",
-    paddingHorizontal: Spacing.xl * 2,
+    paddingHorizontal: 90,
     paddingTop: Spacing.xl,
     gap: Spacing.xl * 2,
   },
@@ -407,7 +408,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   imageGalleryContainer: {
-    paddingHorizontal: Spacing.xl * 2,
+    paddingHorizontal: 90,
     marginTop: Spacing.xl,
   },
   propertyTitleOverlay: {
