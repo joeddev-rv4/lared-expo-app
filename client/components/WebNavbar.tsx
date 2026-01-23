@@ -315,8 +315,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logoIcon: {
-    width: 50,
-    height: 50,
+    width: 80,
+    height: 80,
   },
   navItems: {
     flexDirection: "row",
