@@ -1,0 +1,499 @@
+Crea una aplicación Expo con Expo Router y NativeWind (Tailwind CSS para React Native) que muestre un portafolio de propiedades inmobiliarias de un broker. La aplicación está optimizada SOLO para web.
+
+## Configuración Inicial
+
+1. Expo SDK 51+
+2. Expo Router para navegación
+3. NativeWind v4 (Tailwind CSS para React Native)
+4. Expo Image para imágenes optimizadas
+5. Lucide React Native para iconos
+
+## Comandos de instalación
+
+```bash
+npx create-expo-app@latest broker-portfolio --template tabs
+cd broker-portfolio
+npx expo install nativewind tailwindcss
+npx expo install expo-image
+npx expo install @expo/vector-icons
+npm install lucide-react-native react-native-svg
+Paleta de Colores (tailwind.config.js)
+
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
+  presets: [require("nativewind/preset")],
+  theme: {
+    extend: {
+      colors: {
+        'main': '#EC1C24',
+        'primary': '#d51345',
+        'white-background': '#f7f7f7',
+        'white-white': '#fff',
+        'white-main-brand-color': '#d51345',
+        'white-green': '#00cd6a',
+        'white-black': '#222',
+        'white-grey1': '#c6c6c8',
+        'white-grey2': '#717171',
+        'white-grey-3': '#e9e9e9',
+        'white-total-black': '#0a0a0a',
+      },
+    },
+  },
+  plugins: [],
+};
+Archivos de configuración
+babel.config.js
+
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: [
+      ["babel-preset-expo", { jsxImportSource: "nativewind" }],
+      "nativewind/babel",
+    ],
+  };
+};
+metro.config.js
+
+const { getDefaultConfig } = require("expo/metro-config");
+const { withNativeWind } = require("nativewind/metro");
+
+const config = getDefaultConfig(__dirname);
+
+module.exports = withNativeWind(config, { input: "./global.css" });
+global.css
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+app/_layout.tsx
+
+import "../global.css";
+import { Stack } from "expo-router";
+
+export default function RootLayout() {
+  return <Stack screenOptions={{ headerShown: false }} />;
+}
+Estructura de Archivos
+
+app/
+├── _layout.tsx
+├── index.tsx (redirect a /blog/demo)
+└── blog/
+    └── [brokerId].tsx
+components/
+├── layouts/
+│   └── BlogLayout.tsx
+└── ui/
+    ├── SimplifiedHeader.tsx
+    ├── BrokerCard.tsx
+    ├── LocationCard.tsx
+    ├── Paper.tsx
+    ├── Heading.tsx
+    └── Spinner.tsx
+Componentes
+1. components/layouts/BlogLayout.tsx
+
+import { View, ScrollView } from 'react-native';
+import SimplifiedHeader from '../ui/SimplifiedHeader';
+
+interface BlogLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function BlogLayout({ children }: BlogLayoutProps) {
+  return (
+    <View className="flex-1 min-h-screen bg-white-background items-center relative">
+      <SimplifiedHeader />
+      <ScrollView 
+        className="flex-1 w-full pt-28"
+        contentContainerStyle={{ alignItems: 'center' }}
+      >
+        <View className="w-full max-w-[1120px] px-6 pb-10">
+          {children}
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+2. components/ui/SimplifiedHeader.tsx
+
+import { View, Pressable } from 'react-native';
+import { Image } from 'expo-image';
+import { Link } from 'expo-router';
+
+export default function SimplifiedHeader() {
+  return (
+    <View className="absolute top-8 left-0 right-0 flex-row justify-center w-full z-50">
+      <View className="h-16 lg:h-20 mx-4 bg-white border border-solid border-white-grey-3 rounded-[104px] overflow-hidden flex-row items-center justify-center px-5 w-full max-w-[1072px]">
+        <Link href="/" asChild>
+          <Pressable className="flex-row items-center py-2">
+            <Image
+              source={{ uri: 'https://via.placeholder.com/48x48/d51345/ffffff?text=LR' }}
+              style={{ width: 48, height: 48 }}
+              contentFit="contain"
+            />
+          </Pressable>
+        </Link>
+      </View>
+    </View>
+  );
+}
+3. components/ui/BrokerCard.tsx
+
+import { View, Text } from 'react-native';
+import { Image } from 'expo-image';
+import { ShieldCheck } from 'lucide-react-native';
+import Paper from './Paper';
+
+interface BrokerCardProps {
+  avatar: string;
+  name: string;
+  isVerified: boolean;
+  email: string;
+  phone: string;
+  className?: string;
+}
+
+export default function BrokerCard({ avatar, name, isVerified, email, phone, className }: BrokerCardProps) {
+  return (
+    <Paper className={`px-6 shadow-lg ${className ?? ''}`} style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 13, elevation: 8 }}>
+      <View className="flex-col md:flex-row items-start md:items-center gap-6 lg:gap-24">
+        {/* Avatar y nombre */}
+        <View className="flex-row items-center gap-3">
+          <View className="relative">
+            <View className="w-16 h-16 rounded-full overflow-hidden">
+              <Image
+                source={{ uri: avatar }}
+                style={{ width: 64, height: 64 }}
+                contentFit="cover"
+              />
+            </View>
+            {isVerified && (
+              <View className="absolute -bottom-2 left-1/2 -translate-x-1/2">
+                <View className="w-6 h-6 rounded-full bg-white-main-brand-color items-center justify-center">
+                  <ShieldCheck size={12} color="#fff" />
+                </View>
+              </View>
+            )}
+          </View>
+          <View>
+            <Text className="text-lg font-bold text-white-black">{name}</Text>
+          </View>
+        </View>
+
+        {/* Email y teléfono */}
+        <View className="flex-col lg:flex-row gap-5 lg:gap-10">
+          <View className="flex-col gap-1">
+            <Text className="text-white-grey2 text-base">Email</Text>
+            <Text className="text-white-black font-bold">{email}</Text>
+          </View>
+          <View className="flex-col gap-1">
+            <Text className="text-white-grey2 text-base">Teléfono</Text>
+            <Text className="text-white-black font-bold">{phone}</Text>
+          </View>
+        </View>
+      </View>
+    </Paper>
+  );
+}
+4. components/ui/LocationCard.tsx
+
+import { useState } from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { Image } from 'expo-image';
+import { Link } from 'expo-router';
+import { ChevronRight } from 'lucide-react-native';
+
+interface LocationCardProps {
+  id: number;
+  title: string;
+  description: string;
+  price: string;
+  area: string;
+  images: string[];
+  href: string;
+}
+
+export default function LocationCard({ id, title, description, price, area, images, href }: LocationCardProps) {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  return (
+    <Link href={href as any} asChild>
+      <Pressable 
+        className="flex-1"
+        onHoverIn={() => setIsHovered(true)}
+        onHoverOut={() => setIsHovered(false)}
+      >
+        <View className="overflow-hidden">
+          {/* Imagen */}
+          <View className="relative h-72 w-full">
+            <Image
+              source={{ uri: images[currentImageIndex] }}
+              style={{ width: '100%', height: '100%', borderRadius: 16 }}
+              contentFit="cover"
+            />
+
+            {/* Botón siguiente (visible en hover) */}
+            {isHovered && (
+              <Pressable
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleNextImage();
+                }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-white/30 rounded-full p-1.5 w-7 h-7 items-center justify-center"
+              >
+                <ChevronRight size={20} color="#000" />
+              </Pressable>
+            )}
+
+            {/* Indicadores */}
+            <View className="absolute bottom-3 left-0 right-0 flex-row justify-center items-center gap-2">
+              {images.slice(0, 5).map((_, index) => (
+                <View
+                  key={index}
+                  className={`rounded-full bg-white-grey-3 ${
+                    index === currentImageIndex ? 'w-1 h-1' : 'w-1.5 h-1.5'
+                  }`}
+                />
+              ))}
+            </View>
+          </View>
+
+          {/* Info */}
+          <View className="flex-row justify-between items-center mt-2">
+            <Text className="text-base font-bold text-white-total-black flex-1 mr-2" numberOfLines={1}>
+              {title}
+            </Text>
+            <Text className="text-sm text-white-black">{area}</Text>
+          </View>
+          <Text className="text-sm text-white-grey2 mb-2" numberOfLines={1}>
+            {description}
+          </Text>
+          <Text className="text-base font-bold text-white-total-black">{price}</Text>
+        </View>
+      </Pressable>
+    </Link>
+  );
+}
+5. components/ui/Paper.tsx
+
+import { View, ViewStyle } from 'react-native';
+
+interface PaperProps {
+  children: React.ReactNode;
+  className?: string;
+  style?: ViewStyle;
+}
+
+export default function Paper({ children, className, style }: PaperProps) {
+  return (
+    <View 
+      className={`w-full px-4 py-5 bg-white rounded-[20px] border border-white-grey-3 gap-3 ${className ?? ''}`}
+      style={[{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 4 }, style]}
+    >
+      {children}
+    </View>
+  );
+}
+6. components/ui/Heading.tsx
+
+import { Text } from 'react-native';
+
+interface HeadingProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export default function Heading({ children, className = '' }: HeadingProps) {
+  return (
+    <Text className={`font-semibold text-2xl text-white-total-black ${className}`}>
+      {children}
+    </Text>
+  );
+}
+7. components/ui/Spinner.tsx
+
+import { ActivityIndicator, View } from 'react-native';
+
+interface SpinnerProps {
+  size?: 'small' | 'large';
+}
+
+export default function Spinner({ size = 'large' }: SpinnerProps) {
+  return (
+    <View className="items-center justify-center">
+      <ActivityIndicator size={size} color="#d51345" />
+    </View>
+  );
+}
+Páginas
+app/index.tsx
+
+import { Redirect } from 'expo-router';
+
+export default function Index() {
+  return <Redirect href="/blog/demo-broker" />;
+}
+app/blog/[brokerId].tsx
+
+import { View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import BlogLayout from '@/components/layouts/BlogLayout';
+import BrokerCard from '@/components/ui/BrokerCard';
+import LocationCard from '@/components/ui/LocationCard';
+import Heading from '@/components/ui/Heading';
+
+// DATOS DE EJEMPLO (MOCK DATA)
+const mockBroker = {
+  id: '1',
+  name: 'Juan Pérez',
+  avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
+  email: 'juan.perez@laredgt.com',
+  phone: '+502 5555-1234',
+  isVerified: true,
+};
+
+const mockProperties = [
+  {
+    id: 1,
+    title: 'Casa moderna en Zona 10',
+    description: 'Hermosa casa con acabados de lujo',
+    price: '$350,000',
+    area: '250 m²',
+    images: [
+      'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop',
+    ],
+  },
+  {
+    id: 2,
+    title: 'Apartamento en Cayalá',
+    description: 'Apartamento con vista panorámica',
+    price: '$180,000',
+    area: '120 m²',
+    images: [
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop',
+    ],
+  },
+  {
+    id: 3,
+    title: 'Penthouse en Zona 14',
+    description: 'Penthouse exclusivo con terraza privada',
+    price: '$520,000',
+    area: '300 m²',
+    images: [
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop',
+    ],
+  },
+  {
+    id: 4,
+    title: 'Villa en Carretera a El Salvador',
+    description: 'Villa con jardín amplio y piscina',
+    price: '$450,000',
+    area: '400 m²',
+    images: [
+      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=600&h=400&fit=crop',
+    ],
+  },
+  {
+    id: 5,
+    title: 'Loft en Zona 4',
+    description: 'Loft industrial con techos altos',
+    price: '$125,000',
+    area: '85 m²',
+    images: [
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop',
+    ],
+  },
+  {
+    id: 6,
+    title: 'Casa en Antigua Guatemala',
+    description: 'Casa colonial restaurada',
+    price: '$280,000',
+    area: '180 m²',
+    images: [
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=600&h=400&fit=crop',
+    ],
+  },
+];
+
+export default function BrokerPage() {
+  const { brokerId } = useLocalSearchParams<{ brokerId: string }>();
+
+  return (
+    <BlogLayout>
+      <View className="flex-col gap-4">
+        <Heading className="font-bold text-[28px]">Portafolio</Heading>
+
+        <BrokerCard
+          avatar={mockBroker.avatar}
+          name={mockBroker.name}
+          isVerified={mockBroker.isVerified}
+          email={mockBroker.email}
+          phone={mockBroker.phone}
+          className="mb-8"
+        />
+
+        {/* Grid de propiedades */}
+        <View className="flex-row flex-wrap gap-6 mt-4">
+          {mockProperties.map((property) => (
+            <View key={property.id} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
+              <LocationCard
+                id={property.id}
+                title={property.title}
+                description={property.description}
+                price={property.price}
+                area={property.area}
+                images={property.images}
+                href={`/blog/${brokerId}/location/${property.id}`}
+              />
+            </View>
+          ))}
+        </View>
+      </View>
+    </BlogLayout>
+  );
+}
+package.json (dependencias clave)
+
+{
+  "dependencies": {
+    "expo": "~51.0.0",
+    "expo-router": "~3.5.0",
+    "expo-image": "~1.12.0",
+    "react": "18.2.0",
+    "react-native": "0.74.0",
+    "react-native-web": "~0.19.0",
+    "nativewind": "^4.0.0",
+    "lucide-react-native": "^0.400.0",
+    "react-native-svg": "15.2.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}
+Para ejecutar solo en web
+
+npx expo start --web
+Notas importantes para Expo Web
+Usa expo-image en lugar de next/image - mejor rendimiento
+Usa View y Text de react-native en lugar de div y span
+Los estilos de flexbox funcionan con flex-row y flex-col
+Las media queries (md:, lg:) funcionan con NativeWind v4
+onHoverIn y onHoverOut solo funcionan en web
+Los shadows necesitan definirse con style prop además de className
+La ruta de acceso será: /blog/[cualquier-id]
+Por ejemplo: /blog/demo-broker
