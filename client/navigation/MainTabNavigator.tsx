@@ -13,7 +13,9 @@ import AchievementsStackNavigator from "@/navigation/AchievementsStackNavigator"
 import AddListingScreen from "@/screens/AddListingScreen";
 import { WebNavbar } from "@/components/WebNavbar";
 import { useTheme } from "@/hooks/useTheme";
-import { Shadows } from "@/constants/theme";
+import { Shadows, Spacing } from "@/constants/theme";
+
+const WEB_NAVBAR_HEIGHT = 90;
 
 const isWeb = Platform.OS === "web";
 
@@ -160,6 +162,7 @@ export default function MainTabNavigator() {
 const styles = StyleSheet.create({
   webContainer: {
     flex: 1,
+    paddingTop: isWeb ? WEB_NAVBAR_HEIGHT + Spacing.md : 0,
   },
   fabContainer: {
     position: "relative",
