@@ -15,7 +15,7 @@ import { WebNavbar } from "@/components/WebNavbar";
 import { useTheme } from "@/hooks/useTheme";
 import { Shadows, Spacing } from "@/constants/theme";
 
-const WEB_NAVBAR_HEIGHT = 90;
+const WEB_NAVBAR_HEIGHT = 70;
 
 const isWeb = Platform.OS === "web";
 
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   webContainer: {
     flex: 1,
     paddingTop: isWeb ? WEB_NAVBAR_HEIGHT + Spacing.md : 0,
-    backgroundColor: isWeb ? "#FFFFFF" : undefined,
+    backgroundColor: isWeb ? "#F5F5F5" : undefined,
   },
   fabContainer: {
     position: "relative",

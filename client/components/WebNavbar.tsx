@@ -14,7 +14,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/ThemedText";
 import { useAuth } from "@/contexts/AuthContext";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
-import { LinearGradient } from "expo-linear-gradient";
 
 interface NavItem {
   key: string;
@@ -58,8 +57,7 @@ const MENU_OPTIONS = [
   { key: "logout", label: "Cerrar sesión", icon: "log-out" as const },
 ];
 
-const HEADER_GRADIENT_EDGE = "#000000";
-const HEADER_GRADIENT_CENTER = "#044BB8";
+const NAVBAR_BG_COLOR = "#FFFFFF";
 
 interface WebNavbarProps {
   activeTabOverride?: string;
@@ -126,17 +124,7 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
   return (
     <View style={styles.container}>
       <View style={styles.navbarWrapper}>
-        <LinearGradient
-          colors={[
-            HEADER_GRADIENT_EDGE,
-            HEADER_GRADIENT_CENTER,
-            HEADER_GRADIENT_EDGE,
-          ]}
-          locations={[0, 0.5, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.topBar}
-        >
+        <View style={styles.topBar}>
           <View
             style={[
               styles.innerContainer,
@@ -236,7 +224,7 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
             </Pressable>
           </View>
         </View>
-        </LinearGradient>
+        </View>
       </View>
 
       <Modal
@@ -299,13 +287,14 @@ const styles = StyleSheet.create({
   },
   topBar: {
     width: "100%",
+    backgroundColor: NAVBAR_BG_COLOR,
   },
   innerContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: 4,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: 6,
     width: "100%",
     position: "relative",
   },
@@ -315,8 +304,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logoIcon: {
-    width: 80,
-    height: 80,
+    width: 50,
+    height: 50,
   },
   navItems: {
     flexDirection: "row",
@@ -340,27 +329,21 @@ const styles = StyleSheet.create({
     height: 20,
   },
   navIconActive: {
-    width: 40,
-    height: 40,
+    width: 20,
+    height: 20,
   },
   navLabel: {
     fontSize: 14,
-    fontWeight: "700",
-    color: "#FFFFFF",
+    fontWeight: "600",
+    color: "#333333",
   },
   navLabelActive: {
-    fontSize: 20,
-    color: "#FFFFFF",
-    fontWeight: "700",
+    fontSize: 14,
+    color: "#333333",
+    fontWeight: "600",
   },
   activeIndicator: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 1,
+    display: "none",
   },
   rightSection: {
     flexDirection: "row",
