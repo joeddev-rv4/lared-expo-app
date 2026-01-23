@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.sm,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: 'white',
   },
   navbarWrapper: {
     width: "100%",
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   },
   navLabelActive: {
     fontSize: 14,
-    color: "#333333",
+    color: "#bf0a0a",
     fontWeight: "600",
   },
   activeIndicator: {
