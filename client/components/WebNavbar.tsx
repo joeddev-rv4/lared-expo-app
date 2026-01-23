@@ -125,23 +125,24 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={[
-          HEADER_GRADIENT_EDGE,
-          HEADER_GRADIENT_CENTER,
-          HEADER_GRADIENT_EDGE,
-        ]}
-        locations={[0, 0.5, 1]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.topBar}
-      >
-        <View
-          style={[
-            styles.innerContainer,
-            isMobile && styles.innerContainerMobile,
+      <View style={styles.navbarWrapper}>
+        <LinearGradient
+          colors={[
+            HEADER_GRADIENT_EDGE,
+            HEADER_GRADIENT_CENTER,
+            HEADER_GRADIENT_EDGE,
           ]}
+          locations={[0, 0.5, 1]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.topBar}
         >
+          <View
+            style={[
+              styles.innerContainer,
+              isMobile && styles.innerContainerMobile,
+            ]}
+          >
           <Pressable
             style={[
               styles.logoContainer,
@@ -235,9 +236,8 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
             </Pressable>
           </View>
         </View>
-      </LinearGradient>
-
-      <View style={styles.bottomDivider} />
+        </LinearGradient>
+      </View>
 
       <Modal
         visible={menuVisible}
@@ -278,7 +278,24 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
 
 const styles = StyleSheet.create({
   container: {
+    position: "fixed" as any,
+    top: Spacing.lg,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    alignItems: "center",
+    paddingHorizontal: Spacing.xl,
+  },
+  navbarWrapper: {
     width: "100%",
+    maxWidth: 1400,
+    borderRadius: 50,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
   topBar: {
     width: "100%",
@@ -387,11 +404,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#DDDDDD",
-  },
-  bottomDivider: {
-    width: "100%",
-    height: 1,
-    backgroundColor: "#DDDDDD",
   },
   modalOverlay: {
     flex: 1,
