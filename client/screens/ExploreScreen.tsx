@@ -42,7 +42,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ExploreScreenSkeleton } from "@/components/SkeletonLoader";
 import { useTheme } from "@/hooks/useTheme";
 import { Property, mapAPIPropertyToProperty } from "@/data/properties";
-import { getFavorites, toggleFavorite } from "@/lib/storage";
+import { toggleFavorite } from "@/lib/storage";
 import { togglePropertyInPortfolio, getPortfolioProperties } from "@/lib/portfolioService";
 import {
   fetchPropiedades,
@@ -99,23 +99,22 @@ export default function ExploreScreen() {
     try {
       setLoading(true);
       setError(null);
-      const [apiProperties, apiProjects, localFavs] = await Promise.all([
+      const [apiProperties, apiProjects] = await Promise.all([
         fetchPropiedades(),
         fetchProyectos(),
-        getFavorites(),
       ]);
       const mappedProperties = apiProperties.map(mapAPIPropertyToProperty);
       setProperties(mappedProperties);
       setProjects(apiProjects);
 
+      // Siempre cargar favoritos desde Firebase
       const userId = user?.id || auth.currentUser?.uid;
       if (userId) {
         const firebaseFavs = await getPortfolioProperties(userId);
         const firebaseFavsStrings = firebaseFavs.map(id => id.toString());
-        const mergedFavs = [...new Set([...localFavs, ...firebaseFavsStrings])];
-        setFavorites(mergedFavs);
+        setFavorites(firebaseFavsStrings);
       } else {
-        setFavorites(localFavs);
+        setFavorites([]);
       }
     } catch (err) {
       setError("Error al cargar los datos. Intenta de nuevo.");
