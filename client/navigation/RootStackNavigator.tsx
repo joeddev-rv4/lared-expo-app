@@ -10,7 +10,6 @@ import LoginScreenWeb from "@/screens/LoginScreen.web";
 import CaptureClientScreen from "@/screens/CaptureClientScreen";
 import PropertyDetailScreen from "@/screens/PropertyDetailScreen";
 import PropertyDetailScreenWeb from "@/screens/PropertyDetailScreen.web";
-import SharedPropertyScreenWeb from "@/screens/SharedPropertyScreen.web";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useTheme } from "@/hooks/useTheme";
 import { hasCompletedOnboarding, getUserProfile } from "@/lib/storage";
@@ -27,7 +26,6 @@ export type RootStackParamList = {
   Main: undefined;
   AddListingModal: undefined;
   PropertyDetail: { property: Property };
-  SharedProperty: { propertyId: string; odooId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -109,13 +107,6 @@ export default function RootStackNavigator() {
         component={isWeb ? PropertyDetailScreenWeb : PropertyDetailScreen}
         options={{ headerShown: false }}
       />
-      {isWeb && (
-        <Stack.Screen
-          name="SharedProperty"
-          component={SharedPropertyScreenWeb}
-          options={{ headerShown: false }}
-        />
-      )}
     </Stack.Navigator>
   );
 }
