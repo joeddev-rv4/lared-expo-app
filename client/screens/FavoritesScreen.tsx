@@ -19,6 +19,7 @@ import * as Haptics from "expo-haptics";
 import { PropertyCard } from "@/components/PropertyCard";
 import { EmptyState } from "@/components/EmptyState";
 import { ThemedText } from "@/components/ThemedText";
+import { FavoritesScreenSkeleton } from "@/components/SkeletonLoader";
 import { useTheme } from "@/hooks/useTheme";
 import { Property, mapAPIPropertyToProperty } from "@/data/properties";
 import { toggleFavorite } from "@/lib/storage";
@@ -186,14 +187,7 @@ export default function FavoritesScreen() {
 
   const renderContent = () => {
     if (loading) {
-      return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.light.primary} />
-          <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>
-            Cargando favoritos...
-          </ThemedText>
-        </View>
-      );
+      return <FavoritesScreenSkeleton />;
     }
 
     if (error) {

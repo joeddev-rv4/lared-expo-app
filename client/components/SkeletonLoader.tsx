@@ -208,4 +208,34 @@ const styles = StyleSheet.create({
   marginBottomSmall: {
     marginBottom: Spacing.xs,
   },
+  favoritesContainer: {
+    flex: 1,
+    paddingHorizontal: isWeb ? 90 : Spacing.lg,
+  },
+  favoritesTitleSkeleton: {
+    marginBottom: Spacing.lg,
+  },
 });
+
+export function FavoritesScreenSkeleton() {
+  return (
+    <View style={styles.favoritesContainer}>
+      <SkeletonBox width={200} height={24} style={styles.favoritesTitleSkeleton} />
+      {isWeb ? (
+        <View style={styles.webGrid}>
+          {[1, 2, 3, 4].map((i) => (
+            <View key={`fav-${i}`} style={styles.webGridItem}>
+              <PropertyCardSkeleton />
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View>
+          {[1, 2, 3].map((i) => (
+            <PropertyCardSkeleton key={`fav-${i}`} />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
