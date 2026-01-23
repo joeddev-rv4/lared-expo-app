@@ -163,6 +163,7 @@ const styles = StyleSheet.create({
   webContainer: {
     flex: 1,
     paddingTop: isWeb ? WEB_NAVBAR_HEIGHT + Spacing.md : 0,
+    backgroundColor: isWeb ? "#FFFFFF" : undefined,
   },
   fabContainer: {
     position: "relative",
