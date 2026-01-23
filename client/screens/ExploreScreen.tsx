@@ -42,7 +42,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { Property, mapAPIPropertyToProperty } from "@/data/properties";
 import { getFavorites, toggleFavorite } from "@/lib/storage";
-import { togglePropertyInPortfolio } from "@/lib/portfolioService";
+import { togglePropertyInPortfolio, getPortfolioProperties } from "@/lib/portfolioService";
 import {
   fetchPropiedades,
   fetchProyectos,
@@ -92,13 +92,13 @@ export default function ExploreScreen() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [user?.id]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       setError(null);
-      const [apiProperties, apiProjects, favs] = await Promise.all([
+      const [apiProperties, apiProjects, localFavs] = await Promise.all([
         fetchPropiedades(),
         fetchProyectos(),
         getFavorites(),
@@ -106,7 +106,16 @@ export default function ExploreScreen() {
       const mappedProperties = apiProperties.map(mapAPIPropertyToProperty);
       setProperties(mappedProperties);
       setProjects(apiProjects);
-      setFavorites(favs);
+
+      const userId = user?.id || auth.currentUser?.uid;
+      if (userId) {
+        const firebaseFavs = await getPortfolioProperties(userId);
+        const firebaseFavsStrings = firebaseFavs.map(id => id.toString());
+        const mergedFavs = [...new Set([...localFavs, ...firebaseFavsStrings])];
+        setFavorites(mergedFavs);
+      } else {
+        setFavorites(localFavs);
+      }
     } catch (err) {
       setError("Error al cargar los datos. Intenta de nuevo.");
       console.error(err);
