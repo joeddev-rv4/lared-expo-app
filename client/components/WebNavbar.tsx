@@ -267,12 +267,15 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
 const styles = StyleSheet.create({
   container: {
     position: "fixed" as any,
-    top: Spacing.lg,
+    top: 0,
     left: 0,
     right: 0,
     zIndex: 1000,
     alignItems: "center",
     paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.sm,
+    backgroundColor: "#F5F5F5",
   },
   navbarWrapper: {
     width: "100%",
