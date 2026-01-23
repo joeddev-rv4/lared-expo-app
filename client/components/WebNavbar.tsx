@@ -39,7 +39,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     key: "profile",
-    label: "Mi Perfil",
+    label: "Mis Clientes",
     route: "ProfileTab",
     icon: require("../../assets/icons/icon_1.png"),
   },
@@ -304,8 +304,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
     width: "100%",
     position: "relative",
   },
@@ -371,11 +371,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
-    backgroundColor: "transparent",
+    backgroundColor: "#bf0a0a",
   },
   sellerButtonHovered: {
-    backgroundColor: "#bf0a0a",
-    borderColor: "#bf0a0a",
+    backgroundColor: "#8a0808",
   },
   sellerButtonText: {
     fontSize: 13,
