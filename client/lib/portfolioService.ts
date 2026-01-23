@@ -166,3 +166,36 @@ export async function getPortfolioProperties(userId: string): Promise<number[]> 
     return [];
   }
 }
+
+export interface UserProfile {
+  name: string;
+  email: string;
+  phone: string;
+  photoURL?: string;
+}
+
+export async function getUserProfileFromFirebase(userId: string): Promise<UserProfile | null> {
+  try {
+    if (!userId) {
+      return null;
+    }
+
+    const userRef = doc(db, 'users', userId);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      const data = userSnap.data();
+      return {
+        name: data.name || data.displayName || 'Agente Inmobiliario',
+        email: data.email || '',
+        phone: data.phone || data.phoneNumber || '',
+        photoURL: data.photoURL || data.avatar,
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error getting user profile from Firebase:', error);
+    return null;
+  }
+}

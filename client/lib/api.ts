@@ -148,6 +148,17 @@ export interface ExtractedProject {
   imageUrl: string;
 }
 
+export async function fetchPropiedadById(propertyId: string): Promise<APIPropiedad | null> {
+  try {
+    const properties = await fetchPropiedades();
+    const property = properties.find((p) => p.id.toString() === propertyId);
+    return property || null;
+  } catch (error) {
+    console.error("Error fetching propiedad by id:", error);
+    return null;
+  }
+}
+
 export function extractProjectsFromProperties(properties: APIPropiedad[]): ExtractedProject[] {
   const projectMap = new Map<number, ExtractedProject>();
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback } from "react";
-import { StyleSheet } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import { StyleSheet, Platform } from "react-native";
+import { NavigationContainer, LinkingOptions } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -11,12 +11,31 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query-client";
+import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 import RootStackNavigator from "@/navigation/RootStackNavigator";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 SplashScreen.preventAutoHideAsync();
+
+const linking: LinkingOptions<RootStackParamList> = {
+  prefixes: [
+    "laredinmobiliaria://",
+    "https://laredinmobiliaria.com",
+    typeof window !== "undefined" ? window.location.origin : "",
+  ].filter(Boolean),
+  config: {
+    screens: {
+      Blog: "blog/:userId/:propertyId",
+      Onboarding: "onboarding",
+      Login: "login",
+      Main: "",
+      PropertyDetail: "property",
+      AddListingModal: "add-listing",
+    },
+  },
+};
 
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
@@ -39,7 +58,7 @@ export default function App() {
         <SafeAreaProvider>
           <GestureHandlerRootView style={styles.root}>
             <KeyboardProvider>
-              <NavigationContainer>
+              <NavigationContainer linking={linking}>
                 <AuthProvider>
                   <RootStackNavigator />
                 </AuthProvider>
