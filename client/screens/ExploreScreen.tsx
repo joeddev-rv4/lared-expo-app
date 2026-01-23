@@ -39,6 +39,7 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { SearchBar } from "@/components/SearchBar";
 import { EmptyState } from "@/components/EmptyState";
 import { ThemedText } from "@/components/ThemedText";
+import { ExploreScreenSkeleton } from "@/components/SkeletonLoader";
 import { useTheme } from "@/hooks/useTheme";
 import { Property, mapAPIPropertyToProperty } from "@/data/properties";
 import { getFavorites, toggleFavorite } from "@/lib/storage";
@@ -540,14 +541,7 @@ export default function ExploreScreen() {
 
   const renderContent = () => {
     if (loading) {
-      return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.light.primary} />
-          <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>
-            Cargando...
-          </ThemedText>
-        </View>
-      );
+      return <ExploreScreenSkeleton />;
     }
 
     if (error) {
