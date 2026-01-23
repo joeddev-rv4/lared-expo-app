@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.xs,
+    paddingVertical: 4,
     width: "100%",
     position: "relative",
   },
