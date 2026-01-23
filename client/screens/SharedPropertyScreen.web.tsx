@@ -119,7 +119,7 @@ export default function SharedPropertyScreenWeb() {
       >
         <View style={styles.headerBar}>
           <Image
-            source={require("../../assets/images/logo.png")}
+            source={require("../../assets/images/la_red_blanco_negro3.png")}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -291,7 +291,7 @@ export default function SharedPropertyScreenWeb() {
 
           <View style={styles.footer}>
             <Image
-              source={require("../../assets/images/logo.png")}
+              source={require("../../assets/images/la_red_blanco_negro3.png")}
               style={styles.footerLogo}
               resizeMode="contain"
             />
