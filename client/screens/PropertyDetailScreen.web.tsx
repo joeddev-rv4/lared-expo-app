@@ -9,9 +9,14 @@ import {
   TextInput,
   Modal,
   useWindowDimensions,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Clipboard from "expo-clipboard";
+import { auth } from "@/lib/config";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { ThemedText } from "@/components/ThemedText";
 import { WebNavbar } from "@/components/WebNavbar";
@@ -31,6 +36,7 @@ export default function PropertyDetailScreenWeb() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { theme } = useTheme();
+  const { user } = useAuth();
   const params = route.params as PropertyDetailParams;
   const property = params?.property;
   const sourceTab = params?.sourceTab;
@@ -44,6 +50,44 @@ export default function PropertyDetailScreenWeb() {
   const [guests, setGuests] = useState("1");
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (!property) return;
+      try {
+        const stored = await AsyncStorage.getItem("favorites");
+        if (stored) {
+          const favoriteIds: string[] = JSON.parse(stored);
+          setIsFavorite(favoriteIds.includes(property.id));
+        }
+      } catch (error) {
+        console.error("Error checking favorite status:", error);
+      }
+    };
+    checkFavoriteStatus();
+  }, [property]);
+
+  const getCurrentUserId = () => user?.id || auth.currentUser?.uid || "";
+
+  const handleCopyLink = async () => {
+    const userId = getCurrentUserId();
+    if (!userId) {
+      Alert.alert("Error", "No se pudo obtener el ID del usuario.");
+      return;
+    }
+
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const blogUrl = `${baseUrl}/blog/${userId}/${property.id}`;
+
+    try {
+      await Clipboard.setStringAsync(blogUrl);
+      Alert.alert("Enlace copiado", "El enlace ha sido copiado al portapapeles.");
+    } catch (error) {
+      console.error("Error copying to clipboard:", error);
+      Alert.alert("Error", "No se pudo copiar el enlace.");
+    }
+  };
 
   const filteredImages = property?.imagenes
     ?.filter(img => ["Imagen", "Video", "masterplan"].includes(img.tipo))
@@ -250,6 +294,13 @@ export default function PropertyDetailScreenWeb() {
               <Pressable style={styles.reserveButton}>
                 <ThemedText style={styles.reserveButtonText}>Comparte y gana</ThemedText>
               </Pressable>
+
+              {isFavorite ? (
+                <Pressable style={styles.copyLinkButton} onPress={handleCopyLink}>
+                  <Ionicons name="link-outline" size={16} color="#FFFFFF" />
+                  <ThemedText style={styles.copyLinkText}>Copiar Link</ThemedText>
+                </Pressable>
+              ) : null}
             </View>
           </View>
         </View>
@@ -706,6 +757,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#FFFFFF",
+  },
+  copyLinkButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#bf0a0a",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: Spacing.sm,
+    gap: 8,
+  },
+  copyLinkText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
   },
   noChargeText: {
     fontSize: 14,
