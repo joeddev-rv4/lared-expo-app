@@ -50,11 +50,11 @@ export default function PropertyDetailScreenWeb() {
   const [guests, setGuests] = useState("1");
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(sourceTab === "FavoritesTab");
 
   useEffect(() => {
     const checkFavoriteStatus = async () => {
-      if (!property) return;
+      if (!property || sourceTab === "FavoritesTab") return;
       try {
         const stored = await AsyncStorage.getItem("favorites");
         if (stored) {
@@ -66,7 +66,7 @@ export default function PropertyDetailScreenWeb() {
       }
     };
     checkFavoriteStatus();
-  }, [property]);
+  }, [property, sourceTab]);
 
   const getCurrentUserId = () => user?.id || auth.currentUser?.uid || "";
 
