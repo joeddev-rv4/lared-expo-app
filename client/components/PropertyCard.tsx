@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Pressable, Image, Dimensions, Share, Platform } from "react-native";
+import { View, StyleSheet, Pressable, Image, Dimensions, Share, Platform, Alert } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -7,6 +7,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import * as Clipboard from "expo-clipboard";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
@@ -19,6 +20,8 @@ interface PropertyCardProps {
   onPress: () => void;
   onFavoritePress: () => void;
   onSharePress?: () => void;
+  showCopyLink?: boolean;
+  userId?: string;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -34,11 +37,14 @@ export function PropertyCard({
   onPress,
   onFavoritePress,
   onSharePress,
+  showCopyLink = false,
+  userId,
 }: PropertyCardProps) {
   const { theme, isDark } = useTheme();
   const scale = useSharedValue(1);
   const heartScale = useSharedValue(1);
   const shareScale = useSharedValue(1);
+  const copyScale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -50,6 +56,10 @@ export function PropertyCard({
 
   const shareAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: shareScale.value }],
+  }));
+
+  const copyAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: copyScale.value }],
   }));
 
   const handlePressIn = () => {
@@ -89,6 +99,33 @@ export function PropertyCard({
     }
 
     onSharePress?.();
+  };
+
+  const handleCopyLink = async () => {
+    copyScale.value = withSpring(1.1, { damping: 10 });
+    setTimeout(() => {
+      copyScale.value = withSpring(1, { damping: 10 });
+    }, 100);
+    
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    if (!userId) {
+      Alert.alert("Error", "No se pudo obtener el ID del usuario.");
+      return;
+    }
+
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const blogUrl = `${baseUrl}/blog/${userId}/${property.id}`;
+
+    try {
+      await Clipboard.setStringAsync(blogUrl);
+      Alert.alert("Enlace copiado", "El enlace ha sido copiado al portapapeles.");
+    } catch (error) {
+      console.error("Error copying to clipboard:", error);
+      Alert.alert("Error", "No se pudo copiar el enlace.");
+    }
   };
 
   const bankQuota = Math.round(property.price / 180);
@@ -166,6 +203,15 @@ export function PropertyCard({
           </ThemedText>
           <Ionicons name="chevron-forward" size={16} color="#bf0a0a" />
         </Pressable>
+
+        {showCopyLink ? (
+          <Animated.View style={copyAnimatedStyle}>
+            <Pressable onPress={handleCopyLink} style={styles.copyLinkButton}>
+              <Ionicons name="link-outline" size={16} color="#FFFFFF" />
+              <ThemedText style={styles.copyLinkText}>Copiar Link</ThemedText>
+            </Pressable>
+          </Animated.View>
+        ) : null}
       </View>
     </AnimatedPressable>
   );
@@ -235,5 +281,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     letterSpacing: 0.5,
+  },
+  copyLinkButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#bf0a0a",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: Spacing.sm,
+    gap: 8,
+  },
+  copyLinkText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
