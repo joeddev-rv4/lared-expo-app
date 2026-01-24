@@ -8,6 +8,7 @@ import {
   ScrollView,
   useWindowDimensions,
   Alert,
+  Pressable,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -15,6 +16,8 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Haptics from "expo-haptics";
+import * as Clipboard from "expo-clipboard";
+import { Ionicons } from "@expo/vector-icons";
 
 import { PropertyCard } from "@/components/PropertyCard";
 import { EmptyState } from "@/components/EmptyState";
@@ -163,6 +166,30 @@ export default function FavoritesScreen() {
     }
   };
 
+  const handleCopyLink = async (property: Property) => {
+    const userId = user?.id || auth.currentUser?.uid;
+    
+    if (!userId) {
+      Alert.alert("Error", "No se pudo obtener el ID del usuario.");
+      return;
+    }
+
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const blogUrl = `${baseUrl}/blog/${userId}/${property.id}`;
+
+    try {
+      await Clipboard.setStringAsync(blogUrl);
+      Alert.alert("Enlace copiado", "El enlace ha sido copiado al portapapeles.");
+    } catch (error) {
+      console.error("Error copying to clipboard:", error);
+      Alert.alert("Error", "No se pudo copiar el enlace.");
+    }
+  };
+
   const renderEmpty = () => {
     const userId = user?.id || auth.currentUser?.uid;
 
@@ -218,20 +245,35 @@ export default function FavoritesScreen() {
               onFavoritePress={() => handleFavoriteToggle(property.id)}
               onSharePress={() => handleSharePress(property)}
             />
+            <Pressable 
+              style={styles.copyLinkButton}
+              onPress={() => handleCopyLink(property)}
+            >
+              <Ionicons name="link-outline" size={16} color="#FFFFFF" />
+              <ThemedText style={styles.copyLinkText}>Copiar Link</ThemedText>
+            </Pressable>
           </View>
         ))}
       </View>
     ) : (
       <View style={styles.mobileList}>
         {favoriteProperties.map((property) => (
-          <PropertyCard
-            key={property.id}
-            property={property}
-            isFavorite={true}
-            onPress={() => handlePropertyPress(property)}
-            onFavoritePress={() => handleFavoriteToggle(property.id)}
-            onSharePress={() => handleSharePress(property)}
-          />
+          <View key={property.id}>
+            <PropertyCard
+              property={property}
+              isFavorite={true}
+              onPress={() => handlePropertyPress(property)}
+              onFavoritePress={() => handleFavoriteToggle(property.id)}
+              onSharePress={() => handleSharePress(property)}
+            />
+            <Pressable 
+              style={styles.copyLinkButton}
+              onPress={() => handleCopyLink(property)}
+            >
+              <Ionicons name="link-outline" size={16} color="#FFFFFF" />
+              <ThemedText style={styles.copyLinkText}>Copiar Link</ThemedText>
+            </Pressable>
+          </View>
         ))}
       </View>
     );
@@ -322,5 +364,22 @@ const styles = StyleSheet.create({
   },
   mobileList: {
     gap: Spacing.md,
+  },
+  copyLinkButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#bf0a0a",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: -8,
+    marginBottom: Spacing.md,
+    gap: 8,
+  },
+  copyLinkText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
