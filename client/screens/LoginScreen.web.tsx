@@ -42,6 +42,9 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 // Read login options from environment variables
 const isGoogleLoginEnabled = process.env.EXPO_PUBLIC_GOOGLE_LOGIN_ENABLED !== 'false';
 const isFacebookLoginEnabled = process.env.EXPO_PUBLIC_FACEBOOK_LOGIN_ENABLED !== 'false';
+const isDevEnv = process.env.EXPO_PUBLIC_DEV_ENV === 'true';
+const devUser = process.env.EXPO_PUBLIC_DEV_ENV_USER;
+const devPsw = process.env.EXPO_PUBLIC_DEV_ENV_PSW;
 
 export default function LoginScreenWeb() {
   const navigation = useNavigation<NavigationProp>();
@@ -92,7 +95,8 @@ export default function LoginScreenWeb() {
     if (showErrorPopup) {
       Animated.spring(errorSlideAnim, {
         toValue: 0,
-        useNativeDriver: true,
+        toValue: 0,
+        useNativeDriver: false,
         tension: 65,
         friction: 8,
       }).start();
@@ -100,7 +104,9 @@ export default function LoginScreenWeb() {
       Animated.timing(errorSlideAnim, {
         toValue: 300,
         duration: 200,
-        useNativeDriver: true,
+        toValue: 300,
+        duration: 200,
+        useNativeDriver: false,
       }).start();
     }
   }, [showErrorPopup]);
@@ -159,15 +165,15 @@ export default function LoginScreenWeb() {
       Alert.alert('Error', 'Por favor ingresa email y contraseña');
       return;
     }
-    
+
     setHasAttemptedLogin(true);
-    
+
     try {
       await login(email, password);
     } catch (error: any) {
       let errorMessage = 'Error al iniciar sesión';
       let isCredentialError = false;
-      
+
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
         errorMessage = 'Credenciales incorrectas';
         isCredentialError = true;
@@ -178,7 +184,7 @@ export default function LoginScreenWeb() {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       if (isCredentialError) {
         setErrorMessage(errorMessage);
         setShowErrorPopup(true);
@@ -187,6 +193,21 @@ export default function LoginScreenWeb() {
       } else {
         Alert.alert('Error de inicio de sesión', errorMessage);
       }
+    }
+  };
+
+  const handleDevLogin = async () => {
+    if (!devUser || !devPsw) {
+      Alert.alert('Configuration Error', 'DEV_ENV_USER or DEV_ENV_PSW not set in .env');
+      return;
+    }
+
+    setHasAttemptedLogin(true);
+
+    try {
+      await login(devUser, devPsw);
+    } catch (error: any) {
+      Alert.alert('Dev Login Error', error.message);
     }
   };
 
@@ -224,13 +245,13 @@ export default function LoginScreenWeb() {
 
     try {
       const auth = getAuth();
-      
+
       console.log('Verificando email:', email);
-      
+
       // Verificar en Firebase Auth
       const methods = await fetchSignInMethodsForEmail(auth, email);
       console.log('Métodos en Auth encontrados:', methods);
-      
+
       if (methods.length > 0) {
         console.log('Email ya existe en Firebase Auth');
         setErrorMessage('Este email ya está relacionado a una cuenta');
@@ -243,7 +264,7 @@ export default function LoginScreenWeb() {
       const usersRef = collection(db, 'users');
       const q = query(usersRef, where('email', '==', email));
       const querySnapshot = await getDocs(q);
-      
+
       if (!querySnapshot.empty) {
         console.log('Email ya existe en Firestore');
         setErrorMessage('Este email ya está relacionado a una cuenta');
@@ -346,7 +367,7 @@ export default function LoginScreenWeb() {
     setUsername('');
     setPhone('');
     setVerificationCode(['', '', '', '', '', '']);
-    
+
     // Primero animar hacia fuera el contenido actual
     Animated.timing(formAnim, {
       toValue: 0,
@@ -362,6 +383,27 @@ export default function LoginScreenWeb() {
 
   return (
     <ThemedView style={styles.container}>
+      {isDevEnv && (
+        <Pressable
+          style={({ pressed }) => ({
+            position: 'fixed',
+            top: 10,
+            right: 20,
+            zIndex: 99999,
+            backgroundColor: '#FF0000',
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: 8,
+            boxShadow: '0px 2px 3.84px rgba(0, 0, 0, 0.25)', // Web standard shadow
+            elevation: 5,
+            cursor: 'pointer',
+            opacity: pressed ? 0.8 : 1,
+          } as any)}
+          onPress={handleDevLogin}
+        >
+          <ThemedText style={{ color: 'white', fontWeight: 'bold', fontSize: 12 }}>DEV</ThemedText>
+        </Pressable>
+      )}
       <View style={[styles.splitContainer, isMobile && styles.splitContainerMobile]}>
         {!isMobile ? (
           <ImageBackground
@@ -413,12 +455,12 @@ export default function LoginScreenWeb() {
             </ThemedText>
 
             {mode === 'buttons' ? (
-              <Animated.View 
+              <Animated.View
                 style={[
                   styles.buttonContainer,
-                  { 
+                  {
                     opacity: buttonsAnim,
-                    transform: [{ 
+                    transform: [{
                       translateX: buttonsAnim.interpolate({
                         inputRange: [0, 1],
                         outputRange: [-10, 0]
@@ -449,7 +491,7 @@ export default function LoginScreenWeb() {
                       try {
                         const isNewUser = await loginGoogle();
                         console.log('Login Google completado, isNewUser:', isNewUser);
-                        
+
                         // Guardar datos del usuario de Google inmediatamente
                         const auth = getAuth();
                         const currentUser = auth.currentUser;
@@ -460,7 +502,7 @@ export default function LoginScreenWeb() {
                             displayName: currentUser.displayName || ''
                           });
                         }
-                        
+
                         if (isNewUser) {
                           // Usuario nuevo, mostrar pantalla de teléfono
                           setIsFromGoogle(true);
@@ -516,7 +558,7 @@ export default function LoginScreenWeb() {
                       try {
                         const isNewUser = await loginFacebook();
                         console.log('Login Facebook completado, isNewUser:', isNewUser);
-                        
+
                         // Guardar datos del usuario de Facebook inmediatamente
                         const auth = getAuth();
                         const currentUser = auth.currentUser;
@@ -527,7 +569,7 @@ export default function LoginScreenWeb() {
                             displayName: currentUser.displayName || ''
                           });
                         }
-                        
+
                         if (isNewUser) {
                           // Usuario nuevo, mostrar pantalla de teléfono
                           setIsFromGoogle(true);
@@ -573,6 +615,33 @@ export default function LoginScreenWeb() {
                     </ThemedText>
                   </Pressable>
                 ) : null}
+
+                <Pressable
+                  onPress={() => {
+                    Animated.timing(buttonsAnim, {
+                      toValue: 0,
+                      duration: 200,
+                      useNativeDriver: false,
+                    }).start(() => {
+                      setMode('register');
+                    });
+                  }}
+                  style={({ pressed }) => [
+                    styles.loginButton,
+                    styles.socialButton,
+                    {
+                      backgroundColor: theme.backgroundRoot,
+                      borderColor: Colors.light.primary,
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}
+                >
+                  <Feather name="user-plus" size={20} color={Colors.light.primary} />
+                  <ThemedText style={[styles.socialButtonText, { color: Colors.light.primary }]}>
+                    Crear cuenta
+                  </ThemedText>
+                </Pressable>
+
                 <Pressable
                   onPress={() => loginAsGuest()}
                   style={({ pressed }) => [
@@ -586,12 +655,12 @@ export default function LoginScreenWeb() {
                 </Pressable>
               </Animated.View>
             ) : mode === 'login' ? (
-              <Animated.View 
+              <Animated.View
                 style={[
                   styles.formContainer,
-                  { 
+                  {
                     opacity: formAnim,
-                    transform: [{ 
+                    transform: [{
                       translateX: formAnim.interpolate({
                         inputRange: [0, 1],
                         outputRange: [50, 0]
@@ -601,10 +670,10 @@ export default function LoginScreenWeb() {
                 ]}
               >
                 <TextInput
-                  style={[styles.input, { 
-                    borderColor: theme.border, 
+                  style={[styles.input, {
+                    borderColor: theme.border,
                     color: theme.text,
-                    backgroundColor: theme.backgroundDefault 
+                    backgroundColor: theme.backgroundDefault
                   }]}
                   placeholder="Email"
                   placeholderTextColor={theme.textSecondary}
@@ -615,10 +684,10 @@ export default function LoginScreenWeb() {
                   autoFocus
                 />
                 <TextInput
-                  style={[styles.input, { 
-                    borderColor: theme.border, 
+                  style={[styles.input, {
+                    borderColor: theme.border,
                     color: theme.text,
-                    backgroundColor: theme.backgroundDefault 
+                    backgroundColor: theme.backgroundDefault
                   }]}
                   placeholder="Contraseña"
                   placeholderTextColor={theme.textSecondary}
@@ -667,12 +736,12 @@ export default function LoginScreenWeb() {
                 </View>
               </Animated.View>
             ) : mode === 'register' ? (
-              <Animated.View 
+              <Animated.View
                 style={[
                   styles.registerContainer,
-                  { 
+                  {
                     opacity: formAnim,
-                    transform: [{ 
+                    transform: [{
                       translateX: formAnim.interpolate({
                         inputRange: [0, 1],
                         outputRange: [50, 0]
@@ -685,10 +754,10 @@ export default function LoginScreenWeb() {
                   Ingresa tu email
                 </ThemedText>
                 <TextInput
-                  style={[styles.input, { 
-                    borderColor: theme.border, 
+                  style={[styles.input, {
+                    borderColor: theme.border,
                     color: theme.text,
-                    backgroundColor: theme.backgroundDefault 
+                    backgroundColor: theme.backgroundDefault
                   }]}
                   placeholder="Email"
                   placeholderTextColor={theme.textSecondary}
@@ -726,12 +795,12 @@ export default function LoginScreenWeb() {
                 </Pressable>
               </Animated.View>
             ) : mode === 'register_password' ? (
-              <Animated.View 
+              <Animated.View
                 style={[
                   styles.registerContainer,
-                  { 
+                  {
                     opacity: formAnim,
-                    transform: [{ 
+                    transform: [{
                       translateX: formAnim.interpolate({
                         inputRange: [0, 1],
                         outputRange: [50, 0]
@@ -745,10 +814,10 @@ export default function LoginScreenWeb() {
                 </ThemedText>
                 <View style={styles.passwordContainer}>
                   <TextInput
-                    style={[styles.input, styles.passwordInput, { 
-                      borderColor: theme.border, 
+                    style={[styles.input, styles.passwordInput, {
+                      borderColor: theme.border,
                       color: theme.text,
-                      backgroundColor: theme.backgroundDefault 
+                      backgroundColor: theme.backgroundDefault
                     }]}
                     placeholder="Contraseña"
                     placeholderTextColor={theme.textSecondary}
@@ -761,19 +830,19 @@ export default function LoginScreenWeb() {
                     onPress={() => setShowPassword(!showPassword)}
                     style={styles.eyeButton}
                   >
-                    <Feather 
-                      name={showPassword ? "eye" : "eye-off"} 
-                      size={20} 
-                      color={theme.textSecondary} 
+                    <Feather
+                      name={showPassword ? "eye" : "eye-off"}
+                      size={20}
+                      color={theme.textSecondary}
                     />
                   </Pressable>
                 </View>
                 <View style={styles.passwordContainer}>
                   <TextInput
-                    style={[styles.input, styles.passwordInput, { 
-                      borderColor: theme.border, 
+                    style={[styles.input, styles.passwordInput, {
+                      borderColor: theme.border,
                       color: theme.text,
-                      backgroundColor: theme.backgroundDefault 
+                      backgroundColor: theme.backgroundDefault
                     }]}
                     placeholder="Repetir Contraseña"
                     placeholderTextColor={theme.textSecondary}
@@ -785,10 +854,10 @@ export default function LoginScreenWeb() {
                     onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                     style={styles.eyeButton}
                   >
-                    <Feather 
-                      name={showConfirmPassword ? "eye" : "eye-off"} 
-                      size={20} 
-                      color={theme.textSecondary} 
+                    <Feather
+                      name={showConfirmPassword ? "eye" : "eye-off"}
+                      size={20}
+                      color={theme.textSecondary}
                     />
                   </Pressable>
                 </View>
@@ -820,12 +889,12 @@ export default function LoginScreenWeb() {
                 </Pressable>
               </Animated.View>
             ) : mode === 'register_username' ? (
-              <Animated.View 
+              <Animated.View
                 style={[
                   styles.registerContainer,
-                  { 
+                  {
                     opacity: formAnim,
-                    transform: [{ 
+                    transform: [{
                       translateX: formAnim.interpolate({
                         inputRange: [0, 1],
                         outputRange: [50, 0]
@@ -838,10 +907,10 @@ export default function LoginScreenWeb() {
                   Ingresa tu nombre
                 </ThemedText>
                 <TextInput
-                  style={[styles.input, { 
-                    borderColor: theme.border, 
+                  style={[styles.input, {
+                    borderColor: theme.border,
                     color: theme.text,
-                    backgroundColor: theme.backgroundDefault 
+                    backgroundColor: theme.backgroundDefault
                   }]}
                   placeholder="Nombre"
                   placeholderTextColor={theme.textSecondary}
@@ -886,12 +955,12 @@ export default function LoginScreenWeb() {
                 </Pressable>
               </Animated.View>
             ) : mode === 'register_phone' ? (
-              <Animated.View 
+              <Animated.View
                 style={[
                   styles.registerContainer,
-                  { 
+                  {
                     opacity: formAnim,
-                    transform: [{ 
+                    transform: [{
                       translateX: formAnim.interpolate({
                         inputRange: [0, 1],
                         outputRange: [50, 0]
@@ -904,10 +973,10 @@ export default function LoginScreenWeb() {
                   Ingresa tu teléfono
                 </ThemedText>
                 <TextInput
-                  style={[styles.input, { 
-                    borderColor: theme.border, 
+                  style={[styles.input, {
+                    borderColor: theme.border,
                     color: theme.text,
-                    backgroundColor: theme.backgroundDefault 
+                    backgroundColor: theme.backgroundDefault
                   }]}
                   placeholder="Teléfono"
                   placeholderTextColor={theme.textSecondary}
@@ -929,7 +998,7 @@ export default function LoginScreenWeb() {
                         const auth = getAuth();
                         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                         console.log('Usuario creado en Firebase Auth (sin teléfono):', userCredential.user.uid);
-                        
+
                         // Guardar en Firestore sin teléfono
                         await setDoc(doc(db, 'users', userCredential.user.uid), {
                           id: userCredential.user.uid,
@@ -949,16 +1018,16 @@ export default function LoginScreenWeb() {
                           },
                           dpiNumber: ''
                         });
-                        
+
                         console.log('Usuario creado sin teléfono');
-                        
+
                         // Ir a la pantalla principal
                         setHasAttemptedLogin(true);
                         navigation.replace('Main');
                       } catch (error: any) {
                         console.error('Error al crear usuario:', error);
                         let errorMessage = 'Error al crear cuenta';
-                        
+
                         if (error.code === 'auth/email-already-in-use') {
                           errorMessage = 'Este email ya está en uso';
                         } else if (error.code === 'auth/invalid-email') {
@@ -968,7 +1037,7 @@ export default function LoginScreenWeb() {
                         } else if (error.message) {
                           errorMessage = error.message;
                         }
-                        
+
                         setErrorMessage(errorMessage);
                         setShowErrorPopup(true);
                         setTimeout(() => setShowErrorPopup(false), 3000);
@@ -1006,9 +1075,9 @@ export default function LoginScreenWeb() {
                         setTimeout(() => setShowErrorPopup(false), 3000);
                         return;
                       }
-                      
+
                       console.log('📱 Enviando código de verificación al número:', `+502${phone}`);
-                      
+
                       try {
                         // Enviar código de verificación por WhatsApp
                         const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
@@ -1019,17 +1088,17 @@ export default function LoginScreenWeb() {
                           },
                           body: JSON.stringify({ phoneNumber: `+502${phone}` }),
                         });
-                        
+
                         const result = await response.json();
                         console.log('📨 Respuesta del servidor:', result);
-                        
+
                         if (!result.success) {
                           setErrorMessage(result.message || 'Error al enviar código');
                           setShowErrorPopup(true);
                           setTimeout(() => setShowErrorPopup(false), 3000);
                           return;
                         }
-                        
+
                         console.log('✅ Código enviado exitosamente');
                       } catch (error) {
                         console.error('❌ Error al enviar código:', error);
@@ -1038,7 +1107,7 @@ export default function LoginScreenWeb() {
                         setTimeout(() => setShowErrorPopup(false), 3000);
                         return;
                       }
-                      
+
                       Animated.timing(formAnim, {
                         toValue: 0,
                         duration: 200,
@@ -1094,12 +1163,12 @@ export default function LoginScreenWeb() {
                 </Pressable>
               </Animated.View>
             ) : mode === 'verify_phone' ? (
-              <Animated.View 
+              <Animated.View
                 style={[
                   styles.registerContainer,
-                  { 
+                  {
                     opacity: formAnim,
-                    transform: [{ 
+                    transform: [{
                       translateX: formAnim.interpolate({
                         inputRange: [0, 1],
                         outputRange: [50, 0]
@@ -1117,7 +1186,7 @@ export default function LoginScreenWeb() {
                       inputRange: [0, 1],
                       outputRange: ['#cccccc', Colors.light.primary]
                     });
-                    
+
                     return (
                       <Animated.View key={index} style={[styles.codeSlotWrapper, { borderColor }]}>
                         <TextInput
@@ -1129,14 +1198,14 @@ export default function LoginScreenWeb() {
                               const newCode = [...verificationCode];
                               newCode[index] = text;
                               setVerificationCode(newCode);
-                              
+
                               if (text) {
                                 Animated.timing(codeColors[index], {
                                   toValue: 1,
                                   duration: 200,
                                   useNativeDriver: false,
                                 }).start();
-                                
+
                                 // Auto-focus next input
                                 if (index < 5) {
                                   setTimeout(() => {
@@ -1176,7 +1245,7 @@ export default function LoginScreenWeb() {
                       setTimeout(() => setShowErrorPopup(false), 3000);
                       return;
                     }
-                    
+
                     try {
                       // Verificar el código con el servidor
                       console.log('🔍 Verificando código:', code);
@@ -1186,29 +1255,29 @@ export default function LoginScreenWeb() {
                         headers: {
                           'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ 
-                          phoneNumber: `+502${phone}`, 
-                          code: code 
+                        body: JSON.stringify({
+                          phoneNumber: `+502${phone}`,
+                          code: code
                         }),
                       });
-                      
+
                       const verifyResult = await verifyResponse.json();
                       console.log('📨 Resultado de verificación:', verifyResult);
-                      
+
                       if (!verifyResult.success) {
                         setErrorMessage(verifyResult.message || 'Código incorrecto');
                         setShowErrorPopup(true);
                         setTimeout(() => setShowErrorPopup(false), 3000);
                         return;
                       }
-                      
+
                       console.log('✅ Código verificado correctamente');
-                      
+
                       // Crear usuario en Firebase Auth
                       const auth = getAuth();
                       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                       console.log('Usuario creado en Firebase Auth:', userCredential.user.uid);
-                      
+
                       // Guardar datos completos en Firestore
                       await setDoc(doc(db, 'users', userCredential.user.uid), {
                         id: userCredential.user.uid,
@@ -1228,9 +1297,9 @@ export default function LoginScreenWeb() {
                         },
                         dpiNumber: ''
                       });
-                      
+
                       console.log('Datos guardados en Firestore correctamente');
-                      
+
                       // Redirigir a la página principal
                       setHasAttemptedLogin(true);
                       navigation.replace('Main');
@@ -1288,12 +1357,12 @@ export default function LoginScreenWeb() {
                 </Pressable>
               </Animated.View>
             ) : mode === 'google_phone' ? (
-              <Animated.View 
+              <Animated.View
                 style={[
                   styles.registerContainer,
-                  { 
+                  {
                     opacity: formAnim,
-                    transform: [{ 
+                    transform: [{
                       translateX: formAnim.interpolate({
                         inputRange: [0, 1],
                         outputRange: [50, 0]
@@ -1306,10 +1375,10 @@ export default function LoginScreenWeb() {
                   Ingresa tu teléfono
                 </ThemedText>
                 <TextInput
-                  style={[styles.input, { 
-                    borderColor: theme.border, 
+                  style={[styles.input, {
+                    borderColor: theme.border,
                     color: theme.text,
-                    backgroundColor: theme.backgroundDefault 
+                    backgroundColor: theme.backgroundDefault
                   }]}
                   placeholder="Teléfono"
                   placeholderTextColor={theme.textSecondary}
@@ -1338,7 +1407,7 @@ export default function LoginScreenWeb() {
                         setTimeout(() => setShowErrorPopup(false), 3000);
                         return;
                       }
-                      
+
                       // Ir a verificación de código con animación
                       Animated.timing(formAnim, {
                         toValue: 0,
@@ -1382,7 +1451,7 @@ export default function LoginScreenWeb() {
                           setTimeout(() => setShowErrorPopup(false), 3000);
                           return;
                         }
-                        
+
                         // Crear usuario en Firestore sin teléfono
                         await setDoc(doc(db, 'users', googleUserData.uid), {
                           id: googleUserData.uid,
@@ -1402,9 +1471,9 @@ export default function LoginScreenWeb() {
                           },
                           dpiNumber: ''
                         }, { merge: true });
-                        
+
                         console.log('Usuario de Google creado sin teléfono');
-                        
+
                         // Ir a la pantalla principal
                         setHasAttemptedLogin(true);
                         navigation.replace('Main');
@@ -1464,12 +1533,12 @@ export default function LoginScreenWeb() {
                 </Pressable>
               </Animated.View>
             ) : mode === 'google_verify_phone' ? (
-              <Animated.View 
+              <Animated.View
                 style={[
                   styles.registerContainer,
-                  { 
+                  {
                     opacity: formAnim,
-                    transform: [{ 
+                    transform: [{
                       translateX: formAnim.interpolate({
                         inputRange: [0, 1],
                         outputRange: [50, 0]
@@ -1487,7 +1556,7 @@ export default function LoginScreenWeb() {
                       inputRange: [0, 1],
                       outputRange: ['#cccccc', Colors.light.primary]
                     });
-                    
+
                     return (
                       <Animated.View key={index} style={[styles.codeSlotWrapper, { borderColor }]}>
                         <TextInput
@@ -1499,14 +1568,14 @@ export default function LoginScreenWeb() {
                               const newCode = [...verificationCode];
                               newCode[index] = text;
                               setVerificationCode(newCode);
-                              
+
                               if (text) {
                                 Animated.timing(codeColors[index], {
                                   toValue: 1,
                                   duration: 200,
                                   useNativeDriver: false,
                                 }).start();
-                                
+
                                 // Auto-focus next input
                                 if (index < 5) {
                                   setTimeout(() => {
@@ -1546,7 +1615,7 @@ export default function LoginScreenWeb() {
                       setTimeout(() => setShowErrorPopup(false), 3000);
                       return;
                     }
-                    
+
                     try {
                       // Usar los datos guardados del usuario de Google
                       if (!googleUserData) {
@@ -1556,7 +1625,7 @@ export default function LoginScreenWeb() {
                         setTimeout(() => setShowErrorPopup(false), 3000);
                         return;
                       }
-                      
+
                       // Guardar teléfono y código en Firestore para usuario de Google
                       await setDoc(doc(db, 'users', googleUserData.uid), {
                         id: googleUserData.uid,
@@ -1576,9 +1645,9 @@ export default function LoginScreenWeb() {
                         },
                         dpiNumber: ''
                       }, { merge: true });
-                      
+
                       console.log('Teléfono y código guardados para usuario de Google');
-                      
+
                       // Ir a la pantalla principal
                       setHasAttemptedLogin(true);
                       navigation.replace('Main');
@@ -1646,7 +1715,7 @@ export default function LoginScreenWeb() {
       </View>
 
       {showErrorPopup && (
-        <Animated.View 
+        <Animated.View
           style={[
             styles.errorPopup,
             { transform: [{ translateX: errorSlideAnim }] }

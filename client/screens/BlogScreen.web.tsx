@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { doc, setDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import {
   View,
   ScrollView,
@@ -9,6 +10,7 @@ import {
   useWindowDimensions,
   ActivityIndicator,
   Modal,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
@@ -19,6 +21,7 @@ import { Property, mapAPIPropertyToProperty } from "@/data/properties";
 import { Spacing, Colors, BorderRadius, Shadows } from "@/constants/theme";
 import { fetchPropiedadById } from "@/lib/api";
 import { getUserProfileFromFirebase } from "@/lib/portfolioService";
+import { db } from "@/lib/config";
 
 type BlogParams = {
   userId: string;
@@ -95,16 +98,31 @@ export default function BlogScreenWeb() {
 
   const handleSubmitContact = async () => {
     if (!contactForm.name || !contactForm.email || !contactForm.phone) {
+      Alert.alert('Error', 'Por favor completa los campos requeridos');
       return;
     }
 
     setSubmitting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const requestData = {
+        brokerId: params.userId || '',
+        clientName: contactForm.name,
+        clientPhone: `+502 ${contactForm.phone}`,
+        comment: contactForm.message || '',
+        createdAt: new Date(),
+        documentationProcess: [],
+        paymentProgress: [],
+        propertyId: Number(params.propertyId),
+        status: 'pending'
+      };
+
+      await addDoc(collection(db, 'requests'), requestData);
+
       setSubmitSuccess(true);
       setContactForm({ name: "", email: "", phone: "", message: "" });
     } catch (err) {
       console.error("Error submitting contact:", err);
+      Alert.alert('Error', 'Hubo un problema al enviar tu solicitud.');
     } finally {
       setSubmitting(false);
     }
@@ -399,7 +417,7 @@ export default function BlogScreenWeb() {
                       style={[
                         styles.submitButton,
                         (!contactForm.name || !contactForm.email || !contactForm.phone) &&
-                          styles.submitButtonDisabled,
+                        styles.submitButtonDisabled,
                       ]}
                       onPress={handleSubmitContact}
                       disabled={!contactForm.name || !contactForm.email || !contactForm.phone || submitting}

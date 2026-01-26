@@ -3,6 +3,7 @@ import { View, StyleSheet, FlatList, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 const isWeb = Platform.OS === "web";
@@ -10,6 +11,8 @@ const isWeb = Platform.OS === "web";
 import { ThemedText } from "@/components/ThemedText";
 import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/contexts/AuthContext";
+import { auth } from "@/lib/config";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
 
 interface Achievement {
@@ -75,8 +78,35 @@ export default function AchievementsScreen() {
   const headerHeight = useHeaderHeight();
   const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
   const { theme } = useTheme();
+  const { user, isGuest } = useAuth();
+  const navigation = useNavigation<any>();
 
+  const userId = user?.id || auth.currentUser?.uid;
   const unlockedCount = ACHIEVEMENTS.filter((a) => a.unlocked).length;
+
+  const handleNavigateToSignup = () => {
+    navigation.getParent()?.getParent()?.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    });
+  };
+
+  // Show login message for guest users
+  if (isGuest || !userId) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+        <View style={[styles.guestContainer, { paddingTop: headerHeight + Spacing.xl }]}>
+          <EmptyState
+            image={require("../../assets/images/empty-states/favorites.png")}
+            title="Inicia sesión"
+            description="Inicia sesión para ver y gestionar tus logros."
+            actionLabel="Crear cuenta"
+            onAction={handleNavigateToSignup}
+          />
+        </View>
+      </View>
+    );
+  }
 
   const renderAchievement = ({ item }: { item: Achievement }) => {
     const progressPercent = (item.progress / item.total) * 100;
@@ -199,6 +229,12 @@ export default function AchievementsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  guestContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: Spacing.lg,
   },
   listContent: {
     paddingHorizontal: Spacing.lg,

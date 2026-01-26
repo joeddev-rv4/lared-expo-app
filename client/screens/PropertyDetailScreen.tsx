@@ -11,12 +11,16 @@ import {
   NativeScrollEvent,
   Modal,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
+import * as FileSystem from "expo-file-system/legacy";
+import * as MediaLibrary from "expo-media-library";
+import * as Sharing from "expo-sharing";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
@@ -42,6 +46,8 @@ export default function PropertyDetailScreen() {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [downloadingAll, setDownloadingAll] = useState(false);
+  const [downloadingIndex, setDownloadingIndex] = useState<number | null>(null);
 
   const filteredImages = property?.imagenes
     ?.filter(img => ["Imagen", "Video", "masterplan"].includes(img.tipo))
@@ -82,6 +88,92 @@ export default function PropertyDetailScreen() {
         [{ text: "Entendido" }]
       );
       return;
+    }
+  };
+
+  const downloadSingleImage = async (imageUrl: string, index: number) => {
+    try {
+      setDownloadingIndex(index);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permiso requerido", "Necesitas dar permiso para guardar archivos en tu galería.");
+        return;
+      }
+
+      const extension = imageUrl.includes(".mp4") || imageUrl.includes("video") ? "mp4" : "jpg";
+      const filename = `${property.title.replace(/[^a-zA-Z0-9]/g, "_")}_${index + 1}.${extension}`;
+      const fileUri = FileSystem.documentDirectory + filename;
+
+      const downloadResult = await FileSystem.downloadAsync(imageUrl, fileUri);
+
+      if (downloadResult.status === 200) {
+        await MediaLibrary.saveToLibraryAsync(downloadResult.uri);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        Alert.alert("Descargado", "Imagen guardada en tu galería.");
+      } else {
+        throw new Error("Download failed");
+      }
+    } catch (error) {
+      console.error("Error downloading image:", error);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert("Error", "No se pudo descargar la imagen.");
+    } finally {
+      setDownloadingIndex(null);
+    }
+  };
+
+  const downloadAllMedia = async () => {
+    try {
+      setDownloadingAll(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permiso requerido", "Necesitas dar permiso para guardar archivos en tu galería.");
+        setDownloadingAll(false);
+        return;
+      }
+
+      const allMedia = property?.imagenes?.filter(img =>
+        ["Imagen", "Video", "masterplan"].includes(img.tipo)
+      ) || [];
+
+      if (allMedia.length === 0) {
+        Alert.alert("Sin archivos", "No hay archivos para descargar.");
+        setDownloadingAll(false);
+        return;
+      }
+
+      let downloadedCount = 0;
+
+      for (let i = 0; i < allMedia.length; i++) {
+        const media = allMedia[i];
+        try {
+          const extension = media.tipo === "Video" || media.url.includes(".mp4") ? "mp4" : "jpg";
+          const filename = `${property.title.replace(/[^a-zA-Z0-9]/g, "_")}_${i + 1}.${extension}`;
+          const fileUri = FileSystem.documentDirectory + filename;
+
+          const downloadResult = await FileSystem.downloadAsync(media.url, fileUri);
+
+          if (downloadResult.status === 200) {
+            await MediaLibrary.saveToLibraryAsync(downloadResult.uri);
+            downloadedCount++;
+          }
+        } catch (error) {
+          console.error(`Error downloading file ${i + 1}:`, error);
+        }
+      }
+
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert("Descarga completa", `Se descargaron ${downloadedCount} de ${allMedia.length} archivos a tu galería.`);
+    } catch (error) {
+      console.error("Error downloading all media:", error);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert("Error", "Hubo un problema al descargar los archivos.");
+    } finally {
+      setDownloadingAll(false);
     }
   };
 
@@ -161,6 +253,20 @@ export default function PropertyDetailScreen() {
               </ThemedText>
             </Pressable>
           </View>
+          <Pressable
+            style={styles.kitPromoButton}
+            onPress={downloadAllMedia}
+            disabled={downloadingAll}
+          >
+            {downloadingAll ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Ionicons name="download-outline" size={16} color="#FFFFFF" />
+            )}
+            <ThemedText style={styles.kitPromoText}>
+              {downloadingAll ? "Descargando..." : "Kit Promocional"}
+            </ThemedText>
+          </Pressable>
         </View>
 
         <View style={styles.content}>
@@ -299,11 +405,24 @@ export default function PropertyDetailScreen() {
           >
             {images.map((imageUrl, index) => (
               <View key={index} style={styles.galleryImageContainer}>
-                <Image 
-                  source={{ uri: imageUrl }} 
-                  style={styles.galleryImage}
-                  resizeMode="cover"
-                />
+                <View style={styles.galleryImageWrapper}>
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={styles.galleryImage}
+                    resizeMode="cover"
+                  />
+                  <Pressable
+                    style={styles.imageDownloadButton}
+                    onPress={() => downloadSingleImage(imageUrl, index)}
+                    disabled={downloadingIndex === index}
+                  >
+                    {downloadingIndex === index ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Ionicons name="download-outline" size={20} color="#FFFFFF" />
+                    )}
+                  </Pressable>
+                </View>
                 <ThemedText style={styles.galleryImageNumber}>
                   {index + 1} / {images.length}
                 </ThemedText>
@@ -666,14 +785,46 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
   },
+  galleryImageWrapper: {
+    width: "100%",
+    position: "relative",
+  },
   galleryImage: {
     width: "100%",
     aspectRatio: 16 / 10,
     borderRadius: BorderRadius.lg,
   },
+  imageDownloadButton: {
+    position: "absolute",
+    bottom: Spacing.md,
+    right: Spacing.md,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   galleryImageNumber: {
     marginTop: Spacing.sm,
     fontSize: 14,
     color: "#717171",
+  },
+  kitPromoButton: {
+    position: "absolute",
+    bottom: 16,
+    left: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#bf0a0a",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  kitPromoText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
 });

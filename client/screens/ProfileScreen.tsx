@@ -23,8 +23,10 @@ const isWeb = Platform.OS === "web";
 
 import { ThemedText } from "@/components/ThemedText";
 import { Card } from "@/components/Card";
+import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
+import { auth } from "@/lib/config";
 import {
   getUserProfile,
   clearUserProfile,
@@ -50,7 +52,9 @@ export default function ProfileScreen() {
   const headerHeight = useHeaderHeight();
   const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
   const { theme, isDark } = useTheme();
-  const { logout } = useAuth();
+  const { logout, user, isGuest } = useAuth();
+
+  const userId = user?.id || auth.currentUser?.uid;
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [listings, setListings] = useState<UserListing[]>([]);
@@ -97,6 +101,30 @@ export default function ProfileScreen() {
       routes: [{ name: "Login" }],
     });
   };
+
+  const handleNavigateToSignup = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    });
+  };
+
+  // Show login message for guest users
+  if (isGuest || !userId) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+        <View style={[styles.guestContainer, { paddingTop: headerHeight + Spacing.xl }]}>
+          <EmptyState
+            image={require("../../assets/images/empty-states/favorites.png")}
+            title="Inicia sesión"
+            description="Inicia sesión para ver y gestionar tus clientes."
+            actionLabel="Crear cuenta"
+            onAction={handleNavigateToSignup}
+          />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
@@ -282,6 +310,12 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  guestContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: Spacing.lg,
   },
   content: {
     paddingHorizontal: Spacing.lg,

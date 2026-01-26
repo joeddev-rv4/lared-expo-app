@@ -10,6 +10,7 @@ import {
   Modal,
   useWindowDimensions,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -51,6 +52,8 @@ export default function PropertyDetailScreenWeb() {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [isFavorite, setIsFavorite] = useState(sourceTab === "FavoritesTab");
+  const [downloadingAll, setDownloadingAll] = useState(false);
+  const [downloadingIndex, setDownloadingIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const checkFavoriteStatus = async () => {
@@ -102,6 +105,102 @@ export default function PropertyDetailScreenWeb() {
     } catch (error) {
       console.error("Error copying to clipboard:", error);
       Alert.alert("Error", "No se pudo copiar el enlace.");
+    }
+  };
+
+  const downloadImageViaProxy = async (imageUrl: string, filename: string): Promise<boolean> => {
+    try {
+      // Use CORS proxy to fetch the image
+      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(imageUrl)}`;
+      const response = await fetch(proxyUrl);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      return true;
+    } catch (error) {
+      console.error("Error downloading via proxy:", error);
+      return false;
+    }
+  };
+
+  const downloadSingleImage = async (imageUrl: string, index: number) => {
+    try {
+      setDownloadingIndex(index);
+
+      const extension = imageUrl.includes(".mp4") || imageUrl.includes("video") ? "mp4" : "jpg";
+      const filename = `${property.title.replace(/[^a-zA-Z0-9]/g, "_")}_${index + 1}.${extension}`;
+
+      const success = await downloadImageViaProxy(imageUrl, filename);
+
+      if (!success) {
+        // Fallback: open in new tab
+        window.open(imageUrl, "_blank");
+        Alert.alert(
+          "Descarga alternativa",
+          "La imagen se abrió en una nueva pestaña. Haz clic derecho y selecciona 'Guardar imagen como...'"
+        );
+      }
+    } catch (error) {
+      console.error("Error downloading image:", error);
+      Alert.alert("Error", "No se pudo descargar la imagen.");
+    } finally {
+      setDownloadingIndex(null);
+    }
+  };
+
+  const downloadAllMedia = async () => {
+    try {
+      setDownloadingAll(true);
+      const allMedia = property?.imagenes?.filter(img =>
+        ["Imagen", "Video", "masterplan"].includes(img.tipo)
+      ) || [];
+
+      if (allMedia.length === 0) {
+        Alert.alert("Sin archivos", "No hay archivos para descargar.");
+        setDownloadingAll(false);
+        return;
+      }
+
+      let downloadedCount = 0;
+
+      for (let i = 0; i < allMedia.length; i++) {
+        const media = allMedia[i];
+        try {
+          const extension = media.tipo === "Video" || media.url.includes(".mp4") ? "mp4" : "jpg";
+          const filename = `${property.title.replace(/[^a-zA-Z0-9]/g, "_")}_${i + 1}.${extension}`;
+
+          const success = await downloadImageViaProxy(media.url, filename);
+          if (success) {
+            downloadedCount++;
+          }
+
+          // Delay between downloads
+          await new Promise(resolve => setTimeout(resolve, 600));
+        } catch (error) {
+          console.error(`Error downloading file ${i + 1}:`, error);
+        }
+      }
+
+      Alert.alert(
+        "Descarga completa",
+        `Se descargaron ${downloadedCount} de ${allMedia.length} archivos.`
+      );
+    } catch (error) {
+      console.error("Error downloading all media:", error);
+      Alert.alert("Error", "Hubo un problema al descargar los archivos.");
+    } finally {
+      setDownloadingAll(false);
     }
   };
 
@@ -183,6 +282,20 @@ export default function PropertyDetailScreenWeb() {
             <Pressable style={[styles.showAllPhotosButton, isMobile && styles.showAllPhotosButtonMobile]} onPress={() => setShowGallery(true)}>
               <Ionicons name="grid-outline" size={14} color="#222222" />
               <ThemedText style={styles.showAllPhotosText}>Mostrar todas las fotos ({galleryImages.length})</ThemedText>
+            </Pressable>
+            <Pressable
+              style={[styles.kitPromoButton, isMobile && styles.kitPromoButtonMobile]}
+              onPress={downloadAllMedia}
+              disabled={downloadingAll}
+            >
+              {downloadingAll ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Ionicons name="download-outline" size={16} color="#FFFFFF" />
+              )}
+              <ThemedText style={styles.kitPromoText}>
+                {downloadingAll ? "Descargando..." : "Kit Promocional"}
+              </ThemedText>
             </Pressable>
           </View>
           <ThemedText style={styles.descriptionBelowImages}>{property.descripcionCorta || property.description}</ThemedText>
@@ -344,11 +457,24 @@ export default function PropertyDetailScreenWeb() {
           >
             {galleryImages.map((imageUrl, index) => (
               <View key={index} style={styles.galleryImageContainer}>
-                <Image 
-                  source={{ uri: imageUrl }} 
-                  style={styles.galleryImage}
-                  resizeMode="cover"
-                />
+                <View style={styles.galleryImageWrapper}>
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={styles.galleryImage}
+                    resizeMode="cover"
+                  />
+                  <Pressable
+                    style={styles.imageDownloadButton}
+                    onPress={() => downloadSingleImage(imageUrl, index)}
+                    disabled={downloadingIndex === index}
+                  >
+                    {downloadingIndex === index ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Ionicons name="download-outline" size={20} color="#FFFFFF" />
+                    )}
+                  </Pressable>
+                </View>
                 <ThemedText style={styles.galleryImageNumber}>
                   {index + 1} / {galleryImages.length}
                 </ThemedText>
@@ -869,15 +995,54 @@ const styles = StyleSheet.create({
     maxWidth: 900,
     alignItems: "center",
   },
+  galleryImageWrapper: {
+    width: "100%",
+    position: "relative",
+  },
   galleryImage: {
     width: "100%",
     aspectRatio: 16 / 10,
     borderRadius: BorderRadius.lg,
   },
+  imageDownloadButton: {
+    position: "absolute",
+    bottom: Spacing.md,
+    right: Spacing.md,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   galleryImageNumber: {
     marginTop: Spacing.sm,
     fontSize: 14,
     color: "#717171",
+  },
+  kitPromoButton: {
+    position: "absolute",
+    bottom: Spacing.lg,
+    left: 90 + Spacing.lg,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+    backgroundColor: "#bf0a0a",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  kitPromoButtonMobile: {
+    position: "relative",
+    bottom: 0,
+    left: 0,
+    marginTop: Spacing.md,
+    alignSelf: "center",
+  },
+  kitPromoText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   imageGalleryContainerMobile: {
     paddingHorizontal: Spacing.md,

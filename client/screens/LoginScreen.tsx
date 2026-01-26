@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, Image, TextInput, Alert, Animated, ScrollView } from "react-native";
+import { View, StyleSheet, Pressable, Image, TextInput, Alert, Animated, ScrollView, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
@@ -21,8 +21,12 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 // Read login options from environment variables
 const isGoogleLoginEnabled = process.env.EXPO_PUBLIC_GOOGLE_LOGIN_ENABLED !== 'false';
 const isFacebookLoginEnabled = process.env.EXPO_PUBLIC_FACEBOOK_LOGIN_ENABLED !== 'false';
+const isDevEnv = process.env.EXPO_PUBLIC_DEV_ENV === 'true';
+const devUser = process.env.EXPO_PUBLIC_DEV_ENV_USER;
+const devPsw = process.env.EXPO_PUBLIC_DEV_ENV_PSW;
 
 export default function LoginScreen() {
+  console.log('DEV ENV DEBUG:', { isDevEnv, devUser, devPsw, env: process.env.EXPO_PUBLIC_DEV_ENV });
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
@@ -117,16 +121,16 @@ export default function LoginScreen() {
       Alert.alert('Error', 'Por favor ingresa email y contraseña');
       return;
     }
-    
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setHasAttemptedLogin(true);
-    
+
     try {
       await login(email, password);
     } catch (error: any) {
       let errorMessage = 'Error al iniciar sesión';
       let isCredentialError = false;
-      
+
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
         errorMessage = 'Credenciales incorrectas';
         isCredentialError = true;
@@ -137,7 +141,7 @@ export default function LoginScreen() {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       if (isCredentialError) {
         setErrorMessage(errorMessage);
         setShowErrorPopup(true);
@@ -145,6 +149,22 @@ export default function LoginScreen() {
       } else {
         Alert.alert('Error de inicio de sesión', errorMessage);
       }
+    }
+  };
+
+  const handleDevLogin = async () => {
+    if (!devUser || !devPsw) {
+      Alert.alert('Configuration Error', 'DEV_ENV_USER or DEV_ENV_PSW not set in .env');
+      return;
+    }
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setHasAttemptedLogin(true);
+
+    try {
+      await login(devUser, devPsw);
+    } catch (error: any) {
+      Alert.alert('Dev Login Error', error.message);
     }
   };
 
@@ -180,13 +200,13 @@ export default function LoginScreen() {
 
     try {
       const auth = getAuth();
-      
+
       console.log('Verificando email:', email);
-      
+
       // Verify in Firebase Auth
       const methods = await fetchSignInMethodsForEmail(auth, email);
       console.log('Métodos en Auth encontrados:', methods);
-      
+
       if (methods.length > 0) {
         console.log('Email ya existe en Firebase Auth');
         setErrorMessage('Este email ya está relacionado a una cuenta');
@@ -199,7 +219,7 @@ export default function LoginScreen() {
       const usersRef = collection(db, 'users');
       const q = query(usersRef, where('email', '==', email));
       const querySnapshot = await getDocs(q);
-      
+
       if (!querySnapshot.empty) {
         console.log('Email ya existe en Firestore');
         setErrorMessage('Este email ya está relacionado a una cuenta');
@@ -296,7 +316,7 @@ export default function LoginScreen() {
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
+
     // Limpiar todos los estados del formulario
     setEmail('');
     setPassword('');
@@ -304,7 +324,7 @@ export default function LoginScreen() {
     setUsername('');
     setPhone('');
     setVerificationCode(['', '', '', '', '', '']);
-    
+
     Animated.timing(formAnim, {
       toValue: 0,
       duration: 200,
@@ -316,7 +336,35 @@ export default function LoginScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView 
+      {(true || isDevEnv) && (
+        <Pressable
+          style={({ pressed }) => ({
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            top: Platform.OS === 'web' ? 100 : insets.top + 10,
+            right: 20,
+            zIndex: 99999,
+            backgroundColor: '#FF0000',
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: 8,
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 2,
+            },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+            cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+            opacity: pressed ? 0.8 : 1,
+            transform: Platform.OS === 'web' ? [] : undefined, // help with stacking context
+          } as any)}
+          onPress={handleDevLogin}
+        >
+          <ThemedText style={{ color: 'white', fontWeight: 'bold', fontSize: 12 }}>DEV</ThemedText>
+        </Pressable>
+      )}
+      <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + Spacing["2xl"] }]}
         keyboardShouldPersistTaps="handled"
       >
@@ -333,12 +381,12 @@ export default function LoginScreen() {
         </View>
 
         {mode === 'buttons' ? (
-          <Animated.View 
+          <Animated.View
             style={[
               styles.buttonContainer,
-              { 
+              {
                 opacity: buttonsAnim,
-                transform: [{ 
+                transform: [{
                   translateY: buttonsAnim.interpolate({
                     inputRange: [0, 1],
                     outputRange: [-10, 0]
@@ -370,7 +418,7 @@ export default function LoginScreen() {
                   try {
                     const isNewUser = await loginGoogle();
                     console.log('Login Google completado, isNewUser:', isNewUser);
-                    
+
                     // Save Google user data immediately
                     const auth = getAuth();
                     const currentUser = auth.currentUser;
@@ -381,7 +429,7 @@ export default function LoginScreen() {
                         displayName: currentUser.displayName || ''
                       });
                     }
-                    
+
                     if (isNewUser) {
                       // New user, show phone screen
                       setIsFromGoogle(true);
@@ -438,7 +486,7 @@ export default function LoginScreen() {
                   try {
                     const isNewUser = await loginFacebook();
                     console.log('Login Facebook completado, isNewUser:', isNewUser);
-                    
+
                     // Save Facebook user data immediately
                     const auth = getAuth();
                     const currentUser = auth.currentUser;
@@ -449,7 +497,7 @@ export default function LoginScreen() {
                         displayName: currentUser.displayName || ''
                       });
                     }
-                    
+
                     if (isNewUser) {
                       // New user, show phone screen
                       setIsFromGoogle(true);
@@ -495,6 +543,34 @@ export default function LoginScreen() {
                 </ThemedText>
               </Pressable>
             ) : null}
+
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                Animated.timing(buttonsAnim, {
+                  toValue: 0,
+                  duration: 200,
+                  useNativeDriver: false,
+                }).start(() => {
+                  setMode('register');
+                });
+              }}
+              style={({ pressed }) => [
+                styles.loginButton,
+                styles.socialButton,
+                {
+                  backgroundColor: theme.backgroundRoot,
+                  borderColor: Colors.light.primary,
+                  opacity: pressed ? 0.7 : 1,
+                },
+              ]}
+            >
+              <Feather name="user-plus" size={20} color={Colors.light.primary} />
+              <ThemedText style={[styles.socialButtonText, { color: Colors.light.primary }]}>
+                Crear cuenta
+              </ThemedText>
+            </Pressable>
+
             <Pressable
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -511,12 +587,12 @@ export default function LoginScreen() {
             </Pressable>
           </Animated.View>
         ) : mode === 'login' ? (
-          <Animated.View 
+          <Animated.View
             style={[
               styles.formContainer,
-              { 
+              {
                 opacity: formAnim,
-                transform: [{ 
+                transform: [{
                   translateY: formAnim.interpolate({
                     inputRange: [0, 1],
                     outputRange: [50, 0]
@@ -526,10 +602,10 @@ export default function LoginScreen() {
             ]}
           >
             <TextInput
-              style={[styles.input, { 
-                borderColor: theme.border, 
+              style={[styles.input, {
+                borderColor: theme.border,
                 color: theme.text,
-                backgroundColor: theme.backgroundDefault 
+                backgroundColor: theme.backgroundDefault
               }]}
               placeholder="Email"
               placeholderTextColor={theme.textSecondary}
@@ -540,10 +616,10 @@ export default function LoginScreen() {
               autoFocus
             />
             <TextInput
-              style={[styles.input, { 
-                borderColor: theme.border, 
+              style={[styles.input, {
+                borderColor: theme.border,
                 color: theme.text,
-                backgroundColor: theme.backgroundDefault 
+                backgroundColor: theme.backgroundDefault
               }]}
               placeholder="Contraseña"
               placeholderTextColor={theme.textSecondary}
@@ -592,12 +668,12 @@ export default function LoginScreen() {
             </View>
           </Animated.View>
         ) : mode === 'register' ? (
-          <Animated.View 
+          <Animated.View
             style={[
               styles.registerContainer,
-              { 
+              {
                 opacity: formAnim,
-                transform: [{ 
+                transform: [{
                   translateY: formAnim.interpolate({
                     inputRange: [0, 1],
                     outputRange: [50, 0]
@@ -610,10 +686,10 @@ export default function LoginScreen() {
               Ingresa tu email
             </ThemedText>
             <TextInput
-              style={[styles.input, { 
-                borderColor: theme.border, 
+              style={[styles.input, {
+                borderColor: theme.border,
                 color: theme.text,
-                backgroundColor: theme.backgroundDefault 
+                backgroundColor: theme.backgroundDefault
               }]}
               placeholder="Email"
               placeholderTextColor={theme.textSecondary}
@@ -654,12 +730,12 @@ export default function LoginScreen() {
             </Pressable>
           </Animated.View>
         ) : mode === 'register_password' ? (
-          <Animated.View 
+          <Animated.View
             style={[
               styles.registerContainer,
-              { 
+              {
                 opacity: formAnim,
-                transform: [{ 
+                transform: [{
                   translateY: formAnim.interpolate({
                     inputRange: [0, 1],
                     outputRange: [50, 0]
@@ -673,10 +749,10 @@ export default function LoginScreen() {
             </ThemedText>
             <View style={styles.passwordContainer}>
               <TextInput
-                style={[styles.input, styles.passwordInput, { 
-                  borderColor: theme.border, 
+                style={[styles.input, styles.passwordInput, {
+                  borderColor: theme.border,
                   color: theme.text,
-                  backgroundColor: theme.backgroundDefault 
+                  backgroundColor: theme.backgroundDefault
                 }]}
                 placeholder="Contraseña"
                 placeholderTextColor={theme.textSecondary}
@@ -692,19 +768,19 @@ export default function LoginScreen() {
                 }}
                 style={styles.eyeButton}
               >
-                <Feather 
-                  name={showPassword ? "eye" : "eye-off"} 
-                  size={20} 
-                  color={theme.textSecondary} 
+                <Feather
+                  name={showPassword ? "eye" : "eye-off"}
+                  size={20}
+                  color={theme.textSecondary}
                 />
               </Pressable>
             </View>
             <View style={styles.passwordContainer}>
               <TextInput
-                style={[styles.input, styles.passwordInput, { 
-                  borderColor: theme.border, 
+                style={[styles.input, styles.passwordInput, {
+                  borderColor: theme.border,
                   color: theme.text,
-                  backgroundColor: theme.backgroundDefault 
+                  backgroundColor: theme.backgroundDefault
                 }]}
                 placeholder="Repetir Contraseña"
                 placeholderTextColor={theme.textSecondary}
@@ -719,10 +795,10 @@ export default function LoginScreen() {
                 }}
                 style={styles.eyeButton}
               >
-                <Feather 
-                  name={showConfirmPassword ? "eye" : "eye-off"} 
-                  size={20} 
-                  color={theme.textSecondary} 
+                <Feather
+                  name={showConfirmPassword ? "eye" : "eye-off"}
+                  size={20}
+                  color={theme.textSecondary}
                 />
               </Pressable>
             </View>
@@ -757,12 +833,12 @@ export default function LoginScreen() {
             </Pressable>
           </Animated.View>
         ) : mode === 'register_username' ? (
-          <Animated.View 
+          <Animated.View
             style={[
               styles.registerContainer,
-              { 
+              {
                 opacity: formAnim,
-                transform: [{ 
+                transform: [{
                   translateY: formAnim.interpolate({
                     inputRange: [0, 1],
                     outputRange: [50, 0]
@@ -775,10 +851,10 @@ export default function LoginScreen() {
               Ingresa tu nombre
             </ThemedText>
             <TextInput
-              style={[styles.input, { 
-                borderColor: theme.border, 
+              style={[styles.input, {
+                borderColor: theme.border,
                 color: theme.text,
-                backgroundColor: theme.backgroundDefault 
+                backgroundColor: theme.backgroundDefault
               }]}
               placeholder="Nombre"
               placeholderTextColor={theme.textSecondary}
@@ -827,12 +903,12 @@ export default function LoginScreen() {
             </Pressable>
           </Animated.View>
         ) : mode === 'register_phone' ? (
-          <Animated.View 
+          <Animated.View
             style={[
               styles.registerContainer,
-              { 
+              {
                 opacity: formAnim,
-                transform: [{ 
+                transform: [{
                   translateY: formAnim.interpolate({
                     inputRange: [0, 1],
                     outputRange: [50, 0]
@@ -845,10 +921,10 @@ export default function LoginScreen() {
               Ingresa tu teléfono
             </ThemedText>
             <TextInput
-              style={[styles.input, { 
-                borderColor: theme.border, 
+              style={[styles.input, {
+                borderColor: theme.border,
                 color: theme.text,
-                backgroundColor: theme.backgroundDefault 
+                backgroundColor: theme.backgroundDefault
               }]}
               placeholder="Teléfono"
               placeholderTextColor={theme.textSecondary}
@@ -871,7 +947,7 @@ export default function LoginScreen() {
                     const auth = getAuth();
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     console.log('Usuario creado en Firebase Auth (sin teléfono):', userCredential.user.uid);
-                    
+
                     // Guardar en Firestore sin teléfono
                     await setDoc(doc(db, 'users', userCredential.user.uid), {
                       id: userCredential.user.uid,
@@ -891,16 +967,16 @@ export default function LoginScreen() {
                       },
                       dpiNumber: ''
                     });
-                    
+
                     console.log('Usuario creado sin teléfono');
-                    
+
                     // Ir a la pantalla principal
                     setHasAttemptedLogin(true);
                     navigation.replace('Main');
                   } catch (error: any) {
                     console.error('Error al crear usuario:', error);
                     let errorMessage = 'Error al crear cuenta';
-                    
+
                     if (error.code === 'auth/email-already-in-use') {
                       errorMessage = 'Este email ya está en uso';
                     } else if (error.code === 'auth/invalid-email') {
@@ -910,7 +986,7 @@ export default function LoginScreen() {
                     } else if (error.message) {
                       errorMessage = error.message;
                     }
-                    
+
                     setErrorMessage(errorMessage);
                     setShowErrorPopup(true);
                     setTimeout(() => setShowErrorPopup(false), 3000);
@@ -983,69 +1059,69 @@ export default function LoginScreen() {
               </Pressable>
             </View>
             <Pressable
-                onPress={async () => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  try {
-                    // Crear usuario en Firebase Auth
-                    const auth = getAuth();
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    console.log('Usuario creado en Firebase Auth (sin teléfono):', userCredential.user.uid);
-                    
-                    // Guardar en Firestore sin teléfono
-                    await setDoc(doc(db, 'users', userCredential.user.uid), {
-                      id: userCredential.user.uid,
-                      email: email,
-                      name: username,
-                      phone: '',
-                      createdAt: new Date(),
-                      status: 'notVerified',
-                      isAdmin: false,
-                      isVerifiedBroker: false,
-                      avatar: '',
-                      bank: '',
-                      card: '',
-                      dpiDocument: {
-                        back: '',
-                        front: ''
-                      },
-                      dpiNumber: ''
-                    });
-                    
-                    console.log('Usuario creado sin teléfono');
-                    
-                    // Ir a la pantalla principal
-                    setHasAttemptedLogin(true);
-                    navigation.replace('Main');
-                  } catch (error: any) {
-                    console.error('Error al crear usuario:', error);
-                    let errorMessage = 'Error al crear cuenta';
-                    
-                    if (error.code === 'auth/email-already-in-use') {
-                      errorMessage = 'Este email ya está en uso';
-                    } else if (error.code === 'auth/invalid-email') {
-                      errorMessage = 'Email inválido';
-                    } else if (error.code === 'auth/weak-password') {
-                      errorMessage = 'La contraseña es muy débil';
-                    } else if (error.message) {
-                      errorMessage = error.message;
-                    }
-                    
-                    setErrorMessage(errorMessage);
-                    setShowErrorPopup(true);
-                    setTimeout(() => setShowErrorPopup(false), 3000);
+              onPress={async () => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                try {
+                  // Crear usuario en Firebase Auth
+                  const auth = getAuth();
+                  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                  console.log('Usuario creado en Firebase Auth (sin teléfono):', userCredential.user.uid);
+
+                  // Guardar en Firestore sin teléfono
+                  await setDoc(doc(db, 'users', userCredential.user.uid), {
+                    id: userCredential.user.uid,
+                    email: email,
+                    name: username,
+                    phone: '',
+                    createdAt: new Date(),
+                    status: 'notVerified',
+                    isAdmin: false,
+                    isVerifiedBroker: false,
+                    avatar: '',
+                    bank: '',
+                    card: '',
+                    dpiDocument: {
+                      back: '',
+                      front: ''
+                    },
+                    dpiNumber: ''
+                  });
+
+                  console.log('Usuario creado sin teléfono');
+
+                  // Ir a la pantalla principal
+                  setHasAttemptedLogin(true);
+                  navigation.replace('Main');
+                } catch (error: any) {
+                  console.error('Error al crear usuario:', error);
+                  let errorMessage = 'Error al crear cuenta';
+
+                  if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'Este email ya está en uso';
+                  } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Email inválido';
+                  } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'La contraseña es muy débil';
+                  } else if (error.message) {
+                    errorMessage = error.message;
                   }
-                }}
-                style={({ pressed }) => [
-                  styles.skipButton,
-                  {
-                    opacity: pressed ? 0.7 : 1,
-                  },
-                ]}
-              >
-                <ThemedText style={[styles.skipText, { color: theme.textSecondary }]}>
-                  Saltar
-                </ThemedText>
-              </Pressable>
+
+                  setErrorMessage(errorMessage);
+                  setShowErrorPopup(true);
+                  setTimeout(() => setShowErrorPopup(false), 3000);
+                }
+              }}
+              style={({ pressed }) => [
+                styles.skipButton,
+                {
+                  opacity: pressed ? 0.7 : 1,
+                },
+              ]}
+            >
+              <ThemedText style={[styles.skipText, { color: theme.textSecondary }]}>
+                Saltar
+              </ThemedText>
+            </Pressable>
             <Pressable
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -1069,12 +1145,12 @@ export default function LoginScreen() {
             </Pressable>
           </Animated.View>
         ) : mode === 'verify_phone' ? (
-          <Animated.View 
+          <Animated.View
             style={[
               styles.registerContainer,
-              { 
+              {
                 opacity: formAnim,
-                transform: [{ 
+                transform: [{
                   translateY: formAnim.interpolate({
                     inputRange: [0, 1],
                     outputRange: [50, 0]
@@ -1092,7 +1168,7 @@ export default function LoginScreen() {
                   inputRange: [0, 1],
                   outputRange: ['#cccccc', Colors.light.primary]
                 });
-                
+
                 return (
                   <Animated.View key={index} style={[styles.codeSlotWrapper, { borderColor }]}>
                     <TextInput
@@ -1104,14 +1180,14 @@ export default function LoginScreen() {
                           const newCode = [...verificationCode];
                           newCode[index] = text;
                           setVerificationCode(newCode);
-                          
+
                           if (text) {
                             Animated.timing(codeColors[index], {
                               toValue: 1,
                               duration: 200,
                               useNativeDriver: false,
                             }).start();
-                            
+
                             // Auto-focus next input
                             if (index < 5) {
                               setTimeout(() => {
@@ -1152,13 +1228,13 @@ export default function LoginScreen() {
                   setTimeout(() => setShowErrorPopup(false), 3000);
                   return;
                 }
-                
+
                 try {
                   // Crear usuario en Firebase Auth
                   const auth = getAuth();
                   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                   console.log('Usuario creado en Firebase Auth:', userCredential.user.uid);
-                  
+
                   // Guardar datos completos en Firestore
                   await setDoc(doc(db, 'users', userCredential.user.uid), {
                     id: userCredential.user.uid,
@@ -1178,9 +1254,9 @@ export default function LoginScreen() {
                     },
                     dpiNumber: ''
                   }, { merge: true });
-                  
+
                   console.log('Datos guardados en Firestore correctamente');
-                  
+
                   // Redirect to main page
                   setHasAttemptedLogin(true);
                   navigation.replace('Main');
@@ -1239,12 +1315,12 @@ export default function LoginScreen() {
             </Pressable>
           </Animated.View>
         ) : mode === 'google_phone' ? (
-          <Animated.View 
+          <Animated.View
             style={[
               styles.registerContainer,
-              { 
+              {
                 opacity: formAnim,
-                transform: [{ 
+                transform: [{
                   translateY: formAnim.interpolate({
                     inputRange: [0, 1],
                     outputRange: [50, 0]
@@ -1257,10 +1333,10 @@ export default function LoginScreen() {
               Ingresa tu teléfono
             </ThemedText>
             <TextInput
-              style={[styles.input, { 
-                borderColor: theme.border, 
+              style={[styles.input, {
+                borderColor: theme.border,
                 color: theme.text,
-                backgroundColor: theme.backgroundDefault 
+                backgroundColor: theme.backgroundDefault
               }]}
               placeholder="Teléfono"
               placeholderTextColor={theme.textSecondary}
@@ -1290,7 +1366,7 @@ export default function LoginScreen() {
                     setTimeout(() => setShowErrorPopup(false), 3000);
                     return;
                   }
-                  
+
                   // Go to code verification with animation
                   Animated.timing(formAnim, {
                     toValue: 0,
@@ -1335,7 +1411,7 @@ export default function LoginScreen() {
                       setTimeout(() => setShowErrorPopup(false), 3000);
                       return;
                     }
-                    
+
                     // Create user in Firestore without phone
                     await setDoc(doc(db, 'users', googleUserData.uid), {
                       id: googleUserData.uid,
@@ -1355,9 +1431,9 @@ export default function LoginScreen() {
                       },
                       dpiNumber: ''
                     }, { merge: true });
-                    
+
                     console.log('Usuario de Google creado sin teléfono');
-                    
+
                     // Go to main screen
                     setHasAttemptedLogin(true);
                     navigation.replace('Main');
@@ -1418,12 +1494,12 @@ export default function LoginScreen() {
             </Pressable>
           </Animated.View>
         ) : mode === 'google_verify_phone' ? (
-          <Animated.View 
+          <Animated.View
             style={[
               styles.registerContainer,
-              { 
+              {
                 opacity: formAnim,
-                transform: [{ 
+                transform: [{
                   translateY: formAnim.interpolate({
                     inputRange: [0, 1],
                     outputRange: [50, 0]
@@ -1441,7 +1517,7 @@ export default function LoginScreen() {
                   inputRange: [0, 1],
                   outputRange: ['#cccccc', Colors.light.primary]
                 });
-                
+
                 return (
                   <Animated.View key={index} style={[styles.codeSlotWrapper, { borderColor }]}>
                     <TextInput
@@ -1453,14 +1529,14 @@ export default function LoginScreen() {
                           const newCode = [...verificationCode];
                           newCode[index] = text;
                           setVerificationCode(newCode);
-                          
+
                           if (text) {
                             Animated.timing(codeColors[index], {
                               toValue: 1,
                               duration: 200,
                               useNativeDriver: false,
                             }).start();
-                            
+
                             // Auto-focus next input
                             if (index < 5) {
                               setTimeout(() => {
@@ -1501,7 +1577,7 @@ export default function LoginScreen() {
                   setTimeout(() => setShowErrorPopup(false), 3000);
                   return;
                 }
-                
+
                 try {
                   // Use saved Google user data
                   if (!googleUserData) {
@@ -1511,7 +1587,7 @@ export default function LoginScreen() {
                     setTimeout(() => setShowErrorPopup(false), 3000);
                     return;
                   }
-                  
+
                   // Save phone and code in Firestore for Google user
                   await setDoc(doc(db, 'users', googleUserData.uid), {
                     id: googleUserData.uid,
@@ -1531,9 +1607,9 @@ export default function LoginScreen() {
                     },
                     dpiNumber: ''
                   }, { merge: true });
-                  
+
                   console.log('Teléfono y código guardados para usuario de Google');
-                  
+
                   // Go to main screen
                   setHasAttemptedLogin(true);
                   navigation.replace('Main');
@@ -1600,10 +1676,10 @@ export default function LoginScreen() {
       </ScrollView>
 
       {showErrorPopup && (
-        <Animated.View 
+        <Animated.View
           style={[
-            styles.errorPopup, 
-            { 
+            styles.errorPopup,
+            {
               top: insets.top + 20,
               transform: [{ translateX: errorSlideAnim }]
             }

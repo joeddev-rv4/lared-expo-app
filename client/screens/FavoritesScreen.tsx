@@ -165,15 +165,24 @@ export default function FavoritesScreen() {
 
   const getCurrentUserId = () => user?.id || auth.currentUser?.uid || "";
 
+  const handleNavigateToSignup = () => {
+    navigation.getParent()?.getParent()?.reset({
+      index: 0,
+      routes: [{ name: "Login" as any }],
+    });
+  };
+
   const renderEmpty = () => {
     const userId = user?.id || auth.currentUser?.uid;
 
-    if (!userId) {
+    if (isGuest || !userId) {
       return (
         <EmptyState
           image={require("../../assets/images/empty-states/favorites.png")}
           title="Inicia sesión"
           description="Inicia sesión para ver y gestionar tus propiedades favoritas."
+          actionLabel="Crear cuenta"
+          onAction={handleNavigateToSignup}
         />
       );
     }
