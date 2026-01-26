@@ -137,7 +137,6 @@ export async function clearAllData(): Promise<void> {
 export async function getUserId(): Promise<string | null> {
   try {
     const value = await AsyncStorage.getItem(STORAGE_KEYS.USER_ID);
-    console.log('Storage getUserId - key:', STORAGE_KEYS.USER_ID, 'value:', value);
     return value;
   } catch (error) {
     console.error('Error getting user ID:', error);
@@ -147,10 +146,7 @@ export async function getUserId(): Promise<string | null> {
 
 export async function setUserId(userId: string): Promise<void> {
   try {
-    console.log('Storage setUserId - key:', STORAGE_KEYS.USER_ID, 'value:', userId);
     await AsyncStorage.setItem(STORAGE_KEYS.USER_ID, userId);
-    const verify = await AsyncStorage.getItem(STORAGE_KEYS.USER_ID);
-    console.log('Storage setUserId - verification:', verify);
   } catch (error) {
     console.error("Error saving user ID:", error);
   }

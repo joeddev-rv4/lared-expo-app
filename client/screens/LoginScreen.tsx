@@ -47,9 +47,20 @@ export default function LoginScreen() {
   const [hasAttemptedLogin, setHasAttemptedLogin] = useState(false);
   const [formAnim] = useState(new Animated.Value(0));
   const [buttonsAnim] = useState(new Animated.Value(1));
-  const [errorMessage, setErrorMessage] = useState('');
-  const [showErrorPopup, setShowErrorPopup] = useState(false);
-  const errorSlideAnim = useRef(new Animated.Value(300)).current;
+  const testFirebaseConnection = async () => {
+    try {
+      const auth = getAuth();
+      console.log('🔥 Firebase Auth initialized:', {
+        appName: auth.app.name,
+        projectId: auth.app.options.projectId,
+        apiKey: auth.app.options.apiKey?.substring(0, 10) + '...'
+      });
+      Alert.alert('Firebase OK', 'Conexión a Firebase funcionando correctamente');
+    } catch (error) {
+      console.error('❌ Error de Firebase:', error);
+      Alert.alert('Error de Firebase', 'No se puede conectar a Firebase');
+    }
+  };
 
   // Clear old profile data on mount (but NOT logout - that would clear valid sessions)
   useEffect(() => {
@@ -122,12 +133,38 @@ export default function LoginScreen() {
       return;
     }
 
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setHasAttemptedLogin(true);
 
+    console.log('🔐 Intentando login con:', { email, firebaseConfig: {
+      apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY?.substring(0, 10) + '...',
+      projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+      authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN
+    }});
+
+    // Verificar si el usuario existe
+    const userExists = await checkUserExists(email);
+    if (!userExists) {
+      console.log('❌ Usuario no existe en Firebase Auth');
+      Alert.alert(
+        'Usuario no encontrado',
+        'Este email no está registrado en el sistema. ¿Quieres registrarte?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Registrarse', onPress: () => setMode('register') }
+        ]
+      );
+      return;
+    }
+
     try {
       await login(email, password);
+      console.log('✅ Login exitoso');
     } catch (error: any) {
+      console.error('❌ Error de login:', error);
+      console.error('Código de error:', error.code);
+      console.error('Mensaje de error:', error.message);
       let errorMessage = 'Error al iniciar sesión';
       let isCredentialError = false;
 

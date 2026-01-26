@@ -8,7 +8,7 @@ import {
   Platform,
   TextInput,
   Image,
-  FlatList,
+  Modal,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -23,9 +23,40 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import Modal from "react-native-modal";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { ProfileStackParamList } from "@/navigation/ProfileStackNavigator";
 
 const isWeb = Platform.OS === "web";
+
+const ClientCountButton = ({ clientCount, onPress }: { clientCount: number; onPress: () => void }) => {
+  const buttonScale = useSharedValue(1);
+  const buttonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale.value }],
+  }));
+
+  const handlePressIn = () => {
+    buttonScale.value = withTiming(0.95, { duration: 100 });
+  };
+
+  const handlePressOut = () => {
+    buttonScale.value = withTiming(1, { duration: 100 });
+  };
+
+  return (
+    <Animated.View style={buttonAnimatedStyle}>
+      <Pressable
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={styles.clientCountCircle}
+      >
+        <Ionicons name="people" size={16} color="#bf0a0a" />
+        <ThemedText style={styles.clientCountText}>{clientCount}</ThemedText>
+      </Pressable>
+    </Animated.View>
+  );
+};
 
 import { FilterChip } from "@/components/FilterChip";
 import { ThemedText } from "@/components/ThemedText";
@@ -51,14 +82,13 @@ export default function ProfileScreen() {
   const headerHeight = useHeaderHeight();
   const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
   const { theme, isDark } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
 
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("day");
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [webSearchExpanded, setWebSearchExpanded] = useState(false);
   const [webSearchQuery, setWebSearchQuery] = useState("");
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
   const searchExpandAnim = useSharedValue(0);
 
@@ -225,8 +255,7 @@ export default function ProfileScreen() {
 
   const handleClientCountPress = (property: Property) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setSelectedProperty(property);
-    setIsBottomSheetVisible(true);
+    navigation.navigate('ClientList', { property });
   };
 
   const handlePropertyPress = (property: Property) => {
@@ -282,13 +311,10 @@ export default function ProfileScreen() {
           />
           <View style={styles.propertyActionButtons}>
             {/* Client count button instead of heart */}
-            <Pressable
+            <ClientCountButton
+              clientCount={clientCount}
               onPress={() => handleClientCountPress(property)}
-              style={styles.clientCountCircle}
-            >
-              <Ionicons name="people" size={16} color="#bf0a0a" />
-              <ThemedText style={styles.clientCountText}>{clientCount}</ThemedText>
-            </Pressable>
+            />
             {/* Share button like in Favorites */}
             <Pressable
               onPress={() => handleSharePress(property)}
@@ -317,45 +343,6 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={16} color="#bf0a0a" />
           </Pressable>
         </View>
-      </Pressable>
-    );
-  };
-
-  const ExpandableClientItem = ({ client }: { client: Client }) => {
-    const [expanded, setExpanded] = useState(false);
-
-    return (
-      <Pressable
-        onPress={() => setExpanded(!expanded)}
-        style={[styles.clientItem, { backgroundColor: theme.backgroundSecondary }]}
-      >
-        <View style={styles.clientHeader}>
-          <View style={styles.clientBasicInfo}>
-            <ThemedText style={styles.clientName}>{client.name}</ThemedText>
-            <ThemedText style={[styles.clientDate, { color: theme.textSecondary }]}>{client.date}</ThemedText>
-          </View>
-          <Ionicons
-            name={expanded ? "chevron-up" : "chevron-down"}
-            size={20}
-            color={theme.textSecondary}
-          />
-        </View>
-        <ThemedText style={[styles.clientComment, { color: theme.textSecondary }]} numberOfLines={2}>
-          {client.comment}
-        </ThemedText>
-        {expanded && (
-          <View style={styles.clientExpandedInfo}>
-            {client.phone && (
-              <ThemedText style={styles.clientDetail}>Teléfono: {client.phone}</ThemedText>
-            )}
-            {client.email && (
-              <ThemedText style={styles.clientDetail}>Email: {client.email}</ThemedText>
-            )}
-            {client.additionalInfo && (
-              <ThemedText style={styles.clientDetail}>Info adicional: {client.additionalInfo}</ThemedText>
-            )}
-          </View>
-        )}
       </Pressable>
     );
   };
@@ -475,38 +462,6 @@ export default function ProfileScreen() {
           )}
         </View>
       </ScrollView>
-
-      {/* Bottom Sheet Modal for Clients */}
-      <Modal
-        isVisible={isBottomSheetVisible}
-        onBackdropPress={() => setIsBottomSheetVisible(false)}
-        onSwipeComplete={() => setIsBottomSheetVisible(false)}
-        swipeDirection={['down']}
-        style={{ justifyContent: 'flex-end', margin: 0 }}
-        backdropOpacity={0.5}
-        animationIn="slideInUp"
-        animationOut="slideOutDown"
-      >
-        <View style={[styles.bottomSheetContainer, { backgroundColor: theme.backgroundRoot }]}>
-          <View style={styles.bottomSheetHeader}>
-            <View style={styles.bottomSheetHandle} />
-            <ThemedText style={styles.bottomSheetTitle}>
-              Clientes Interesados
-            </ThemedText>
-            <ThemedText style={[styles.bottomSheetSubtitle, { color: theme.textSecondary }]}>
-              {selectedProperty?.title}
-            </ThemedText>
-          </View>
-
-          <FlatList
-            data={(selectedProperty as any)?.interestedClients || []}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <ExpandableClientItem client={item} />}
-            contentContainerStyle={styles.clientsList}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -711,39 +666,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  // Bottom Sheet Styles
-  bottomSheetContainer: {
-    height: '70%',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 20,
-  },
-  bottomSheetHeader: {
+  // Modal Styles
+  modalHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.1)',
   },
-  bottomSheetHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    borderRadius: 2,
-    marginBottom: Spacing.sm,
+  backButton: {
+    padding: Spacing.sm,
+    marginRight: Spacing.md,
   },
-  bottomSheetTitle: {
-    fontSize: 18,
+  headerContent: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 20,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  bottomSheetSubtitle: {
+  headerSubtitle: {
     fontSize: 14,
   },
-  clientsList: {
-    padding: Spacing.lg,
-  },
-  clientItem: {
+  clientCard: {
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
@@ -754,31 +701,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.sm,
   },
   clientBasicInfo: {
     flex: 1,
   },
   clientName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     marginBottom: 2,
   },
   clientDate: {
-    fontSize: 12,
+    fontSize: 14,
   },
   clientComment: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: Spacing.sm,
+    fontSize: 16,
+    lineHeight: 22,
+    marginBottom: Spacing.md,
   },
-  clientExpandedInfo: {
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)',
-    paddingTop: Spacing.sm,
+  clientDetails: {
+    gap: Spacing.xs,
   },
-  clientDetail: {
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  detailText: {
     fontSize: 14,
-    marginBottom: Spacing.xs,
   },
 });

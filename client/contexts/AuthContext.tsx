@@ -70,18 +70,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        console.log('Firebase user detected, UID:', firebaseUser.uid);
         await setUserId(firebaseUser.uid);
-        console.log('User ID saved to storage');
 
         // Cargar datos del usuario de Firestore si no están en el contexto
         const currentUser = queryClient.getQueryData(['user']) as FirestoreUser | null;
         if (!currentUser) {
-          console.log('Loading user data from Firestore...');
           try {
             const userData = await getUserData(firebaseUser.uid);
             if (userData) {
-              console.log('User data loaded from Firestore:', userData.id);
               queryClient.setQueryData(['user'], userData);
               // Guardar en storage
               const userString = JSON.stringify(userData);
@@ -91,14 +87,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 await AsyncStorage.setItem('userData', userString);
               }
             } else {
-              console.log('No user data found in Firestore for UID:', firebaseUser.uid);
             }
           } catch (error) {
             console.error('Error loading user data from Firestore:', error);
           }
         }
       } else {
-        console.log('No Firebase user, clearing session');
         queryClient.setQueryData(['user'], null);
         await clearUserId();
         // Limpiar storage

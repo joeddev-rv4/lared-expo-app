@@ -6,37 +6,41 @@ import { FirestoreUser, UserStatus } from './user.interface';
 import { Platform } from 'react-native';
 
 export const loginUser = async (email: string, password: string): Promise<FirestoreUser> => {
-  const userCredential = await signInWithEmailAndPassword(auth, email, password);
-  const user = userCredential.user;
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
-  let userData = await getUserData(user.uid);
+    const user = userCredential.user;
+    let userData = await getUserData(user.uid);
 
-  if (!userData) {
-    // Create new user document if not exists
-    const newUser: FirestoreUser = {
-      id: user.uid,
-      email: user.email!,
-      name: '',
-      phone: '',
-      createdAt: new Date(),
-      status: UserStatus.NOT_VERIFIED,
-      isAdmin: false,
-      isVerifiedBroker: false,
-      avatar: '',
-      bank: '',
-      card: '',
-      dpiDocument: {
-        back: '',
-        front: ''
-      },
-      dpiNumber: '',
-      phoneVerified: false
-    };
-    await setDocument(COLLECTIONS.USERS, user.uid, newUser);
-    userData = newUser;
+    if (!userData) {
+      // Create new user document if not exists
+      const newUser: FirestoreUser = {
+        id: user.uid,
+        email: user.email!,
+        name: '',
+        phone: '',
+        createdAt: new Date(),
+        status: UserStatus.NOT_VERIFIED,
+        isAdmin: false,
+        isVerifiedBroker: false,
+        avatar: '',
+        bank: '',
+        card: '',
+        dpiDocument: {
+          back: '',
+          front: ''
+        },
+        dpiNumber: '',
+        phoneVerified: false
+      };
+      await setDocument(COLLECTIONS.USERS, user.uid, newUser);
+      userData = newUser;
+    }
+
+    return userData;
+  } catch (error) {
+    throw error;
   }
-
-  return userData;
 };
 
 export const getUserData = async (userId: string): Promise<FirestoreUser | null> => {
