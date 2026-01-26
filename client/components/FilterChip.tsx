@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, Pressable, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
+  interpolateColor,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,16 +20,43 @@ interface FilterChipProps {
   onPress: () => void;
   icon?: keyof typeof Ionicons.glyphMap;
   emoji?: string;
+  selectedColor?: string;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export function FilterChip({ label, isSelected, onPress, icon, emoji }: FilterChipProps) {
+export function FilterChip({ label, isSelected, onPress, icon, emoji, selectedColor = Colors.light.primary }: FilterChipProps) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
+  const selectedAnim = useSharedValue(isSelected ? 1 : 0);
+
+  useEffect(() => {
+    selectedAnim.value = withTiming(isSelected ? 1 : 0, { duration: 300 });
+  }, [isSelected]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
+  }));
+
+  const chipAnimatedStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      selectedAnim.value,
+      [0, 1],
+      [theme.backgroundDefault, selectedColor]
+    ),
+    borderColor: interpolateColor(
+      selectedAnim.value,
+      [0, 1],
+      [theme.border, selectedColor]
+    ),
+  }));
+
+  const textAnimatedStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(
+      selectedAnim.value,
+      [0, 1],
+      [theme.text, "#FFFFFF"]
+    ),
   }));
 
   const handlePressIn = () => {
@@ -50,10 +79,7 @@ export function FilterChip({ label, isSelected, onPress, icon, emoji }: FilterCh
       onPressOut={handlePressOut}
       style={[
         styles.chip,
-        {
-          backgroundColor: isSelected ? Colors.light.primary : theme.backgroundDefault,
-          borderColor: isSelected ? Colors.light.primary : theme.border,
-        },
+        chipAnimatedStyle,
         animatedStyle,
       ]}
     >
@@ -69,14 +95,14 @@ export function FilterChip({ label, isSelected, onPress, icon, emoji }: FilterCh
             style={styles.icon}
           />
         )}
-        <ThemedText
+        <Animated.Text
           style={[
             styles.label,
-            { color: isSelected ? "#FFFFFF" : theme.text },
+            textAnimatedStyle,
           ]}
         >
           {label}
-        </ThemedText>
+        </Animated.Text>
       </View>
     </AnimatedPressable>
   );

@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import { auth } from '../lib/config';
 import { loginUser, loginWithGoogle, loginWithFacebook, getUserData } from '../lib/auth';
 import { FirestoreUser, UserStatus } from '../lib/user.interface';
@@ -15,7 +17,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 interface AuthContextType {
   user: FirestoreUser | null;
   isLoading: boolean;
-  isGuest: boolean;
+  isInitializing: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginGoogle: () => Promise<boolean>;
   loginFacebook: () => Promise<boolean>;
@@ -42,13 +44,25 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
-  const [isGuest, setIsGuest] = useState(false);
   const queryClient = useQueryClient();
   const navigation = useNavigation<NavigationProp>();
 
   const { data: user } = useQuery({
     queryKey: ['user'],
-    queryFn: () => null, // Will be set by login
+    queryFn: async () => {
+      // Intentar cargar desde storage
+      try {
+        const storedUser = Platform.OS === "web" 
+          ? localStorage.getItem('userData')
+          : await AsyncStorage.getItem('userData');
+        if (storedUser) {
+          return JSON.parse(storedUser);
+        }
+      } catch (error) {
+        console.error('Error loading user from storage:', error);
+      }
+      return null;
+    },
     initialData: null,
     staleTime: Infinity,
   });
@@ -69,6 +83,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (userData) {
               console.log('User data loaded from Firestore:', userData.id);
               queryClient.setQueryData(['user'], userData);
+              // Guardar en storage
+              const userString = JSON.stringify(userData);
+              if (Platform.OS === "web") {
+                localStorage.setItem('userData', userString);
+              } else {
+                await AsyncStorage.setItem('userData', userString);
+              }
             } else {
               console.log('No user data found in Firestore for UID:', firebaseUser.uid);
             }
@@ -80,7 +101,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('No Firebase user, clearing session');
         queryClient.setQueryData(['user'], null);
         await clearUserId();
+        // Limpiar storage
+        if (Platform.OS === "web") {
+          localStorage.removeItem('userData');
+        } else {
+          await AsyncStorage.removeItem('userData');
+        }
       }
+      setIsInitializing(false);
       setIsInitializing(false);
     });
 
@@ -96,6 +124,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('User is blocked');
       }
       queryClient.setQueryData(['user'], userData);
+      // Guardar en storage
+      const userString = JSON.stringify(userData);
+      if (Platform.OS === "web") {
+        localStorage.setItem('userData', userString);
+      } else {
+        await AsyncStorage.setItem('userData', userString);
+      }
       await setUserId(userData.id);
       navigation.navigate('Main' as any);
     } catch (error) {
@@ -116,6 +151,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       queryClient.setQueryData(['user'], result.user);
+      // Guardar en storage
+      const userString = JSON.stringify(result.user);
+      if (Platform.OS === "web") {
+        localStorage.setItem('userData', userString);
+      } else {
+        await AsyncStorage.setItem('userData', userString);
+      }
       await setUserId(result.user.id);
 
       return result.isNewUser;
@@ -137,6 +179,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       queryClient.setQueryData(['user'], result.user);
+      // Guardar en storage
+      const userString = JSON.stringify(result.user);
+      if (Platform.OS === "web") {
+        localStorage.setItem('userData', userString);
+      } else {
+        await AsyncStorage.setItem('userData', userString);
+      }
       await setUserId(result.user.id);
 
       return result.isNewUser;
@@ -158,10 +207,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await clearUserId();
     setIsGuest(false);
     queryClient.setQueryData(['user'], null);
+    // Limpiar storage
+    if (Platform.OS === "web") {
+      localStorage.removeItem('userData');
+    } else {
+      await AsyncStorage.removeItem('userData');
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isGuest, login, loginGoogle, loginFacebook, loginAsGuest, logout, isInitializing }}>
+    <AuthContext.Provider value={{ user, isLoading, isInitializing, login, loginGoogle, loginFacebook, logout }}>
       {children}
     </AuthContext.Provider>
   );
