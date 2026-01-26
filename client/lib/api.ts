@@ -1,6 +1,8 @@
 const API_BASE_URL = "https://plataforma.controldepropiedades.com/api";
 const API_KEY = "LgfPuSsMS4fleTHh6vAYgsgD3fDZNGAOkcEWoMtH";
 
+import { Property } from "@/data/properties";
+
 export interface APIProyecto {
   id: number;
   nombre_proyecto: string;
@@ -198,4 +200,132 @@ export function extractProjectsFromProperties(properties: APIPropiedad[]): Extra
   });
 
   return Array.from(projectMap.values());
+}
+
+// Interfaces para las nuevas APIs
+export interface FavoritePropertyWithClients {
+  property_id: string;
+  added_at: Date;
+  client_count: number;
+  property?: Property | null; // Opcional: datos completos de la propiedad
+}
+
+export interface PropertyClient {
+  id: string;
+  name: string;
+  phone: string;
+  comment: string;
+  date: string;
+  email?: string;
+  additionalInfo?: string;
+  status?: string;
+}
+
+// Obtener propiedades favoritas del usuario con conteo de clientes
+export async function getUserFavoritePropertiesWithClients(userId: string): Promise<FavoritePropertyWithClients[]> {
+  try {
+    // Primero obtener todas las propiedades favoritas del usuario desde AsyncStorage
+    // Como no tenemos AsyncStorage configurado aquí, devolveremos datos mock por ahora
+    // En el futuro esto debería venir de AsyncStorage o Firebase
+    const favoritePropertyIds = ['4234', '4235', '4236']; // Mock data - reemplazar con datos reales
+
+    // Obtener todos los leads desde la API externa
+    const leadsResponse = await fetch('https://panel.laredgt.com/api/lead');
+    if (!leadsResponse.ok) {
+      throw new Error('Error obteniendo leads de la API externa');
+    }
+
+    const allLeads = await leadsResponse.json();
+
+    // Filtrar leads que pertenecen al usuario actual
+    const userLeads = allLeads.filter((lead: any) => lead.user_id === userId);
+
+    // Contar leads por propiedad
+    const leadsByProperty: { [key: string]: any[] } = {};
+    userLeads.forEach((lead: any) => {
+      const propId = lead.property_id.toString();
+      if (!leadsByProperty[propId]) {
+        leadsByProperty[propId] = [];
+      }
+      leadsByProperty[propId].push(lead);
+    });
+
+    // Crear el resultado final
+    const favoritesWithClients: FavoritePropertyWithClients[] = [];
+
+    for (const propertyId of favoritePropertyIds) {
+      const clients = leadsByProperty[propertyId] || [];
+      const propertyData = await getPropertyById(propertyId);
+
+      favoritesWithClients.push({
+        property_id: propertyId,
+        added_at: new Date(), // Mock - en el futuro vendrá de AsyncStorage
+        client_count: clients.length,
+        property: propertyData
+      });
+    }
+
+    return favoritesWithClients;
+  } catch (error) {
+    console.error('Error fetching user favorite properties:', error);
+    throw error;
+  }
+}
+
+// Obtener clientes interesados en una propiedad específica
+export async function getPropertyClients(propertyId: string, userId: string): Promise<PropertyClient[]> {
+  try {
+    // Obtener todos los leads desde la API externa
+    const leadsResponse = await fetch('https://panel.laredgt.com/api/lead');
+    if (!leadsResponse.ok) {
+      throw new Error('Error obteniendo leads de la API externa');
+    }
+
+    const allLeads = await leadsResponse.json();
+
+    // Filtrar leads que pertenecen al usuario y a la propiedad específica
+    const propertyLeads = allLeads.filter((lead: any) =>
+      lead.user_id === userId && lead.property_id.toString() === propertyId
+    );
+
+    // Convertir los leads al formato PropertyClient
+    const clients: PropertyClient[] = propertyLeads.map((lead: any) => ({
+      id: lead.id,
+      name: lead.client_name,
+      phone: lead.client_phone,
+      comment: lead.comment || '',
+      date: new Date(lead.created_at).toLocaleDateString('es-ES'),
+      email: '', // No tenemos email en la API externa
+      additionalInfo: '',
+      status: lead.status.toString()
+    }));
+
+    return clients;
+  } catch (error) {
+    console.error('Error fetching property clients:', error);
+    throw error;
+  }
+}
+
+// Función auxiliar para obtener datos de una propiedad por ID
+async function getPropertyById(propertyId: string): Promise<Property | null> {
+  try {
+    const properties = await fetchPropiedades();
+    const property = properties.find(p => p.id.toString() === propertyId);
+
+    if (property) {
+      return property;
+    }
+
+    // Si no está en las propiedades generales, buscar en proyectos
+    const projects = await fetchProyectos();
+    for (const project of projects) {
+      // Aquí podrías buscar en las propiedades del proyecto si fuera necesario
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error getting property by ID:', error);
+    return null;
+  }
 }

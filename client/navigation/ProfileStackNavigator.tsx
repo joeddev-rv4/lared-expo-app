@@ -1,10 +1,13 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Platform } from "react-native";
 
 import ProfileScreen from "@/screens/ProfileScreen";
 import ClientListScreen from "@/screens/ClientListScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { Colors } from "@/constants/theme";
+
+const isWeb = Platform.OS === "web";
 
 export type ProfileStackParamList = {
   Profile: undefined;
@@ -22,7 +25,6 @@ export default function ProfileStackNavigator() {
         name="Profile"
         component={ProfileScreen}
         options={{
-          headerShown: !isWeb,
           headerTitle: "",
           headerStyle: { backgroundColor: Colors.light.primary },
           headerTintColor: '#FFFFFF',

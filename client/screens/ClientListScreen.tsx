@@ -15,27 +15,19 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp, NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "@/navigation/ProfileStackNavigator";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const CARD_WIDTH = SCREEN_WIDTH - Spacing.lg * 2;
+const CARD_WIDTH = SCREEN_WIDTH - 16 * 2;
 const IMAGE_HEIGHT = 200;
 const isWeb = Platform.OS === "web";
 
-import { ThemedText } from "@/components/ThemedText";
+import { useAuth } from "@/contexts/AuthContext";
+import { getPropertyClients, PropertyClient } from "@/lib/api";
 import { useTheme } from "@/hooks/useTheme";
-import { Property } from "@/data/properties";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
-
-interface Client {
-  id: string;
-  name: string;
-  date: string;
-  comment: string;
-  phone?: string;
-  email?: string;
-  additionalInfo?: string;
-  status?: ClientStatus;
-}
+import { ThemedText } from "@/components/ThemedText";
+import { Property } from "@/data/properties";
 
 type ClientStatus =
   | 'Interacción'
@@ -55,124 +47,49 @@ export default function ClientListScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
   const route = useRoute<NativeStackScreenProps<ProfileStackParamList, 'ClientList'>['route']>();
   const { theme, isDark } = useTheme();
+  const { user } = useAuth();
 
-  const { property }: { property: Property & { interestedClients: Client[] } } = route.params;
+  const { property }: { property: Property } = route.params;
+  const [clients, setClients] = useState<PropertyClient[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Datos ficticios para demostración
-  const mockClients: Client[] = [
-    {
-      id: '1',
-      name: 'María González',
-      date: '15/01/2026',
-      comment: 'Estoy muy interesada en esta propiedad. ¿Podemos agendar una visita?',
-      phone: '+56912345678',
-      email: 'maria.gonzalez@email.com',
-      status: 'Interacción'
-    },
-    {
-      id: '2',
-      name: 'Carlos Rodríguez',
-      date: '14/01/2026',
-      comment: 'La ubicación es perfecta para mi familia. Me gustaría conocer más detalles.',
-      phone: '+56987654321',
-      email: 'carlos.rodriguez@email.com',
-      status: 'Visita'
-    },
-    {
-      id: '3',
-      name: 'Ana López',
-      date: '13/01/2026',
-      comment: '¿Cuál es el precio final con todos los gastos incluidos?',
-      phone: '+56911223344',
-      email: 'ana.lopez@email.com',
-      status: 'Cotización'
-    },
-    {
-      id: '4',
-      name: 'Pedro Martínez',
-      date: '12/01/2026',
-      comment: 'Me gusta mucho la propiedad. ¿Podemos hacer una reserva?',
-      phone: '+56944332211',
-      email: 'pedro.martinez@email.com',
-      status: 'Reserva'
-    },
-    {
-      id: '5',
-      name: 'Laura Sánchez',
-      date: '11/01/2026',
-      comment: 'Necesito revisar los documentos de la propiedad.',
-      phone: '+56955667788',
-      email: 'laura.sanchez@email.com',
-      status: 'Documentos'
-    },
-    {
-      id: '6',
-      name: 'Diego Torres',
-      date: '10/01/2026',
-      comment: 'Estoy en proceso de investigación antes de tomar una decisión.',
-      phone: '+56999887766',
-      email: 'diego.torres@email.com',
-      status: 'Pre investigación'
-    },
-    {
-      id: '7',
-      name: 'Valentina Ruiz',
-      date: '09/01/2026',
-      comment: 'Los documentos están siendo trasladados para revisión.',
-      phone: '+56933445566',
-      email: 'valentina.ruiz@email.com',
-      status: 'Traslado de documentos'
-    },
-    {
-      id: '8',
-      name: 'Felipe Morales',
-      date: '08/01/2026',
-      comment: 'Validando toda la información antes del cierre.',
-      phone: '+56977889900',
-      email: 'felipe.morales@email.com',
-      status: 'Validación'
-    },
-    {
-      id: '9',
-      name: 'Camila Silva',
-      date: '07/01/2026',
-      comment: 'Trasladando a cartera para proceso de cobro.',
-      phone: '+56911224433',
-      email: 'camila.silva@email.com',
-      status: 'Traslado a cartera y cobro'
-    },
-    {
-      id: '10',
-      name: 'Javier Castro',
-      date: '06/01/2026',
-      comment: '¡La venta se ha completado exitosamente!',
-      phone: '+56944556677',
-      email: 'javier.castro@email.com',
-      status: 'Venta finalizada'
-    },
-    {
-      id: '11',
-      name: 'Isabella Vargas',
-      date: '05/01/2026',
-      comment: 'Pago realizado al aliado correspondiente.',
-      phone: '+56977883344',
-      email: 'isabella.vargas@email.com',
-      status: 'Pago a aliado'
+  useEffect(() => {
+    loadClients();
+  }, [property, user?.id]);
+
+  const loadClients = async () => {
+    try {
+      setLoading(true);
+
+      if (!user?.id || !property) {
+        console.log('Missing user ID or property data');
+        setClients([]);
+        return;
+      }
+
+      console.log('Loading clients for property:', property.id);
+      const propertyClients = await getPropertyClients(property.id.toString(), user.id);
+      setClients(propertyClients);
+
+    } catch (error) {
+      console.error('Error loading clients:', error);
+      setClients([]);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  // Usar datos ficticios para demostración (forzar uso de datos de ejemplo)
-  const clients = mockClients;
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedClient, setSelectedClient] = useState<PropertyClient | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const modalScale = useRef(new Animated.Value(0)).current;
   const modalOpacity = useRef(new Animated.Value(0)).current;
 
   const handleBackPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     navigation.goBack();
   };
 
-  const handleStatusPress = (client: Client) => {
+  const handleStatusPress = (client: PropertyClient) => {
     setSelectedClient(client);
     setIsModalVisible(true);
     // Animar entrada del modal
@@ -211,24 +128,41 @@ export default function ClientListScreen() {
     });
   };
 
-  const getStatusColor = (status?: ClientStatus): string => {
-    const statusColors: Record<ClientStatus, string> = {
-      'Interacción': '#6B7280',
-      'Visita': '#3B82F6',
-      'Cotización': '#F59E0B',
-      'Reserva': '#10B981',
-      'Documentos': '#8B5CF6',
-      'Pre investigación': '#EF4444',
-      'Traslado de documentos': '#F97316',
-      'Validación': '#06B6D4',
-      'Traslado a cartera y cobro': '#84CC16',
-      'Venta finalizada': '#22C55E',
-      'Pago a aliado': '#16A34A',
+  const getStatusText = (status?: string): string => {
+    const statusTexts: Record<string, string> = {
+      '1': 'Interacción',
+      '2': 'Visita',
+      '3': 'Cotización',
+      '4': 'Reserva',
+      '5': 'Documentos',
+      '6': 'Pre investigación',
+      '7': 'Traslado de documentos',
+      '8': 'Validación',
+      '9': 'Traslado a cartera y cobro',
+      '10': 'Venta finalizada',
+      '11': 'Pago a aliado',
     };
-    return status ? statusColors[status] : '#6B7280';
+    return status ? statusTexts[status] || 'Sin estado' : 'Sin estado';
   };
 
-  const renderClientCard = (client: Client) => {
+  const getStatusColor = (status?: string): string => {
+    const statusColors: Record<string, string> = {
+      '1': '#6B7280', // Interacción
+      '2': '#3B82F6', // Visita
+      '3': '#F59E0B', // Cotización
+      '4': '#10B981', // Reserva
+      '5': '#8B5CF6', // Documentos
+      '6': '#EF4444', // Pre investigación
+      '7': '#F97316', // Traslado de documentos
+      '8': '#06B6D4', // Validación
+      '9': '#84CC16', // Traslado a cartera y cobro
+      '10': '#22C55E', // Venta finalizada
+      '11': '#16A34A', // Pago a aliado
+    };
+    return status ? statusColors[status] || '#6B7280' : '#6B7280';
+  };
+
+  const renderClientCard = (client: PropertyClient) => {
     return (
       <Pressable
         key={client.id}
@@ -260,7 +194,7 @@ export default function ClientListScreen() {
             onPress={() => handleStatusPress(client)}
           >
             <ThemedText style={styles.clientStatusText}>
-              {client.status || 'Sin estado'}
+              {getStatusText(client.status)}
             </ThemedText>
             <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
           </Pressable>
@@ -323,7 +257,7 @@ export default function ClientListScreen() {
                 <ThemedText style={styles.detailLabel}>Estado:</ThemedText>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(selectedClient?.status) }]}>
                   <ThemedText style={styles.statusBadgeText}>
-                    {selectedClient?.status || 'Sin estado'}
+                    {getStatusText(selectedClient?.status)}
                   </ThemedText>
                 </View>
               </View>
@@ -339,30 +273,20 @@ export default function ClientListScreen() {
                 <ThemedText style={[styles.statesMapTitle, { color: theme.text }]}>Mapa de Estados</ThemedText>
                 <View style={styles.statesMap}>
                   {[
-                    'Interacción',
-                    'Visita',
-                    'Cotización',
-                    'Reserva',
-                    'Documentos',
-                    'Pre investigación',
-                    'Traslado de documentos',
-                    'Validación',
-                    'Traslado a cartera y cobro',
-                    'Venta finalizada',
-                    'Pago a aliado'
+                    { id: '1', name: 'Interacción' },
+                    { id: '2', name: 'Visita' },
+                    { id: '3', name: 'Cotización' },
+                    { id: '4', name: 'Reserva' },
+                    { id: '5', name: 'Documentos' },
+                    { id: '6', name: 'Pre investigación' },
+                    { id: '7', name: 'Traslado de documentos' },
+                    { id: '8', name: 'Validación' },
+                    { id: '9', name: 'Traslado a cartera y cobro' },
+                    { id: '10', name: 'Venta finalizada' },
+                    { id: '11', name: 'Pago a aliado' }
                   ].map((status, index, array) => {
                     const statusOrder = [
-                      'Interacción',
-                      'Visita',
-                      'Cotización',
-                      'Reserva',
-                      'Documentos',
-                      'Pre investigación',
-                      'Traslado de documentos',
-                      'Validación',
-                      'Traslado a cartera y cobro',
-                      'Venta finalizada',
-                      'Pago a aliado'
+                      '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'
                     ];
                     const currentStatusIndex = statusOrder.indexOf(selectedClient?.status || '');
                     const isCompleted = index <= currentStatusIndex;
@@ -370,13 +294,13 @@ export default function ClientListScreen() {
                     const textColor = isCompleted ? '#EF4444' : theme.text;
 
                     return (
-                      <View key={status} style={styles.stateItem}>
+                      <View key={status.id} style={styles.stateItem}>
                         <View style={styles.stateConnector}>
                           <View style={[styles.stateDot, { backgroundColor: dotColor }]} />
                           {index < array.length - 1 && <View style={[styles.stateLine, { backgroundColor: dotColor }]} />}
                         </View>
                         <ThemedText style={[styles.stateText, { color: textColor }]}>
-                          {status}
+                          {status.name}
                         </ThemedText>
                       </View>
                     );

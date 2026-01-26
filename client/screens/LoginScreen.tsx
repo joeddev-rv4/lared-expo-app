@@ -47,6 +47,9 @@ export default function LoginScreen() {
   const [hasAttemptedLogin, setHasAttemptedLogin] = useState(false);
   const [formAnim] = useState(new Animated.Value(0));
   const [buttonsAnim] = useState(new Animated.Value(1));
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [errorSlideAnim] = useState(new Animated.Value(300));
   const testFirebaseConnection = async () => {
     try {
       const auth = getAuth();
@@ -59,6 +62,17 @@ export default function LoginScreen() {
     } catch (error) {
       console.error('❌ Error de Firebase:', error);
       Alert.alert('Error de Firebase', 'No se puede conectar a Firebase');
+    }
+  };
+
+  const checkUserExists = async (email: string): Promise<boolean> => {
+    try {
+      const auth = getAuth();
+      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+      return signInMethods.length > 0;
+    } catch (error) {
+      console.error('Error checking user exists:', error);
+      return false;
     }
   };
 

@@ -61,8 +61,10 @@ const ClientCountButton = ({ clientCount, onPress }: { clientCount: number; onPr
 import { FilterChip } from "@/components/FilterChip";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/contexts/AuthContext";
 import { Property, mapAPIPropertyToProperty } from "@/data/properties";
 import { fetchPropiedades } from "@/lib/api";
+import { getUserFavoritePropertiesWithClients, getPropertyClients, FavoritePropertyWithClients } from "@/lib/api";
 import { Spacing, BorderRadius, Colors, Shadows } from "@/constants/theme";
 
 type FilterType = "day" | "month" | "all";
@@ -82,6 +84,7 @@ export default function ProfileScreen() {
   const headerHeight = useHeaderHeight();
   const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
   const { theme, isDark } = useTheme();
+  const { user } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
 
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("day");
@@ -89,6 +92,9 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [webSearchExpanded, setWebSearchExpanded] = useState(false);
   const [webSearchQuery, setWebSearchQuery] = useState("");
+  const [favoritePropertiesData, setFavoritePropertiesData] = useState<FavoritePropertyWithClients[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
   const searchExpandAnim = useSharedValue(0);
 
@@ -109,139 +115,75 @@ export default function ProfileScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      // Load properties with interested clients
-      loadPropertiesWithClients();
-    }, []),
+      if (user?.id) {
+        loadFavoritePropertiesWithClients();
+      }
+    }, [user?.id]),
   );
 
-  const loadPropertiesWithClients = async () => {
+  const loadFavoritePropertiesWithClients = async () => {
     try {
       setLoading(true);
-      
-      // Mock properties data with clients interested
-      const mockClients1: Client[] = [
-        { id: "c1", name: "Juan Pérez", date: "2024-01-15", comment: "Me interesa esta propiedad para mi familia", phone: "555-1234", email: "juan@email.com", additionalInfo: "Busca financiación" },
-        { id: "c2", name: "María García", date: "2024-01-20", comment: "Excelente ubicación", phone: "555-5678", email: "maria@email.com" },
-      ];
-      const mockClients2: Client[] = [
-        { id: "c3", name: "Carlos López", date: "2024-01-10", comment: "Vista al mar impresionante", phone: "555-9012", email: "carlos@email.com", additionalInfo: "Tiene mascota" },
-      ];
-      const mockClients3: Client[] = [
-        { id: "c4", name: "Ana Rodríguez", date: "2024-01-05", comment: "Perfecta para niños", phone: "555-3456", email: "ana@email.com" },
-        { id: "c5", name: "Pedro Martínez", date: "2024-01-18", comment: "Jardín amplio", phone: "555-7890", email: "pedro@email.com", additionalInfo: "Trabaja desde casa" },
-        { id: "c6", name: "Laura Sánchez", date: "2024-01-22", comment: "Me encanta el diseño", phone: "555-1111", email: "laura@email.com" },
-      ];
-      const mockClients4: Client[] = [
-        { id: "c7", name: "Roberto Díaz", date: "2024-01-12", comment: "Estilo industrial único", phone: "555-2222", email: "roberto@email.com" },
-      ];
 
-      const mockProperties: (Property & { interestedClients: Client[] })[] = [
-        {
-          id: "1",
-          title: "Casa Moderna Centro",
-          location: "Centro Histórico, Ciudad de Guatemala",
-          price: 250000,
-          priceUnit: "Q",
-          rating: 4.5,
-          reviewCount: 12,
-          description: "Hermosa casa moderna en el corazón de la ciudad",
-          descripcionCorta: "Casa moderna con acabados de lujo",
-          descripcionLarga: "Esta hermosa casa moderna ofrece espacios amplios y contemporáneos en el centro histórico. Cuenta con acabados de primera calidad, iluminación natural abundante y un diseño que combina elegancia con funcionalidad.",
-          caracteristicas: ["3 habitaciones", "2 baños", "jardín", "estacionamiento"],
-          proyectoCaracteristicas: [],
-          imageUrl: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800",
-          imagenes: [],
-          bedrooms: 3,
-          bathrooms: 2,
-          area: 180,
-          amenities: ["Jardín", "Estacionamiento", "Seguridad 24/7"],
-          isFavorite: false,
-          projectName: "",
-          propertyType: "Casa",
-          estado: "Disponible",
-          interestedClients: mockClients1,
-        },
-        {
-          id: "2",
-          title: "Apartamento Vista Mar",
-          location: "Zona 10, Ciudad de Guatemala",
-          price: 180000,
-          priceUnit: "Q",
-          rating: 4.2,
-          reviewCount: 8,
-          description: "Apartamento con vista panorámica al mar",
-          descripcionCorta: "Vista espectacular al océano Pacífico",
-          descripcionLarga: "Disfrute de vistas panorámicas al océano Pacífico desde este moderno apartamento. Ubicado en una zona exclusiva con acceso a playas privadas y amenidades de lujo.",
-          caracteristicas: ["2 habitaciones", "2 baños", "balcón", "gimnasio"],
-          proyectoCaracteristicas: [],
-          imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800",
-          imagenes: [],
-          bedrooms: 2,
-          bathrooms: 2,
-          area: 120,
-          amenities: ["Gimnasio", "Piscina", "Vista al mar"],
-          isFavorite: false,
-          projectName: "",
-          propertyType: "Apartamento",
-          estado: "Disponible",
-          interestedClients: mockClients2,
-        },
-        {
-          id: "3",
-          title: "Villa Familiar Jardín",
-          location: "Antigua Guatemala",
-          price: 320000,
-          priceUnit: "Q",
-          rating: 4.8,
-          reviewCount: 15,
-          description: "Villa espaciosa perfecta para familias",
-          descripcionCorta: "Espacios amplios para toda la familia",
-          descripcionLarga: "Esta villa familiar ofrece espacios amplios y un hermoso jardín. Ideal para familias que buscan tranquilidad y comodidad en un entorno colonial.",
-          caracteristicas: ["4 habitaciones", "3 baños", "jardín amplio", "terraza"],
-          proyectoCaracteristicas: [],
-          imageUrl: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800",
-          imagenes: [],
-          bedrooms: 4,
-          bathrooms: 3,
-          area: 250,
-          amenities: ["Jardín", "Terraza", "Área de juegos"],
-          isFavorite: false,
-          projectName: "",
-          propertyType: "Villa",
-          estado: "Disponible",
-          interestedClients: mockClients3,
-        },
-        {
-          id: "4",
-          title: "Loft Industrial",
-          location: "Zona Viva, Ciudad de Guatemala",
-          price: 210000,
-          priceUnit: "Q",
-          rating: 4.3,
-          reviewCount: 10,
-          description: "Loft moderno con estilo industrial",
-          descripcionCorta: "Diseño industrial único en zona trendy",
-          descripcionLarga: "Este loft industrial combina elementos de diseño contemporáneo con características industriales originales. Ubicado en la zona más trendy de la ciudad.",
-          caracteristicas: ["1 habitación", "1 baño", "techos altos", "ventanales"],
-          proyectoCaracteristicas: [],
-          imageUrl: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800",
-          imagenes: [],
-          bedrooms: 1,
-          bathrooms: 1,
-          area: 90,
-          amenities: ["Techos altos", "Ventanales grandes", "Estilo industrial"],
-          isFavorite: false,
-          projectName: "",
-          propertyType: "Loft",
-          estado: "Disponible",
-          interestedClients: mockClients4,
-        },
-      ];
-      
-      setProperties(mockProperties);
+      if (!user?.id) {
+        console.log('No user ID available');
+        setProperties([]);
+        setFavoritePropertiesData([]);
+        return;
+      }
+
+      console.log('Loading favorite properties for user:', user.id);
+
+      // Obtener propiedades favoritas con conteo de clientes
+      const favoriteData = await getUserFavoritePropertiesWithClients(user.id);
+      setFavoritePropertiesData(favoriteData);
+
+      // Convertir los datos a formato Property
+      const propertiesWithClients: Property[] = favoriteData.map((fav) => {
+        if (fav.property) {
+          // Usar datos de la propiedad y agregar el conteo de clientes
+          return {
+            ...fav.property,
+            // Agregar el conteo de clientes como una propiedad adicional
+            clientCount: fav.client_count
+          };
+        } else {
+          // Crear una propiedad básica si no hay datos
+          return {
+            id: fav.property_id,
+            title: `Propiedad ${fav.property_id}`,
+            location: "Ubicación no disponible",
+            price: 0,
+            priceUnit: "Q",
+            rating: 0,
+            reviewCount: 0,
+            description: "Descripción no disponible",
+            descripcionCorta: "",
+            descripcionLarga: "",
+            caracteristicas: [],
+            proyectoCaracteristicas: [],
+            imageUrl: "https://via.placeholder.com/400x300?text=Propiedad",
+            imagenes: [],
+            bedrooms: 0,
+            bathrooms: 0,
+            area: 0,
+            amenities: [],
+            isFavorite: true,
+            projectName: "",
+            propertyType: "Propiedad",
+            estado: "Disponible",
+            clientCount: fav.client_count
+          } as Property & { clientCount: number };
+        }
+      });
+
+      setProperties(propertiesWithClients);
+      console.log('Loaded', propertiesWithClients.length, 'favorite properties');
+
     } catch (error) {
-      console.error("Error loading properties:", error);
+      console.error("Error loading favorite properties:", error);
       setProperties([]);
+      setFavoritePropertiesData([]);
     } finally {
       setLoading(false);
     }
@@ -287,8 +229,8 @@ export default function ProfileScreen() {
 
   const renderClientPropertyCard = (property: Property) => {
     const bankQuota = Math.round(property.price / 180);
-    // Get client count from interestedClients
-    const clientCount = (property as any).interestedClients?.length || 0;
+    // Get client count from the property data
+    const clientCount = (property as any).clientCount || 0;
 
     return (
       <Pressable

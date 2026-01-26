@@ -18,6 +18,7 @@ interface AuthContextType {
   user: FirestoreUser | null;
   isLoading: boolean;
   isInitializing: boolean;
+  isGuest: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginGoogle: () => Promise<boolean>;
   loginFacebook: () => Promise<boolean>;
@@ -44,6 +45,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
   const queryClient = useQueryClient();
   const navigation = useNavigation<NavigationProp>();
 
@@ -210,7 +212,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isInitializing, login, loginGoogle, loginFacebook, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, isInitializing, isGuest, login, loginGoogle, loginFacebook, loginAsGuest, logout }}>
       {children}
     </AuthContext.Provider>
   );
