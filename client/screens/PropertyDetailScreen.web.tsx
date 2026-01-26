@@ -77,7 +77,14 @@ export default function PropertyDetailScreenWeb() {
       return;
     }
 
-    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const getBaseUrl = () => {
+      if (typeof window !== "undefined" && window.location?.origin) {
+        return window.location.origin;
+      }
+      const domain = process.env.EXPO_PUBLIC_DOMAIN || process.env.REPLIT_DEV_DOMAIN;
+      return domain ? `https://${domain.replace(':5000', '')}` : "";
+    };
+    const baseUrl = getBaseUrl();
     const blogUrl = `${baseUrl}/blog/${userId}/${property.id}`;
 
     try {
