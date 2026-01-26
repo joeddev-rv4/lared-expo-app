@@ -116,14 +116,13 @@ export function PropertyCard({
       return;
     }
 
-    const getBaseUrl = () => {
-      if (typeof window !== "undefined" && window.location?.origin) {
-        return window.location.origin;
-      }
-      const domain = process.env.EXPO_PUBLIC_DOMAIN || process.env.REPLIT_DEV_DOMAIN;
-      return domain ? `https://${domain.replace(':5000', '')}` : "";
-    };
-    const baseUrl = getBaseUrl();
+    let baseUrl = "";
+    if (isWeb && typeof window !== "undefined" && window.location) {
+      baseUrl = window.location.origin;
+    } else {
+      const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
+      baseUrl = domain ? `https://${domain.replace(':5000', '')}` : "";
+    }
     const blogUrl = `${baseUrl}/blog/${userId}/${property.id}`;
 
     try {

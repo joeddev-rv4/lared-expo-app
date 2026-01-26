@@ -19,11 +19,18 @@ import { AuthProvider } from "@/contexts/AuthContext";
 
 SplashScreen.preventAutoHideAsync();
 
+const getWebOrigin = () => {
+  if (Platform.OS === "web" && typeof window !== "undefined" && window.location) {
+    return window.location.origin;
+  }
+  return "";
+};
+
 const linking: LinkingOptions<RootStackParamList> = {
   prefixes: [
     "laredinmobiliaria://",
     "https://laredinmobiliaria.com",
-    typeof window !== "undefined" ? window.location.origin : "",
+    getWebOrigin(),
   ].filter(Boolean),
   config: {
     screens: {
