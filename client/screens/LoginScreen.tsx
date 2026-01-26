@@ -18,6 +18,10 @@ import { db } from '@/lib/config';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+// Read login options from environment variables
+const isGoogleLoginEnabled = process.env.EXPO_PUBLIC_GOOGLE_LOGIN_ENABLED !== 'false';
+const isFacebookLoginEnabled = process.env.EXPO_PUBLIC_FACEBOOK_LOGIN_ENABLED !== 'false';
+
 export default function LoginScreen() {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
@@ -359,134 +363,138 @@ export default function LoginScreen() {
               </ThemedText>
             </Pressable>
 
-            <Pressable
-              onPress={async () => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                try {
-                  const isNewUser = await loginGoogle();
-                  console.log('Login Google completado, isNewUser:', isNewUser);
-                  
-                  // Save Google user data immediately
-                  const auth = getAuth();
-                  const currentUser = auth.currentUser;
-                  if (currentUser) {
-                    setGoogleUserData({
-                      uid: currentUser.uid,
-                      email: currentUser.email || '',
-                      displayName: currentUser.displayName || ''
-                    });
-                  }
-                  
-                  if (isNewUser) {
-                    // New user, show phone screen
-                    setIsFromGoogle(true);
-                    Animated.timing(buttonsAnim, {
-                      toValue: 0,
-                      duration: 200,
-                      useNativeDriver: false,
-                    }).start(() => {
-                      setMode('google_phone');
-                      formAnim.setValue(0);
-                      Animated.timing(formAnim, {
-                        toValue: 1,
-                        duration: 300,
+            {isGoogleLoginEnabled ? (
+              <Pressable
+                onPress={async () => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  try {
+                    const isNewUser = await loginGoogle();
+                    console.log('Login Google completado, isNewUser:', isNewUser);
+                    
+                    // Save Google user data immediately
+                    const auth = getAuth();
+                    const currentUser = auth.currentUser;
+                    if (currentUser) {
+                      setGoogleUserData({
+                        uid: currentUser.uid,
+                        email: currentUser.email || '',
+                        displayName: currentUser.displayName || ''
+                      });
+                    }
+                    
+                    if (isNewUser) {
+                      // New user, show phone screen
+                      setIsFromGoogle(true);
+                      Animated.timing(buttonsAnim, {
+                        toValue: 0,
+                        duration: 200,
                         useNativeDriver: false,
-                      }).start();
-                    });
-                  } else {
-                    // Existing user, go to Main
-                    setHasAttemptedLogin(true);
-                    navigation.replace('Main');
+                      }).start(() => {
+                        setMode('google_phone');
+                        formAnim.setValue(0);
+                        Animated.timing(formAnim, {
+                          toValue: 1,
+                          duration: 300,
+                          useNativeDriver: false,
+                        }).start();
+                      });
+                    } else {
+                      // Existing user, go to Main
+                      setHasAttemptedLogin(true);
+                      navigation.replace('Main');
+                    }
+                  } catch (error: any) {
+                    if (error.message.includes('credenciales') || error.message.includes('Cuenta no existe')) {
+                      setErrorMessage(error.message);
+                      setShowErrorPopup(true);
+                      setTimeout(() => setShowErrorPopup(false), 3000);
+                    } else {
+                      Alert.alert('Error', error.message || 'Error al iniciar sesión con Google');
+                    }
                   }
-                } catch (error: any) {
-                  if (error.message.includes('credenciales') || error.message.includes('Cuenta no existe')) {
-                    setErrorMessage(error.message);
-                    setShowErrorPopup(true);
-                    setTimeout(() => setShowErrorPopup(false), 3000);
-                  } else {
-                    Alert.alert('Error', error.message || 'Error al iniciar sesión con Google');
-                  }
-                }
-              }}
-              style={({ pressed }) => [
-                styles.loginButton,
-                styles.socialButton,
-                {
-                  backgroundColor: theme.backgroundRoot,
-                  borderColor: theme.border,
-                  opacity: pressed ? 0.7 : 1,
-                },
-                isDark ? null : Shadows.card,
-              ]}
-            >
-              <FontAwesome name="google" size={20} color="#DB4437" />
-              <ThemedText style={[styles.socialButtonText, { color: theme.text }]}>
-                Continue with Google
-              </ThemedText>
-            </Pressable>
+                }}
+                style={({ pressed }) => [
+                  styles.loginButton,
+                  styles.socialButton,
+                  {
+                    backgroundColor: theme.backgroundRoot,
+                    borderColor: theme.border,
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                  isDark ? null : Shadows.card,
+                ]}
+              >
+                <FontAwesome name="google" size={20} color="#DB4437" />
+                <ThemedText style={[styles.socialButtonText, { color: theme.text }]}>
+                  Continue with Google
+                </ThemedText>
+              </Pressable>
+            ) : null}
 
-            <Pressable
-              onPress={async () => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                try {
-                  const isNewUser = await loginFacebook();
-                  console.log('Login Facebook completado, isNewUser:', isNewUser);
-                  
-                  // Save Facebook user data immediately
-                  const auth = getAuth();
-                  const currentUser = auth.currentUser;
-                  if (currentUser) {
-                    setGoogleUserData({
-                      uid: currentUser.uid,
-                      email: currentUser.email || '',
-                      displayName: currentUser.displayName || ''
-                    });
-                  }
-                  
-                  if (isNewUser) {
-                    // New user, show phone screen
-                    setIsFromGoogle(true);
-                    Animated.timing(buttonsAnim, {
-                      toValue: 0,
-                      duration: 200,
-                      useNativeDriver: false,
-                    }).start(() => {
-                      setMode('google_phone');
-                      formAnim.setValue(0);
-                      Animated.timing(formAnim, {
-                        toValue: 1,
-                        duration: 300,
+            {isFacebookLoginEnabled ? (
+              <Pressable
+                onPress={async () => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  try {
+                    const isNewUser = await loginFacebook();
+                    console.log('Login Facebook completado, isNewUser:', isNewUser);
+                    
+                    // Save Facebook user data immediately
+                    const auth = getAuth();
+                    const currentUser = auth.currentUser;
+                    if (currentUser) {
+                      setGoogleUserData({
+                        uid: currentUser.uid,
+                        email: currentUser.email || '',
+                        displayName: currentUser.displayName || ''
+                      });
+                    }
+                    
+                    if (isNewUser) {
+                      // New user, show phone screen
+                      setIsFromGoogle(true);
+                      Animated.timing(buttonsAnim, {
+                        toValue: 0,
+                        duration: 200,
                         useNativeDriver: false,
-                      }).start();
-                    });
-                  } else {
-                    // Existing user, go to Main
-                    setHasAttemptedLogin(true);
-                    navigation.replace('Main');
+                      }).start(() => {
+                        setMode('google_phone');
+                        formAnim.setValue(0);
+                        Animated.timing(formAnim, {
+                          toValue: 1,
+                          duration: 300,
+                          useNativeDriver: false,
+                        }).start();
+                      });
+                    } else {
+                      // Existing user, go to Main
+                      setHasAttemptedLogin(true);
+                      navigation.replace('Main');
+                    }
+                  } catch (error: any) {
+                    if (error.message.includes('credenciales') || error.message.includes('Cuenta no existe')) {
+                      setErrorMessage(error.message);
+                      setShowErrorPopup(true);
+                      setTimeout(() => setShowErrorPopup(false), 3000);
+                    } else {
+                      Alert.alert('Error', error.message || 'Error al iniciar sesión con Facebook');
+                    }
                   }
-                } catch (error: any) {
-                  if (error.message.includes('credenciales') || error.message.includes('Cuenta no existe')) {
-                    setErrorMessage(error.message);
-                    setShowErrorPopup(true);
-                    setTimeout(() => setShowErrorPopup(false), 3000);
-                  } else {
-                    Alert.alert('Error', error.message || 'Error al iniciar sesión con Facebook');
-                  }
-                }
-              }}
-              style={({ pressed }) => [
-                styles.loginButton,
-                {
-                  backgroundColor: "#1877F2",
-                  opacity: pressed ? 0.9 : 1,
-                },
-              ]}
-            >
-              <FontAwesome name="facebook" size={20} color="#FFFFFF" />
-              <ThemedText style={styles.loginButtonText}>
-                Continue with Facebook
-              </ThemedText>
-            </Pressable>
+                }}
+                style={({ pressed }) => [
+                  styles.loginButton,
+                  {
+                    backgroundColor: "#1877F2",
+                    opacity: pressed ? 0.9 : 1,
+                  },
+                ]}
+              >
+                <FontAwesome name="facebook" size={20} color="#FFFFFF" />
+                <ThemedText style={styles.loginButtonText}>
+                  Continue with Facebook
+                </ThemedText>
+              </Pressable>
+            ) : null}
             <Pressable
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
