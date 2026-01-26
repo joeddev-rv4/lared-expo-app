@@ -10,6 +10,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   Modal,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -19,6 +20,7 @@ import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/contexts/AuthContext";
 import { Property } from "@/data/properties";
 import { Spacing, Colors, BorderRadius } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
@@ -32,6 +34,7 @@ export default function PropertyDetailScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<PropertyDetailRouteProp>();
   const { theme } = useTheme();
+  const { isGuest } = useAuth();
   const insets = useSafeAreaInsets();
   const property = route.params?.property as Property;
 
@@ -59,11 +62,27 @@ export default function PropertyDetailScreen() {
 
   const handleFavorite = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (isGuest) {
+      Alert.alert(
+        "Acción no disponible",
+        "Debes crear una cuenta para guardar propiedades en favoritos.",
+        [{ text: "Entendido" }]
+      );
+      return;
+    }
     setIsFavorite(!isFavorite);
   };
 
   const handleShare = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (isGuest) {
+      Alert.alert(
+        "Acción no disponible",
+        "Debes crear una cuenta para compartir propiedades.",
+        [{ text: "Entendido" }]
+      );
+      return;
+    }
   };
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {

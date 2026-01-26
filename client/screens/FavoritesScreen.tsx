@@ -37,7 +37,7 @@ export default function FavoritesScreen() {
   const headerHeight = useHeaderHeight();
   const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
   const { theme, isDark } = useTheme();
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<FavoritesStackParamList>>();
   const { width: windowWidth } = useWindowDimensions();
 
@@ -221,6 +221,7 @@ export default function FavoritesScreen() {
               onSharePress={() => handleSharePress(property)}
               showCopyLink={true}
               userId={getCurrentUserId()}
+              isGuest={isGuest}
             />
           </View>
         ))}
@@ -237,6 +238,7 @@ export default function FavoritesScreen() {
             onSharePress={() => handleSharePress(property)}
             showCopyLink={true}
             userId={getCurrentUserId()}
+            isGuest={isGuest}
           />
         ))}
       </View>

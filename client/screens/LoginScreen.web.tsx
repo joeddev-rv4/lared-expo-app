@@ -46,7 +46,7 @@ const isFacebookLoginEnabled = process.env.EXPO_PUBLIC_FACEBOOK_LOGIN_ENABLED !=
 export default function LoginScreenWeb() {
   const navigation = useNavigation<NavigationProp>();
   const { theme, isDark } = useTheme();
-  const { login, isLoading, user, logout, loginGoogle, loginFacebook } = useAuth();
+  const { login, isLoading, user, logout, loginGoogle, loginFacebook, loginAsGuest } = useAuth();
   const { width: windowWidth } = useWindowDimensions();
   const isMobile = windowWidth < 768;
   const [currentPage, setCurrentPage] = useState(0);
@@ -574,7 +574,7 @@ export default function LoginScreenWeb() {
                   </Pressable>
                 ) : null}
                 <Pressable
-                  onPress={() => Alert.alert('Continuar como invitado', 'Funcionalidad próximamente')}
+                  onPress={() => loginAsGuest()}
                   style={({ pressed }) => [
                     styles.skipButton,
                     { opacity: pressed ? 0.7 : 1, borderWidth: 0 },

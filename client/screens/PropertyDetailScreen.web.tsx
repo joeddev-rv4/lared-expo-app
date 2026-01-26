@@ -36,7 +36,7 @@ export default function PropertyDetailScreenWeb() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const params = route.params as PropertyDetailParams;
   const property = params?.property;
   const sourceTab = params?.sourceTab;
@@ -71,6 +71,15 @@ export default function PropertyDetailScreenWeb() {
   const getCurrentUserId = () => user?.id || auth.currentUser?.uid || "";
 
   const handleCopyLink = async () => {
+    if (isGuest) {
+      Alert.alert(
+        "Acción no disponible",
+        "Debes crear una cuenta para compartir enlaces de propiedades.",
+        [{ text: "Entendido" }]
+      );
+      return;
+    }
+
     const userId = getCurrentUserId();
     if (!userId) {
       Alert.alert("Error", "No se pudo obtener el ID del usuario.");

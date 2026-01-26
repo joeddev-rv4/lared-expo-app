@@ -63,7 +63,7 @@ export default function ExploreScreen() {
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
   const { theme, isDark } = useTheme();
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { width: windowWidth } = useWindowDimensions();
 
@@ -451,6 +451,7 @@ export default function ExploreScreen() {
         onPress={() => handlePropertyPress(property)}
         onFavoritePress={() => handleFavoriteToggle(property.id)}
         onSharePress={() => handleSharePress(property)}
+        isGuest={isGuest}
       />
     </View>
   );
@@ -518,6 +519,7 @@ export default function ExploreScreen() {
               onPress={() => handlePropertyPress(item)}
               onFavoritePress={() => handleFavoriteToggle(item.id)}
               onSharePress={() => handleSharePress(item)}
+              isGuest={isGuest}
             />
           </View>
         ))}
@@ -532,6 +534,7 @@ export default function ExploreScreen() {
             onPress={() => handlePropertyPress(item)}
             onFavoritePress={() => handleFavoriteToggle(item.id)}
             onSharePress={() => handleSharePress(item)}
+            isGuest={isGuest}
           />
         ))}
       </View>
@@ -598,6 +601,7 @@ export default function ExploreScreen() {
                   onPress={() => handlePropertyPress(item)}
                   onFavoritePress={() => handleFavoriteToggle(item.id)}
                   onSharePress={() => handleSharePress(item)}
+                  isGuest={isGuest}
                 />
               </View>
             ))}
@@ -612,6 +616,7 @@ export default function ExploreScreen() {
                 onPress={() => handlePropertyPress(item)}
                 onFavoritePress={() => handleFavoriteToggle(item.id)}
                 onSharePress={() => handleSharePress(item)}
+                isGuest={isGuest}
               />
             ))}
           </View>

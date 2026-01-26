@@ -22,6 +22,8 @@ interface PropertyCardProps {
   onSharePress?: () => void;
   showCopyLink?: boolean;
   userId?: string;
+  isGuest?: boolean;
+  onGuestAction?: () => void;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -39,6 +41,8 @@ export function PropertyCard({
   onSharePress,
   showCopyLink = false,
   userId,
+  isGuest = false,
+  onGuestAction,
 }: PropertyCardProps) {
   const { theme, isDark } = useTheme();
   const scale = useSharedValue(1);
@@ -75,7 +79,23 @@ export function PropertyCard({
     setTimeout(() => {
       heartScale.value = withSpring(1, { damping: 10 });
     }, 100);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    
+    if (isGuest) {
+      if (onGuestAction) {
+        onGuestAction();
+      } else {
+        Alert.alert(
+          "Acción no disponible",
+          "Debes crear una cuenta para guardar propiedades en favoritos.",
+          [{ text: "Entendido" }]
+        );
+      }
+      return;
+    }
+    
     onFavoritePress();
   };
 
@@ -109,6 +129,19 @@ export function PropertyCard({
     
     if (!isWeb) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    if (isGuest) {
+      if (onGuestAction) {
+        onGuestAction();
+      } else {
+        Alert.alert(
+          "Acción no disponible",
+          "Debes crear una cuenta para compartir enlaces de propiedades.",
+          [{ text: "Entendido" }]
+        );
+      }
+      return;
     }
 
     if (!userId) {

@@ -26,7 +26,7 @@ export default function LoginScreen() {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
-  const { login, isLoading, user, logout, loginGoogle, loginFacebook } = useAuth();
+  const { login, isLoading, user, logout, loginGoogle, loginFacebook, loginAsGuest } = useAuth();
   const [mode, setMode] = useState<'buttons' | 'login' | 'register' | 'register_password' | 'register_username' | 'register_phone' | 'verify_phone' | 'google_phone' | 'google_verify_phone'>('buttons');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -498,7 +498,7 @@ export default function LoginScreen() {
             <Pressable
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                Alert.alert('Continuar como invitado', 'Funcionalidad próximamente');
+                loginAsGuest();
               }}
               style={({ pressed }) => [
                 styles.skipButton,

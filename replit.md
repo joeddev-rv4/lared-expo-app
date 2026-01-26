@@ -100,3 +100,23 @@ Preferred communication style: Simple, everyday language.
 - `DATABASE_URL` - PostgreSQL connection string
 - `EXPO_PUBLIC_DOMAIN` - Public domain for API calls
 - `REPLIT_DEV_DOMAIN` - Development domain (Replit-specific)
+- `EXPO_PUBLIC_GOOGLE_LOGIN_ENABLED` - Show/hide Google login button (true/false)
+- `EXPO_PUBLIC_FACEBOOK_LOGIN_ENABLED` - Show/hide Facebook login button (true/false)
+
+## Authentication Features
+
+### Login Options
+- Email/Password authentication
+- Google Sign-In (configurable via environment variable)
+- Facebook Sign-In (configurable via environment variable)
+- Guest Mode - allows browsing Explore section without account
+
+### Guest Mode Restrictions
+Guest users can:
+- Browse all properties in the Explore section
+- View property details
+
+Guest users cannot:
+- Add properties to favorites (shows alert/popup)
+- Share/copy property links (shows alert/popup)
+- Access other sections that require authentication

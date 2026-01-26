@@ -15,9 +15,11 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 interface AuthContextType {
   user: FirestoreUser | null;
   isLoading: boolean;
+  isGuest: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginGoogle: () => Promise<boolean>;
   loginFacebook: () => Promise<boolean>;
+  loginAsGuest: () => void;
   logout: () => Promise<void>;
 }
 
@@ -37,6 +39,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
   const queryClient = useQueryClient();
   const navigation = useNavigation<NavigationProp>();
 
@@ -140,14 +143,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const loginAsGuest = () => {
+    setIsGuest(true);
+    queryClient.setQueryData(['user'], null);
+    navigation.navigate('Main' as any);
+  };
+
   const logout = async () => {
     await signOut(auth);
     await clearUserId();
+    setIsGuest(false);
     queryClient.setQueryData(['user'], null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, loginGoogle, loginFacebook, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, isGuest, login, loginGoogle, loginFacebook, loginAsGuest, logout }}>
       {children}
     </AuthContext.Provider>
   );
