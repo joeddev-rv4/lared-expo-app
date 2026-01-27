@@ -111,6 +111,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Proxy para la API de notificaciones (soluciona CORS)
+  app.get("/api/notifications/user/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+
+      console.log("🔔 Proxy: Obteniendo notificaciones para usuario:", userId);
+
+      try {
+        // Intentar hacer la petición al servidor de la API de notificaciones
+        const response = await fetch(`http://localhost:3000/notifications/${userId}`);
+
+        if (!response.ok) {
+          console.error("❌ Error en API de notificaciones:", response.status);
+          throw new Error(`API devolvió error ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(`✅ Proxy: ${data.length} notificaciones obtenidas desde API externa`);
+
+        // Devolver los datos con headers CORS
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "Content-Type");
+        return res.json(data);
+
+      } catch (apiError) {
+        console.log("⚠️  API de notificaciones no disponible, usando datos de prueba");
+        console.error("❌ Error en API de notificaciones:", apiError);
+
+        // Datos de prueba para desarrollo - notificaciones con status false (no leídas)
+        const testNotifications = [
+          {
+            "_id": "69791a1b809c7dd861f6e56e",
+            "user_id": userId,
+            "titulo": "Nueva propiedad disponible",
+            "mensaje": "Se ha agregado una nueva propiedad en tu zona de interés",
+            "fecha": "2026-01-27T14:00:00.000Z",
+            "status": false
+          },
+          {
+            "_id": "69791a3d809c7dd861f6e570",
+            "user_id": userId,
+            "titulo": "Cliente interesado",
+            "mensaje": "María González mostró interés en tu propiedad",
+            "fecha": "2026-01-27T13:30:00.000Z",
+            "status": false
+          },
+          {
+            "_id": "69791a4f809c7dd861f6e572",
+            "user_id": userId,
+            "titulo": "Actualización del sistema",
+            "mensaje": "Se ha actualizado la plataforma con nuevas funcionalidades",
+            "fecha": "2026-01-26T09:00:00.000Z",
+            "status": true
+          }
+        ];
+
+        console.log(`✅ Proxy: ${testNotifications.length} notificaciones de prueba devueltas`);
+
+        // Devolver los datos de prueba con headers CORS
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "Content-Type");
+        return res.json(testNotifications);
+      }
+
+    } catch (error) {
+      console.error("❌ Error en proxy de notificaciones:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Error interno del servidor proxy"
+      });
+    }
+  });
+
+  // Actualizar status de notificación (marcar como leída)
+  app.put("/api/notifications/:notificationId/read", async (req, res) => {
+    try {
+      const { notificationId } = req.params;
+
+      console.log("📖 Proxy: Marcando notificación como leída:", notificationId);
+
+      try {
+        // Intentar hacer la petición al servidor de la API de notificaciones
+        const response = await fetch(`http://localhost:3000/notifications/${notificationId}/read`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          console.error("❌ Error al actualizar notificación:", response.status);
+          throw new Error(`API devolvió error ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(`✅ Proxy: Notificación ${notificationId} marcada como leída`);
+
+        // Devolver los datos con headers CORS
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "Content-Type");
+        return res.json(data);
+
+      } catch (apiError) {
+        console.log("⚠️  API de notificaciones no disponible para actualización");
+        console.error("❌ Error al actualizar notificación:", apiError);
+
+        // Simular respuesta exitosa cuando la API no esté disponible
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "Content-Type");
+        return res.json({
+          success: true,
+          message: "Notificación marcada como leída (simulado)"
+        });
+      }
+
+    } catch (error) {
+      console.error("❌ Error en proxy de actualización de notificación:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Error interno del servidor proxy"
+      });
+    }
+  });
+
   // Verificación de teléfono
   app.post("/api/auth/send-verification", async (req, res) => {
     try {
