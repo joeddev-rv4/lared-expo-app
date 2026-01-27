@@ -1,88 +1,68 @@
-import React from "react";
-import { View, StyleSheet, FlatList, Platform } from "react-native";
+import React, { useState } from "react";
+import { View, StyleSheet, ScrollView, Platform, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
-const isWeb = Platform.OS === "web";
-
 import { ThemedText } from "@/components/ThemedText";
 import { EmptyState } from "@/components/EmptyState";
+import { DashboardMetricCard } from "@/components/dashboard/DashboardMetricCard";
+import { ActivityChart } from "@/components/dashboard/ActivityChart";
+import { BadgeComponent } from "@/components/dashboard/BadgeComponent";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { auth } from "@/lib/config";
-import { Spacing, BorderRadius, Colors } from "@/constants/theme";
+import { Spacing, BorderRadius, Colors, Shadows } from "@/constants/theme";
 
-interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  progress: number;
-  total: number;
-  unlocked: boolean;
-}
+const isWeb = Platform.OS === "web";
 
-const ACHIEVEMENTS: Achievement[] = [
-  {
-    id: "1",
-    title: "First Steps",
-    description: "Create your first listing",
-    icon: "home",
-    progress: 0,
-    total: 1,
-    unlocked: false,
-  },
-  {
-    id: "2",
-    title: "Explorer",
-    description: "Save 5 properties to favorites",
-    icon: "heart",
-    progress: 2,
-    total: 5,
-    unlocked: false,
-  },
-  {
-    id: "3",
-    title: "Super Host",
-    description: "Get 10 bookings on your listings",
-    icon: "star",
-    progress: 0,
-    total: 10,
-    unlocked: false,
-  },
-  {
-    id: "4",
-    title: "Globetrotter",
-    description: "Book properties in 5 different cities",
-    icon: "globe",
-    progress: 1,
-    total: 5,
-    unlocked: false,
-  },
-  {
-    id: "5",
-    title: "Reviewer",
-    description: "Leave 3 reviews",
-    icon: "chatbox-outline",
-    progress: 0,
-    total: 3,
-    unlocked: false,
-  },
+// Mock Data
+const USER_LEVEL = {
+  current: 4,
+  title: "Broker Experto",
+  xp: 750,
+  nextLevelXp: 1000,
+  nextTitle: "Broker Maestro",
+};
+
+const METRICS = {
+  properties: 12,
+  clients: 45,
+  views: 1240,
+};
+
+const ACTIVITY_DATA = [
+  { label: "Lun", value: 12 },
+  { label: "Mar", value: 19 },
+  { label: "Mié", value: 3 },
+  { label: "Jue", value: 5 },
+  { label: "Vie", value: 22 },
+  { label: "Sáb", value: 30 },
+  { label: "Dom", value: 15 },
 ];
+
+const BADGES = [
+  { id: "1", name: "Primera Venta", icon: "pricetag" as const, variant: "bronze" as const, isLocked: false },
+  { id: "2", name: "Top Valorado", icon: "star" as const, variant: "gold" as const, isLocked: false },
+  { id: "3", name: "Veloz", icon: "flash" as const, variant: "silver" as const, isLocked: false },
+  { id: "4", name: "Cerrador", icon: "checkmark-done-circle" as const, variant: "gold" as const, isLocked: true },
+  { id: "5", name: "Influencer", icon: "people" as const, variant: "silver" as const, isLocked: true },
+];
+
+const DAILY_GOAL = "Contactar 3 nuevos clientes";
 
 export default function AchievementsScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { user, isGuest } = useAuth();
   const navigation = useNavigation<any>();
+  const [timeRange, setTimeRange] = useState<"Día" | "Semana" | "Mes">("Semana");
 
   const userId = user?.id || auth.currentUser?.uid;
-  const unlockedCount = ACHIEVEMENTS.filter((a) => a.unlocked).length;
 
   const handleNavigateToSignup = () => {
     navigation.getParent()?.getParent()?.reset({
@@ -91,7 +71,6 @@ export default function AchievementsScreen() {
     });
   };
 
-  // Show login message for guest users
   if (isGuest || !userId) {
     return (
       <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
@@ -99,7 +78,7 @@ export default function AchievementsScreen() {
           <EmptyState
             image={require("../../assets/images/empty-states/favorites.png")}
             title="Inicia sesión"
-            description="Inicia sesión para ver y gestionar tus logros."
+            description="Inicia sesión para ver tu panel de logros y estadísticas."
             actionLabel="Crear cuenta"
             onAction={handleNavigateToSignup}
           />
@@ -108,120 +87,141 @@ export default function AchievementsScreen() {
     );
   }
 
-  const renderAchievement = ({ item }: { item: Achievement }) => {
-    const progressPercent = (item.progress / item.total) * 100;
+  const renderHeader = () => {
+    const progress = (USER_LEVEL.xp / USER_LEVEL.nextLevelXp) * 100;
 
     return (
-      <View
-        style={[
-          styles.achievementCard,
-          {
-            backgroundColor: item.unlocked
-              ? Colors.light.primary + "10"
-              : theme.backgroundDefault,
-            borderColor: item.unlocked ? Colors.light.primary : theme.border,
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.iconContainer,
-            {
-              backgroundColor: item.unlocked
-                ? Colors.light.primary
-                : theme.backgroundSecondary,
-            },
-          ]}
-        >
-          <Ionicons
-            name={item.icon}
-            size={24}
-            color={item.unlocked ? "#FFFFFF" : theme.textSecondary}
-          />
+      <View style={[styles.headerCard, isDark ? null : Shadows.card, { backgroundColor: Colors.light.primary }]}>
+        <View style={styles.headerTop}>
+          <View>
+            <ThemedText style={styles.userTitle}>{USER_LEVEL.title}</ThemedText>
+            <ThemedText style={styles.levelText}>Nivel {USER_LEVEL.current}</ThemedText>
+          </View>
+          <View style={styles.medalIcon}>
+            <Ionicons name="ribbon" size={40} color="#FFD700" />
+          </View>
         </View>
 
-        <View style={styles.achievementContent}>
-          <ThemedText style={styles.achievementTitle}>{item.title}</ThemedText>
-          <ThemedText
-            style={[styles.achievementDescription, { color: theme.textSecondary }]}
-          >
-            {item.description}
+        <View style={styles.xpContainer}>
+          <View style={styles.xpBarBg}>
+            <View style={[styles.xpBarFill, { width: `${progress}%` }]} />
+          </View>
+          <View style={styles.xpTextRow}>
+            <ThemedText style={styles.xpText}>{USER_LEVEL.xp} XP</ThemedText>
+            <ThemedText style={styles.xpText}>{USER_LEVEL.nextLevelXp} XP</ThemedText>
+          </View>
+          <ThemedText style={styles.nextLevelText}>
+            {USER_LEVEL.nextLevelXp - USER_LEVEL.xp} XP para {USER_LEVEL.nextTitle}
           </ThemedText>
-
-          <View style={styles.progressContainer}>
-            <View
-              style={[
-                styles.progressBar,
-                { backgroundColor: theme.backgroundSecondary },
-              ]}
-            >
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${progressPercent}%`,
-                    backgroundColor: item.unlocked
-                      ? Colors.light.success
-                      : Colors.light.primary,
-                  },
-                ]}
-              />
-            </View>
-            <ThemedText
-              style={[styles.progressText, { color: theme.textSecondary }]}
-            >
-              {item.progress}/{item.total}
-            </ThemedText>
-          </View>
         </View>
-
-        {item.unlocked ? (
-          <View style={styles.unlockedBadge}>
-            <Ionicons name="checkmark-circle-outline" size={24} color={Colors.light.success} />
-          </View>
-        ) : null}
       </View>
     );
   };
 
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <View
-        style={[
-          styles.statsCard,
-          { backgroundColor: Colors.light.primary + "10" },
-        ]}
-      >
-        <Ionicons name="trophy-outline" size={32} color={Colors.light.primary} />
-        <View style={styles.statsText}>
-          <ThemedText style={styles.statsValue}>
-            {unlockedCount}/{ACHIEVEMENTS.length}
-          </ThemedText>
-          <ThemedText style={[styles.statsLabel, { color: theme.textSecondary }]}>
-            Achievements Unlocked
-          </ThemedText>
-        </View>
-      </View>
-    </View>
-  );
-
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-      <FlatList
-        data={ACHIEVEMENTS}
-        keyExtractor={(item) => item.id}
-        renderItem={renderAchievement}
+      <ScrollView
         contentContainerStyle={[
-          styles.listContent,
+          styles.scrollContent,
           {
-            paddingTop: headerHeight + Spacing.xl,
+            paddingTop: headerHeight + Spacing.lg,
             paddingBottom: tabBarHeight + Spacing.xl,
           },
         ]}
-        scrollIndicatorInsets={{ bottom: insets.bottom }}
-        ListHeaderComponent={renderHeader}
         showsVerticalScrollIndicator={false}
-      />
+      >
+        {renderHeader()}
+
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>Resumen</ThemedText>
+          <View style={styles.metricsGrid}>
+            <DashboardMetricCard
+              title="Asignadas"
+              value={METRICS.properties.toString()}
+              icon="home-outline"
+              trend={{ value: 12, label: "vs mes ant.", positive: true }}
+              color="#3B82F6"
+            />
+            <DashboardMetricCard
+              title="Clientes"
+              value={METRICS.clients.toString()}
+              icon="people-outline"
+              trend={{ value: 5, label: "vs mes ant.", positive: true }}
+              color="#10B981"
+            />
+          </View>
+          <View style={[styles.metricsGrid, { marginTop: Spacing.md }]}>
+            <DashboardMetricCard
+              title="Vistas Totales"
+              value={METRICS.views.toLocaleString()}
+              icon="eye-outline"
+              trend={{ value: 2, label: "vs mes ant.", positive: false }}
+              color="#8B5CF6"
+            />
+            <DashboardMetricCard
+              title="Ranking"
+              value="#42"
+              icon="trophy-outline"
+              color="#F59E0B"
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <ThemedText style={styles.sectionTitle}>Pulso de Actividad</ThemedText>
+            <View style={styles.toggleContainer}>
+              {(["Día", "Semana", "Mes"] as const).map((t) => (
+                <Pressable
+                  key={t}
+                  onPress={() => setTimeRange(t)}
+                  style={[
+                    styles.toggleButton,
+                    timeRange === t && { backgroundColor: theme.backgroundSecondary }
+                  ]}
+                >
+                  <ThemedText style={[
+                    styles.toggleText,
+                    timeRange === t && { fontWeight: '600', color: Colors.light.primary }
+                  ]}>
+                    {t}
+                  </ThemedText>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+          <ActivityChart
+            title="Propiedades Añadidas"
+            data={ACTIVITY_DATA}
+            color="#bf0a0a"
+          />
+        </View>
+
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>Insignias y Metas</ThemedText>
+
+          <View style={[styles.goalCard, { backgroundColor: theme.backgroundDefault, borderColor: theme.border }]}>
+            <View style={styles.goalIcon}>
+              <Ionicons name="flag" size={24} color={Colors.light.primary} />
+            </View>
+            <View style={styles.goalContent}>
+              <ThemedText style={styles.goalTitle}>Meta Diaria</ThemedText>
+              <ThemedText style={[styles.goalText, { color: theme.textSecondary }]}>{DAILY_GOAL}</ThemedText>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+          </View>
+
+          <View style={styles.badgesGrid}>
+            {BADGES.map(badge => (
+              <BadgeComponent
+                key={badge.id}
+                {...badge}
+              />
+            ))}
+          </View>
+        </View>
+
+      </ScrollView>
     </View>
   );
 }
@@ -236,78 +236,125 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: Spacing.lg,
   },
-  listContent: {
+  scrollContent: {
     paddingHorizontal: Spacing.lg,
   },
-  header: {
+  headerCard: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
     marginBottom: Spacing.xl,
   },
-  statsCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: Spacing.xl,
-    borderRadius: BorderRadius.md,
-    gap: Spacing.lg,
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.lg,
   },
-  statsText: {
-    flex: 1,
+  userTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
-  statsValue: {
-    fontSize: 28,
-    fontWeight: "700",
-  },
-  statsLabel: {
-    fontSize: 14,
-  },
-  achievementCard: {
-    flexDirection: "row",
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.md,
-    borderWidth: 1,
-    alignItems: "center",
-  },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: Spacing.lg,
-  },
-  achievementContent: {
-    flex: 1,
-  },
-  achievementTitle: {
+  levelText: {
     fontSize: 16,
-    fontWeight: "600",
-    marginBottom: Spacing.xs,
+    color: 'rgba(255,255,255,0.9)',
+    marginTop: 4,
   },
-  achievementDescription: {
-    fontSize: 14,
-    marginBottom: Spacing.sm,
+  medalIcon: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    padding: 8,
+    borderRadius: 12,
   },
-  progressContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.sm,
+  xpContainer: {
+    gap: 8,
   },
-  progressBar: {
-    flex: 1,
-    height: 6,
-    borderRadius: 3,
-    overflow: "hidden",
+  xpBarBg: {
+    height: 8,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: 4,
+    overflow: 'hidden',
   },
-  progressFill: {
-    height: "100%",
-    borderRadius: 3,
+  xpBarFill: {
+    height: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 4,
   },
-  progressText: {
+  xpTextRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  xpText: {
     fontSize: 12,
-    fontWeight: "500",
-    minWidth: 32,
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '600',
   },
-  unlockedBadge: {
-    marginLeft: Spacing.md,
+  nextLevelText: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  section: {
+    marginBottom: Spacing.xl,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: Spacing.md,
+  },
+  metricsGrid: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+  },
+  toggleButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  toggleText: {
+    fontSize: 12,
+  },
+  goalCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    marginBottom: Spacing.lg,
+  },
+  goalIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.light.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.md,
+  },
+  goalContent: {
+    flex: 1,
+  },
+  goalTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  goalText: {
+    fontSize: 14,
+  },
+  badgesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.lg,
+    justifyContent: 'flex-start', // Or 'space-between' depending on preference
   },
 });

@@ -51,6 +51,8 @@ import {
   APIProyectoDetalle,
 } from "@/lib/api";
 import { Spacing, Colors, BorderRadius, Shadows } from "@/constants/theme";
+import { Toast } from "@/components/Toast";
+import { FavoritesPopup } from "@/components/FavoritesPopup";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const PROJECT_CARD_WIDTH = isWeb ? 280 : SCREEN_WIDTH * 0.7;
@@ -88,6 +90,9 @@ export default function ExploreScreen() {
   const [webSearchExpanded, setWebSearchExpanded] = useState(false);
   const [webSearchQuery, setWebSearchQuery] = useState("");
   const [expandedSection, setExpandedSection] = useState<SectionType>(null);
+  const [favoritesPopupVisible, setFavoritesPopupVisible] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   const searchExpandAnim = useSharedValue(0);
 
@@ -186,6 +191,13 @@ export default function ExploreScreen() {
         );
       }
     }
+
+    // Trigger Popup and Toast on Web when adding
+    if (isWeb && !isCurrentlyFavorite) {
+      setToastMessage("Propiedad agregada a favoritos");
+      setToastVisible(true);
+      setFavoritesPopupVisible(true);
+    }
   };
 
   const handlePropertyPress = (property: Property) => {
@@ -221,6 +233,15 @@ export default function ExploreScreen() {
     }
     setExpandedSection(null);
   };
+
+  const handleGoToFavorites = () => {
+    setFavoritesPopupVisible(false);
+    navigation.navigate("FavoritesTab" as any);
+  };
+
+  const currentFavoriteProperties = useMemo(() => {
+    return properties.filter(p => favorites.includes(p.id));
+  }, [properties, favorites]);
 
   const nearbyProperties = useMemo(() => {
     const shuffled = [...properties].sort(() => Math.random() - 0.5);
@@ -682,6 +703,23 @@ export default function ExploreScreen() {
         {isWeb ? renderWebSearchHeader() : renderMobileSearchHeader()}
         {renderContent()}
       </ScrollView>
+
+      {isWeb && (
+        <>
+          <FavoritesPopup
+            isVisible={favoritesPopupVisible}
+            favorites={currentFavoriteProperties}
+            onClose={() => setFavoritesPopupVisible(false)}
+            onGoToFavorites={handleGoToFavorites}
+            onPropertyPress={handleGoToFavorites}
+          />
+          <Toast
+            visible={toastVisible}
+            message={toastMessage}
+            onDismiss={() => setToastVisible(false)}
+          />
+        </>
+      )}
     </View>
   );
 }

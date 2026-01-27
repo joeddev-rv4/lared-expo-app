@@ -41,8 +41,11 @@ function setupCors(app: express.Application) {
         "Access-Control-Allow-Methods",
         "GET, POST, PUT, DELETE, OPTIONS",
       );
-      res.header("Access-Control-Allow-Headers", "Content-Type");
+      res.header("Access-Control-Allow-Headers", "Content-Type, x-api-key, expo-platform");
       res.header("Access-Control-Allow-Credentials", "true");
+    } else if (!origin && process.env.NODE_ENV === "development") {
+      // Perissive in dev if no origin (e.g. some server-to-server or direct brower hits)
+      res.header("Access-Control-Allow-Origin", "*");
     }
 
     if (req.method === "OPTIONS") {

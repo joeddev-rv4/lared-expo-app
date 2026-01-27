@@ -225,8 +225,8 @@ export interface PropertyClient {
 export async function getUserFavoritePropertiesWithClients(userId: string): Promise<FavoritePropertyWithClients[]> {
   try {
     // Obtener leads del usuario desde nuestro servidor proxy (evita CORS)
-    const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/leads/user/${userId}`);
-    
+    const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`);
+
     if (!leadsResponse.ok) {
       console.error('Error obteniendo leads:', leadsResponse.status);
       return [];
@@ -246,7 +246,7 @@ export async function getUserFavoritePropertiesWithClients(userId: string): Prom
 
     // Obtener solo las propiedades que tienen leads/clientes
     const propertyIds = Object.keys(leadsByProperty);
-    
+
     if (propertyIds.length === 0) {
       return [];
     }
@@ -280,8 +280,8 @@ export async function getUserFavoritePropertiesWithClients(userId: string): Prom
 export async function getPropertyClients(propertyId: string, userId: string): Promise<PropertyClient[]> {
   try {
     // Obtener todos los leads del usuario desde nuestro servidor proxy (evita CORS)
-    const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/leads/user/${userId}`);
-    
+    const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`);
+
     if (!leadsResponse.ok) {
       console.error('Error obteniendo leads:', leadsResponse.status);
       return [];

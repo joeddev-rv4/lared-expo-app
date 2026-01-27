@@ -15,32 +15,32 @@ const db = drizzle(pool);
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Proxy para la API de leads (soluciona CORS)
-  app.get("/api/leads/user/:userId", async (req, res) => {
+  app.get("/lead/user/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
-      
+
       console.log("🔍 Proxy: Obteniendo leads para usuario:", userId);
-      
+
       try {
         // Intentar hacer la petición al servidor de la API de leads
         const response = await fetch(`http://localhost:3000/lead/user/${userId}`);
-        
+
         if (!response.ok) {
           console.error("❌ Error en API de leads:", response.status);
           throw new Error(`API devolvió error ${response.status}`);
         }
-        
+
         const data = await response.json();
         console.log(`✅ Proxy: ${data.length} leads obtenidos desde API externa`);
-        
-        // Devolver los datos con headers CORS
+
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", "Content-Type");
+
         return res.json(data);
-        
+
       } catch (apiError) {
         console.log("⚠️  API de leads no disponible, usando datos de prueba");
-        
+
         // Datos de prueba para desarrollo
         const testLeads = [
           {
@@ -96,20 +96,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             notes: "Consulta inicial sobre propiedades comerciales"
           }
         ];
-        
+
         console.log(`✅ Proxy: ${testLeads.length} leads de prueba devueltos`);
-        
-        // Devolver los datos de prueba con headers CORS
-        res.header("Access-Control-Allow-Origin", "*");
-        res.header("Access-Control-Allow-Headers", "Content-Type");
+
         return res.json(testLeads);
       }
-      
+
     } catch (error) {
       console.error("❌ Error en proxy de leads:", error);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Error interno del servidor proxy" 
+      return res.status(500).json({
+        success: false,
+        message: "Error interno del servidor proxy"
       });
     }
   });
@@ -122,22 +119,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!phoneNumber) {
         console.log("❌ Número de teléfono no proporcionado");
-        return res.status(400).json({ 
-          success: false, 
-          message: "El número de teléfono es requerido" 
+        return res.status(400).json({
+          success: false,
+          message: "El número de teléfono es requerido"
         });
       }
 
       console.log("🚀 Enviando código de verificación...");
       const result = await verificationService.sendVerificationCode(phoneNumber);
       console.log("✅ Resultado:", result);
-      
+
       return res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
       console.error("❌ Error sending verification code:", error);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Error interno del servidor" 
+      return res.status(500).json({
+        success: false,
+        message: "Error interno del servidor"
       });
     }
   });
@@ -147,20 +144,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { phoneNumber, code } = req.body;
 
       if (!phoneNumber || !code) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "El número de teléfono y el código son requeridos" 
+        return res.status(400).json({
+          success: false,
+          message: "El número de teléfono y el código son requeridos"
         });
       }
 
       const result = verificationService.verifyCode(phoneNumber, code);
-      
+
       return res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
       console.error("Error verifying code:", error);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Error interno del servidor" 
+      return res.status(500).json({
+        success: false,
+        message: "Error interno del servidor"
       });
     }
   });
