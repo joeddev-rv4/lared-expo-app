@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { doc, setDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import {
   View,
   ScrollView,
   StyleSheet,
   Pressable,
   Image,
-  TextInput,
   useWindowDimensions,
   ActivityIndicator,
   Modal,
-  Alert,
+  Linking,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
@@ -21,7 +20,7 @@ import { Property, mapAPIPropertyToProperty } from "@/data/properties";
 import { Spacing, Colors, BorderRadius, Shadows } from "@/constants/theme";
 import { fetchPropiedadById } from "@/lib/api";
 import { getUserProfileFromFirebase } from "@/lib/portfolioService";
-import { db } from "@/lib/config";
+import ContactFormWeb from "@/components/ContactFormWeb";
 
 type BlogParams = {
   userId: string;
@@ -42,7 +41,6 @@ export default function BlogScreenWeb() {
   const params = route.params as BlogParams;
 
   const isMobile = width < 768;
-  const isTablet = width >= 768 && width < 1024;
 
   const [property, setProperty] = useState<Property | null>(null);
   const [seller, setSeller] = useState<SellerInfo | null>(null);
@@ -50,15 +48,6 @@ export default function BlogScreenWeb() {
   const [error, setError] = useState<string | null>(null);
   const [showGallery, setShowGallery] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  const [contactForm, setContactForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    message: "",
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -96,38 +85,6 @@ export default function BlogScreenWeb() {
     }
   };
 
-  const handleSubmitContact = async () => {
-    if (!contactForm.name || !contactForm.email || !contactForm.phone) {
-      Alert.alert('Error', 'Por favor completa los campos requeridos');
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const requestData = {
-        brokerId: params.userId || '',
-        clientName: contactForm.name,
-        clientPhone: `+502 ${contactForm.phone}`,
-        comment: contactForm.message || '',
-        createdAt: new Date(),
-        documentationProcess: [],
-        paymentProgress: [],
-        propertyId: Number(params.propertyId),
-        status: 'pending'
-      };
-
-      await addDoc(collection(db, 'requests'), requestData);
-
-      setSubmitSuccess(true);
-      setContactForm({ name: "", email: "", phone: "", message: "" });
-    } catch (err) {
-      console.error("Error submitting contact:", err);
-      Alert.alert('Error', 'Hubo un problema al enviar tu solicitud.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-GT", {
       style: "currency",
@@ -138,8 +95,10 @@ export default function BlogScreenWeb() {
   };
 
   const galleryImages = property?.imagenes
-    ?.filter((img) => ["Imagen", "Video", "masterplan"].includes(img.tipo))
+    ?.filter((img) => ["Imagen", "Video"].includes(img.tipo))
     ?.map((img) => img.url) || [property?.imageUrl || ""];
+
+  const masterplanImage = property?.imagenes?.find((img) => img.tipo === "masterplan")?.url;
 
   if (loading) {
     return (
@@ -161,362 +120,237 @@ export default function BlogScreenWeb() {
 
   return (
     <View style={styles.container}>
+      {/* 1. Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <View style={styles.logoContainer}>
-            <Image
-              source={require("../../assets/images/la_red_blanco_negro3.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
+          <Image
+            source={require("../../assets/images/la_red_blanco_negro3.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <View style={styles.headerRight}>
-            <Pressable style={styles.shareButton}>
+            <Pressable style={styles.headerButton}>
+              <ThemedText style={styles.headerButtonText}>Cotizar</ThemedText>
+            </Pressable>
+            <Pressable style={styles.headerButton}>
               <Ionicons name="share-social-outline" size={20} color="#222222" />
-              <ThemedText style={styles.shareButtonText}>Compartir</ThemedText>
+              <ThemedText style={styles.headerButtonText}>Compartir</ThemedText>
             </Pressable>
           </View>
         </View>
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          isMobile && styles.scrollContentMobile,
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+
+        {/* 2. Hero Section (Full Image + Form) */}
         <View style={[styles.heroSection, isMobile && styles.heroSectionMobile]}>
-          <View style={[styles.imageGallery, isMobile && styles.imageGalleryMobile]}>
-            <Pressable
-              style={[styles.mainImageContainer, isMobile && styles.mainImageContainerMobile]}
-              onPress={() => {
-                setCurrentImageIndex(0);
-                setShowGallery(true);
-              }}
-            >
-              <Image
-                source={{ uri: galleryImages[0] }}
-                style={styles.mainImage}
-                resizeMode="cover"
-              />
-              <View style={styles.imageOverlay}>
-                <View style={styles.propertyBadge}>
-                  <ThemedText style={styles.badgeText}>Destacado</ThemedText>
-                </View>
-              </View>
-            </Pressable>
-            {!isMobile && galleryImages.length > 1 ? (
-              <View style={styles.thumbnailGrid}>
-                {galleryImages.slice(1, 5).map((img, index) => (
-                  <Pressable
-                    key={index}
-                    style={[
-                      styles.thumbnailContainer,
-                      index === 1 && styles.thumbnailTopRight,
-                      index === 3 && styles.thumbnailBottomRight,
-                    ]}
-                    onPress={() => {
-                      setCurrentImageIndex(index + 1);
-                      setShowGallery(true);
-                    }}
-                  >
-                    <Image source={{ uri: img }} style={styles.thumbnail} resizeMode="cover" />
-                    {index === 3 && galleryImages.length > 5 ? (
-                      <View style={styles.moreImagesOverlay}>
-                        <ThemedText style={styles.moreImagesText}>
-                          +{galleryImages.length - 5}
-                        </ThemedText>
-                      </View>
-                    ) : null}
-                  </Pressable>
-                ))}
-              </View>
-            ) : null}
-          </View>
-          <Pressable
-            style={[styles.viewAllButton, isMobile && styles.viewAllButtonMobile]}
-            onPress={() => setShowGallery(true)}
-          >
-            <Ionicons name="images-outline" size={18} color="#222222" />
-            <ThemedText style={styles.viewAllText}>
-              Ver todas ({galleryImages.length})
-            </ThemedText>
-          </Pressable>
-        </View>
-
-        <View style={[styles.contentSection, isMobile && styles.contentSectionMobile]}>
-          <View style={[styles.mainContent, isMobile && styles.mainContentMobile]}>
-            <View style={styles.titleSection}>
-              <ThemedText style={styles.propertyTitle}>{property.title}</ThemedText>
-              <View style={styles.locationRow}>
-                <Ionicons name="location-outline" size={18} color="#717171" />
-                <ThemedText style={styles.locationText}>{property.location}</ThemedText>
-              </View>
-            </View>
-
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Ionicons name="bed-outline" size={22} color="#222222" />
-                <ThemedText style={styles.statValue}>{property.bedrooms}</ThemedText>
-                <ThemedText style={styles.statLabel}>Habitaciones</ThemedText>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Ionicons name="water-outline" size={22} color="#222222" />
-                <ThemedText style={styles.statValue}>{property.bathrooms}</ThemedText>
-                <ThemedText style={styles.statLabel}>Baños</ThemedText>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Ionicons name="expand-outline" size={22} color="#222222" />
-                <ThemedText style={styles.statValue}>{property.area}</ThemedText>
-                <ThemedText style={styles.statLabel}>m²</ThemedText>
-              </View>
-            </View>
-
-            <View style={styles.divider} />
-
-            <View style={styles.descriptionSection}>
-              <ThemedText style={styles.sectionTitle}>Descripción</ThemedText>
-              <ThemedText style={styles.descriptionText}>
-                {property.descripcionCorta || property.description}
-              </ThemedText>
-              {property.descripcionLarga ? (
-                <ThemedText style={[styles.descriptionText, { marginTop: Spacing.md }]}>
-                  {property.descripcionLarga}
-                </ThemedText>
-              ) : null}
-            </View>
-
-            <View style={styles.divider} />
-
-            {property.caracteristicas && property.caracteristicas.length > 0 ? (
-              <>
-                <View style={styles.featuresSection}>
-                  <ThemedText style={styles.sectionTitle}>Características</ThemedText>
-                  <View style={styles.featuresGrid}>
-                    {property.caracteristicas.map((feature, index) => (
-                      <View key={index} style={styles.featureItem}>
-                        <Ionicons name="checkmark-circle" size={20} color={Colors.light.primary} />
-                        <ThemedText style={styles.featureText}>{feature}</ThemedText>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-                <View style={styles.divider} />
-              </>
-            ) : null}
-
-            {property.proyectoCaracteristicas && property.proyectoCaracteristicas.length > 0 ? (
-              <>
-                <View style={styles.featuresSection}>
-                  <ThemedText style={styles.sectionTitle}>Amenidades del Proyecto</ThemedText>
-                  <View style={styles.featuresGrid}>
-                    {property.proyectoCaracteristicas.map((feature, index) => (
-                      <View key={index} style={styles.featureItem}>
-                        <Ionicons name="star" size={20} color="#FFB800" />
-                        <ThemedText style={styles.featureText}>{feature}</ThemedText>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-                <View style={styles.divider} />
-              </>
-            ) : null}
-          </View>
-
-          <View style={[styles.sidebar, isMobile && styles.sidebarMobile]}>
-            <View style={styles.priceCard}>
-              <View style={styles.priceHeader}>
-                <ThemedText style={styles.priceLabel}>Precio</ThemedText>
-                <ThemedText style={styles.priceValue}>{formatPrice(property.price)}</ThemedText>
-              </View>
-
-              {seller ? (
-                <View style={styles.sellerSection}>
-                  <View style={styles.sellerHeader}>
-                    <View style={styles.sellerAvatar}>
-                      {seller.photoURL ? (
-                        <Image source={{ uri: seller.photoURL }} style={styles.sellerPhoto} />
-                      ) : (
-                        <Ionicons name="person" size={28} color="#717171" />
-                      )}
-                    </View>
-                    <View style={styles.sellerInfo}>
-                      <ThemedText style={styles.sellerName}>{seller.name}</ThemedText>
-                      <ThemedText style={styles.sellerRole}>Agente Inmobiliario</ThemedText>
-                    </View>
-                  </View>
-                  <View style={styles.sellerContact}>
-                    {seller.phone ? (
-                      <View style={styles.contactItem}>
-                        <Ionicons name="call-outline" size={16} color="#717171" />
-                        <ThemedText style={styles.contactText}>{seller.phone}</ThemedText>
-                      </View>
-                    ) : null}
-                    {seller.email ? (
-                      <View style={styles.contactItem}>
-                        <Ionicons name="mail-outline" size={16} color="#717171" />
-                        <ThemedText style={styles.contactText}>{seller.email}</ThemedText>
-                      </View>
-                    ) : null}
-                  </View>
-                </View>
-              ) : null}
-
-              <View style={styles.contactFormSection}>
-                <ThemedText style={styles.formTitle}>Solicitar información</ThemedText>
-
-                {submitSuccess ? (
-                  <View style={styles.successMessage}>
-                    <Ionicons name="checkmark-circle" size={48} color={Colors.light.primary} />
-                    <ThemedText style={styles.successText}>
-                      ¡Gracias! Tu solicitud ha sido enviada.
-                    </ThemedText>
-                    <ThemedText style={styles.successSubtext}>
-                      El agente se pondrá en contacto contigo pronto.
-                    </ThemedText>
-                  </View>
-                ) : (
-                  <>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Tu nombre completo"
-                      placeholderTextColor="#999"
-                      value={contactForm.name}
-                      onChangeText={(text) => setContactForm({ ...contactForm, name: text })}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Tu correo electrónico"
-                      placeholderTextColor="#999"
-                      keyboardType="email-address"
-                      value={contactForm.email}
-                      onChangeText={(text) => setContactForm({ ...contactForm, email: text })}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Tu teléfono"
-                      placeholderTextColor="#999"
-                      keyboardType="phone-pad"
-                      value={contactForm.phone}
-                      onChangeText={(text) => setContactForm({ ...contactForm, phone: text })}
-                    />
-                    <TextInput
-                      style={[styles.input, styles.textArea]}
-                      placeholder="Mensaje (opcional)"
-                      placeholderTextColor="#999"
-                      multiline
-                      numberOfLines={4}
-                      value={contactForm.message}
-                      onChangeText={(text) => setContactForm({ ...contactForm, message: text })}
-                    />
-                    <Pressable
-                      style={[
-                        styles.submitButton,
-                        (!contactForm.name || !contactForm.email || !contactForm.phone) &&
-                        styles.submitButtonDisabled,
-                      ]}
-                      onPress={handleSubmitContact}
-                      disabled={!contactForm.name || !contactForm.email || !contactForm.phone || submitting}
-                    >
-                      {submitting ? (
-                        <ActivityIndicator size="small" color="#FFFFFF" />
-                      ) : (
-                        <ThemedText style={styles.submitButtonText}>Enviar solicitud</ThemedText>
-                      )}
-                    </Pressable>
-                  </>
-                )}
-              </View>
-            </View>
-
-            <View style={styles.trustBadges}>
-              <View style={styles.trustBadge}>
-                <Ionicons name="shield-checkmark-outline" size={24} color={Colors.light.primary} />
-                <ThemedText style={styles.trustText}>Propiedad verificada</ThemedText>
-              </View>
-              <View style={styles.trustBadge}>
-                <Ionicons name="lock-closed-outline" size={24} color={Colors.light.primary} />
-                <ThemedText style={styles.trustText}>Datos seguros</ThemedText>
-              </View>
-              <View style={styles.trustBadge}>
-                <Ionicons name="headset-outline" size={24} color={Colors.light.primary} />
-                <ThemedText style={styles.trustText}>Soporte 24/7</ThemedText>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.footer}>
           <Image
-            source={require("../../assets/images/la_red_blanco_negro3.png")}
-            style={styles.footerLogo}
-            resizeMode="contain"
+            source={{ uri: galleryImages[0] }}
+            style={styles.heroImage}
+            resizeMode="cover"
           />
-          <ThemedText style={styles.footerText}>
-            La Red Inmobiliaria - Tu red de confianza
-          </ThemedText>
-          <ThemedText style={styles.footerCopyright}>
-            © {new Date().getFullYear()} Todos los derechos reservados
-          </ThemedText>
+          <View style={styles.heroOverlay}>
+            <View style={[styles.heroContent, isMobile && styles.heroContentMobile]}>
+              <View style={styles.heroFormContainer}>
+                <ContactFormWeb
+                  userId={params.userId}
+                  propertyId={params.propertyId}
+                  title="Solicitar información"
+                />
+              </View>
+            </View>
+          </View>
         </View>
+
+        {/* 3. Info & Carousel Section */}
+        <View style={[styles.infoSection, isMobile && styles.infoSectionMobile]}>
+          {/* Left Side: Info */}
+          <View style={styles.infoColumn}>
+            <ThemedText style={styles.propertyTitle}>{property.title}</ThemedText>
+            <ThemedText style={styles.propertyPrice}>{formatPrice(property.price)}</ThemedText>
+
+            <View style={styles.locationRow}>
+              <Ionicons name="location-outline" size={20} color="#717171" />
+              <ThemedText style={styles.locationText}>{property.location}</ThemedText>
+            </View>
+
+            <View style={styles.divider} />
+
+            <ThemedText style={styles.sectionTitle}>Descripción</ThemedText>
+            <ThemedText style={styles.descriptionText}>
+              {property.descripcionCorta || property.description}
+            </ThemedText>
+            {property.descripcionLarga && (
+              <ThemedText style={[styles.descriptionText, { marginTop: Spacing.md }]}>
+                {property.descripcionLarga}
+              </ThemedText>
+            )}
+
+            <View style={styles.divider} />
+
+            <ThemedText style={styles.sectionTitle}>Características</ThemedText>
+            <View style={styles.featuresGrid}>
+              <View style={styles.featureItem}>
+                <Ionicons name="bed-outline" size={20} color="#555" />
+                <ThemedText style={styles.featureText}>{property.bedrooms} Habitaciones</ThemedText>
+              </View>
+              <View style={styles.featureItem}>
+                <Ionicons name="water-outline" size={20} color="#555" />
+                <ThemedText style={styles.featureText}>{property.bathrooms} Baños</ThemedText>
+              </View>
+              <View style={styles.featureItem}>
+                <Ionicons name="expand-outline" size={20} color="#555" />
+                <ThemedText style={styles.featureText}>{property.area} m²</ThemedText>
+              </View>
+              {property.caracteristicas?.map((feature, index) => (
+                <View key={index} style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle-outline" size={20} color={Colors.light.primary} />
+                  <ThemedText style={styles.featureText}>{feature}</ThemedText>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* Right Side: Carousel/Gallery */}
+          <View style={styles.carouselColumn}>
+            <View style={styles.galleryGrid}>
+              {galleryImages.slice(0, 4).map((img, index) => (
+                <Pressable
+                  key={index}
+                  style={styles.galleryGridItem}
+                  onPress={() => {
+                    setCurrentImageIndex(index);
+                    setShowGallery(true);
+                  }}
+                >
+                  <Image source={{ uri: img }} style={styles.galleryGridImage} resizeMode="cover" />
+                  {index === 3 && galleryImages.length > 4 && (
+                    <View style={styles.moreImagesOverlay}>
+                      <ThemedText style={styles.moreImagesText}>+{galleryImages.length - 4}</ThemedText>
+                    </View>
+                  )}
+                </Pressable>
+              ))}
+            </View>
+            <Pressable style={styles.viewAllButton} onPress={() => setShowGallery(true)}>
+              <Ionicons name="images-outline" size={18} color="#222" />
+              <ThemedText style={styles.viewAllText}>Ver galería completa</ThemedText>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* 4. Location Section (Masterplan) */}
+        {masterplanImage && (
+          <View style={[styles.sectionContainer, isMobile && styles.sectionContainerMobile]}>
+            <ThemedText style={styles.sectionHeaderTitle}>Ubicación del Proyecto</ThemedText>
+            <View style={styles.masterplanContainer}>
+              <Image source={{ uri: masterplanImage }} style={styles.masterplanImage} resizeMode="contain" />
+            </View>
+          </View>
+        )}
+
+        {/* 5. Amenities Section */}
+        {property.proyectoCaracteristicas && property.proyectoCaracteristicas.length > 0 && (
+          <View style={[styles.sectionContainer, { backgroundColor: '#F7F7F7' }, isMobile && styles.sectionContainerMobile]}>
+            <ThemedText style={styles.sectionHeaderTitle}>Amenidades del Proyecto</ThemedText>
+            <View style={styles.amenitiesGrid}>
+              {property.proyectoCaracteristicas.map((amenity, index) => (
+                <View key={index} style={styles.amenityCard}>
+                  <Ionicons name="star" size={24} color="#FFB800" />
+                  <ThemedText style={styles.amenityText}>{amenity}</ThemedText>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* 6. Contact Form Section */}
+        <View style={[styles.sectionContainer, isMobile && styles.sectionContainerMobile]}>
+          <View style={{ maxWidth: 600, width: '100%', alignSelf: 'center' }}>
+            <ContactFormWeb
+              userId={params.userId}
+              propertyId={params.propertyId}
+              title="¿Te interesa esta propiedad?"
+            />
+          </View>
+        </View>
+
+        {/* 7. Footer */}
+        <View style={[styles.footer, isMobile && styles.footerMobile]}>
+          <View style={styles.footerContent}>
+            <View style={styles.footerColumn}>
+              <Image
+                source={require("../../assets/images/la_red_blanco_negro3.png")}
+                style={styles.footerLogo}
+                resizeMode="contain"
+              />
+              <ThemedText style={styles.footerDescription}>
+                La Red Inmobiliaria es tu plataforma de confianza para encontrar la propiedad de tus sueños.
+              </ThemedText>
+            </View>
+
+            <View style={styles.footerColumn}>
+              <ThemedText style={styles.footerTitle}>Enlaces Rápidos</ThemedText>
+              <ThemedText style={styles.footerLink}>Inicio</ThemedText>
+              <ThemedText style={styles.footerLink}>Propiedades</ThemedText>
+              <ThemedText style={styles.footerLink}>Blog</ThemedText>
+              <ThemedText style={styles.footerLink}>Contacto</ThemedText>
+            </View>
+
+            <View style={styles.footerColumn}>
+              <ThemedText style={styles.footerTitle}>Contacto</ThemedText>
+              <View style={styles.contactRow}>
+                <Ionicons name="location-outline" size={18} color="#717171" />
+                <ThemedText style={styles.contactText}>Ciudad de Guatemala, Guatemala</ThemedText>
+              </View>
+              <View style={styles.contactRow}>
+                <Ionicons name="mail-outline" size={18} color="#717171" />
+                <ThemedText style={styles.contactText}>info@laredinmobiliaria.com</ThemedText>
+              </View>
+              <View style={styles.contactRow}>
+                <Ionicons name="call-outline" size={18} color="#717171" />
+                <ThemedText style={styles.contactText}>+502 1234 5678</ThemedText>
+              </View>
+            </View>
+          </View>
+          <View style={styles.footerBottom}>
+            <ThemedText style={styles.copyrightText}>
+              © {new Date().getFullYear()} La Red Inmobiliaria. Todos los derechos reservados.
+            </ThemedText>
+          </View>
+        </View>
+
       </ScrollView>
 
+      {/* Gallery Modal */}
       <Modal visible={showGallery} animationType="fade" onRequestClose={() => setShowGallery(false)}>
         <View style={styles.galleryModal}>
-          <View style={styles.galleryHeader}>
-            <Pressable onPress={() => setShowGallery(false)} style={styles.galleryCloseButton}>
-              <Ionicons name="close" size={28} color="#222222" />
-            </Pressable>
-            <ThemedText style={styles.galleryCounter}>
-              {currentImageIndex + 1} / {galleryImages.length}
-            </ThemedText>
-            <View style={{ width: 40 }} />
-          </View>
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            contentOffset={{ x: currentImageIndex * width, y: 0 }}
-            onMomentumScrollEnd={(e) => {
-              const newIndex = Math.round(e.nativeEvent.contentOffset.x / width);
-              setCurrentImageIndex(newIndex);
-            }}
-          >
-            {galleryImages.map((img, index) => (
-              <View key={index} style={[styles.galleryImageWrapper, { width }]}>
-                <Image source={{ uri: img }} style={styles.galleryImage} resizeMode="contain" />
-              </View>
-            ))}
-          </ScrollView>
-          <View style={styles.galleryNavigation}>
+          <Pressable onPress={() => setShowGallery(false)} style={styles.closeButton}>
+            <Ionicons name="close" size={32} color="#fff" />
+          </Pressable>
+          <Image
+            source={{ uri: galleryImages[currentImageIndex] }}
+            style={styles.modalImage}
+            resizeMode="contain"
+          />
+          <View style={styles.modalControls}>
             <Pressable
-              style={[styles.navButton, currentImageIndex === 0 && styles.navButtonDisabled]}
               onPress={() => setCurrentImageIndex(Math.max(0, currentImageIndex - 1))}
               disabled={currentImageIndex === 0}
             >
-              <Ionicons name="chevron-back" size={32} color={currentImageIndex === 0 ? "#CCC" : "#222"} />
+              <Ionicons name="chevron-back" size={48} color={currentImageIndex > 0 ? "#fff" : "#555"} />
             </Pressable>
+            <ThemedText style={{ color: '#fff' }}>{currentImageIndex + 1} / {galleryImages.length}</ThemedText>
             <Pressable
-              style={[
-                styles.navButton,
-                currentImageIndex === galleryImages.length - 1 && styles.navButtonDisabled,
-              ]}
               onPress={() => setCurrentImageIndex(Math.min(galleryImages.length - 1, currentImageIndex + 1))}
               disabled={currentImageIndex === galleryImages.length - 1}
             >
-              <Ionicons
-                name="chevron-forward"
-                size={32}
-                color={currentImageIndex === galleryImages.length - 1 ? "#CCC" : "#222"}
-              />
+              <Ionicons name="chevron-forward" size={48} color={currentImageIndex < galleryImages.length - 1 ? "#fff" : "#555"} />
             </Pressable>
           </View>
         </View>
       </Modal>
+
     </View>
   );
 }
@@ -527,26 +361,26 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   centerContent: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
   loadingText: {
-    marginTop: Spacing.lg,
-    fontSize: 16,
+    marginTop: Spacing.md,
     color: "#717171",
   },
   errorText: {
-    marginTop: Spacing.lg,
+    marginTop: Spacing.md,
     fontSize: 18,
     color: "#717171",
   },
   header: {
+    height: 70,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#EBEBEB",
-    paddingVertical: Spacing.md,
-    paddingHorizontal: 90,
-    position: "fixed" as any,
+    justifyContent: "center",
+    position: 'fixed' as any,
     top: 0,
     left: 0,
     right: 0,
@@ -556,13 +390,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    maxWidth: 1400,
-    marginHorizontal: "auto",
+    maxWidth: 1200,
     width: "100%",
-  },
-  logoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    alignSelf: "center",
+    paddingHorizontal: Spacing.xl,
   },
   logo: {
     width: 120,
@@ -570,224 +401,118 @@ const styles = StyleSheet.create({
   },
   headerRight: {
     flexDirection: "row",
-    alignItems: "center",
     gap: Spacing.md,
   },
-  shareButton: {
+  headerButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.xs,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
     backgroundColor: "#F7F7F7",
+    borderRadius: BorderRadius.full,
   },
-  shareButtonText: {
+  headerButtonText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#222222",
+    color: "#222",
   },
   scrollView: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingTop: 70,
-  },
-  scrollContentMobile: {
-    paddingTop: 60,
+    marginTop: 70, // Header height
   },
   heroSection: {
-    paddingHorizontal: 90,
-    paddingTop: Spacing.xl,
+    height: 600, // Full screen-ish
+    width: "100%",
     position: "relative",
+  },
+  heroImage: {
+    width: "100%",
+    height: "100%",
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+  },
+  heroContent: {
+    maxWidth: 1200,
+    width: "100%",
+    alignSelf: "center",
+    paddingHorizontal: Spacing.xl,
+    flexDirection: "row",
+    justifyContent: "flex-start", // Left align
   },
   heroSectionMobile: {
-    paddingHorizontal: Spacing.lg,
+    height: 550,
   },
-  imageGallery: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    borderRadius: BorderRadius.lg,
-    overflow: "hidden",
-  },
-  imageGalleryMobile: {
-    flexDirection: "column",
-  },
-  mainImageContainer: {
-    flex: 2,
-    height: 450,
-    position: "relative",
-  },
-  mainImageContainerMobile: {
-    height: 280,
-    flex: 1,
-  },
-  mainImage: {
-    width: "100%",
-    height: "100%",
-    borderTopLeftRadius: BorderRadius.lg,
-    borderBottomLeftRadius: BorderRadius.lg,
-  },
-  imageOverlay: {
-    position: "absolute",
-    top: Spacing.md,
-    left: Spacing.md,
-  },
-  propertyBadge: {
-    backgroundColor: Colors.light.primary,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-  },
-  badgeText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  thumbnailGrid: {
-    flex: 1,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.sm,
-  },
-  thumbnailContainer: {
-    width: "48%",
-    height: "48%",
-    position: "relative",
-  },
-  thumbnailTopRight: {
-    borderTopRightRadius: BorderRadius.lg,
-    overflow: "hidden",
-  },
-  thumbnailBottomRight: {
-    borderBottomRightRadius: BorderRadius.lg,
-    overflow: "hidden",
-  },
-  thumbnail: {
-    width: "100%",
-    height: "100%",
-  },
-  moreImagesOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
+  heroContentMobile: {
     justifyContent: "center",
-    alignItems: "center",
   },
-  moreImagesText: {
-    color: "#FFFFFF",
-    fontSize: 24,
-    fontWeight: "700",
+  heroFormContainer: {
+    width: 400,
+    maxWidth: "100%",
+    backgroundColor: "rgba(255,255,255,0.95)",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
   },
-  viewAllButton: {
-    position: "absolute",
-    bottom: Spacing.lg,
-    right: 90 + Spacing.lg,
+  infoSection: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-    ...Shadows.card,
-  },
-  viewAllButtonMobile: {
-    right: Spacing.lg + Spacing.lg,
-  },
-  viewAllText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#222222",
-  },
-  contentSection: {
-    flexDirection: "row",
-    paddingHorizontal: 90,
-    paddingTop: Spacing.xl * 2,
+    maxWidth: 1200,
+    width: "100%",
+    alignSelf: "center",
+    paddingVertical: Spacing.xl * 2,
+    paddingHorizontal: Spacing.xl,
     gap: Spacing.xl * 2,
   },
-  contentSectionMobile: {
+  infoSectionMobile: {
     flexDirection: "column",
-    paddingHorizontal: Spacing.lg,
-    gap: Spacing.xl,
+    paddingVertical: Spacing.xl,
+    gap: Spacing.lg,
   },
-  mainContent: {
+  infoColumn: {
     flex: 1,
-    maxWidth: 700,
   },
-  mainContentMobile: {
-    maxWidth: "100%",
-  },
-  titleSection: {
-    marginBottom: Spacing.lg,
+  carouselColumn: {
+    flex: 1,
   },
   propertyTitle: {
     fontSize: 32,
     fontWeight: "700",
-    color: "#222222",
-    marginBottom: Spacing.sm,
+    color: "#222",
+    marginBottom: Spacing.xs,
+  },
+  propertyPrice: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: Colors.light.primary,
+    marginBottom: Spacing.md,
   },
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.xs,
+    marginBottom: Spacing.lg,
   },
   locationText: {
     fontSize: 16,
     color: "#717171",
   },
-  statsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    backgroundColor: "#F7F7F7",
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    gap: Spacing.xl,
-    marginBottom: Spacing.lg,
-  },
-  statItem: {
-    alignItems: "center",
-    gap: Spacing.xs,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#222222",
-  },
-  statLabel: {
-    fontSize: 14,
-    color: "#717171",
-  },
-  statDivider: {
-    width: 1,
-    height: 50,
-    backgroundColor: "#DDDDDD",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#EBEBEB",
-    marginVertical: Spacing.xl,
-  },
-  descriptionSection: {
-    gap: Spacing.md,
-  },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "700",
-    color: "#222222",
+    color: "#222",
     marginBottom: Spacing.sm,
   },
   descriptionText: {
     fontSize: 16,
-    lineHeight: 26,
-    color: "#484848",
+    lineHeight: 24,
+    color: "#444",
   },
-  featuresSection: {
-    gap: Spacing.md,
+  divider: {
+    height: 1,
+    backgroundColor: "#EBEBEB",
+    marginVertical: Spacing.lg,
   },
   featuresGrid: {
     flexDirection: "row",
@@ -797,237 +522,201 @@ const styles = StyleSheet.create({
   featureItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.sm,
+    gap: Spacing.xs,
     width: "48%",
-    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.sm,
   },
   featureText: {
     fontSize: 15,
-    color: "#222222",
-    flex: 1,
+    color: "#444",
   },
-  sidebar: {
-    width: 380,
-  },
-  sidebarMobile: {
-    width: "100%",
-  },
-  priceCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: "#EBEBEB",
-    padding: Spacing.xl,
-    ...Shadows.card,
-  },
-  priceHeader: {
-    marginBottom: Spacing.lg,
-  },
-  priceLabel: {
-    fontSize: 14,
-    color: "#717171",
-    marginBottom: Spacing.xs,
-  },
-  priceValue: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: "#222222",
-  },
-  sellerSection: {
-    borderTopWidth: 1,
-    borderTopColor: "#EBEBEB",
-    paddingTop: Spacing.lg,
-    marginBottom: Spacing.lg,
-  },
-  sellerHeader: {
+  galleryGrid: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.md,
-    marginBottom: Spacing.md,
+    flexWrap: "wrap",
+    gap: Spacing.sm,
   },
-  sellerAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#F7F7F7",
-    justifyContent: "center",
-    alignItems: "center",
+  galleryGridItem: {
+    width: "48%",
+    aspectRatio: 1.5,
+    borderRadius: BorderRadius.md,
     overflow: "hidden",
+    position: 'relative',
   },
-  sellerPhoto: {
+  galleryGridImage: {
     width: "100%",
     height: "100%",
   },
-  sellerInfo: {
-    flex: 1,
+  moreImagesOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  sellerName: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#222222",
+  moreImagesText: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
   },
-  sellerRole: {
-    fontSize: 14,
-    color: "#717171",
-  },
-  sellerContact: {
-    gap: Spacing.sm,
-  },
-  contactItem: {
+  viewAllButton: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.sm,
-  },
-  contactText: {
-    fontSize: 14,
-    color: "#484848",
-  },
-  contactFormSection: {
-    borderTopWidth: 1,
-    borderTopColor: "#EBEBEB",
-    paddingTop: Spacing.lg,
-  },
-  formTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#222222",
-    marginBottom: Spacing.md,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#DDDDDD",
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    fontSize: 16,
-    marginBottom: Spacing.md,
-    backgroundColor: "#FFFFFF",
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: "top",
-  },
-  submitButton: {
-    backgroundColor: Colors.light.primary,
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.md,
-    alignItems: "center",
-  },
-  submitButtonDisabled: {
-    backgroundColor: "#DDDDDD",
-  },
-  submitButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  successMessage: {
-    alignItems: "center",
-    paddingVertical: Spacing.xl,
-  },
-  successText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#222222",
+    justifyContent: 'center',
+    gap: Spacing.xs,
     marginTop: Spacing.md,
-    textAlign: "center",
+    padding: Spacing.sm,
+    borderWidth: 1,
+    borderColor: '#EBEBEB',
+    borderRadius: BorderRadius.full,
   },
-  successSubtext: {
+  viewAllText: {
     fontSize: 14,
-    color: "#717171",
-    marginTop: Spacing.sm,
-    textAlign: "center",
+    fontWeight: "600",
+    color: "#222",
   },
-  trustBadges: {
-    marginTop: Spacing.lg,
-    gap: Spacing.md,
+  sectionContainer: {
+    maxWidth: 1200,
+    width: "100%",
+    alignSelf: "center",
+    paddingVertical: Spacing.xl * 2,
+    paddingHorizontal: Spacing.xl,
   },
-  trustBadge: {
+  sectionHeaderTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#222",
+    marginBottom: Spacing.xl,
+    textAlign: 'center',
+  },
+  sectionContainerMobile: {
+    paddingVertical: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+  },
+  masterplanContainer: {
+    width: "100%",
+    height: 500,
+    backgroundColor: "#F9F9F9",
+    borderRadius: BorderRadius.lg,
+    overflow: "hidden",
+  },
+  masterplanImage: {
+    width: "100%",
+    height: "100%",
+  },
+  amenitiesGrid: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.sm,
-    backgroundColor: "#F7F7F7",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: Spacing.lg,
   },
-  trustText: {
+  amenityCard: {
+    width: 150,
+    padding: Spacing.lg,
+    backgroundColor: "#FFFFFF",
+    borderRadius: BorderRadius.lg,
+    alignItems: "center",
+    gap: Spacing.md,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  amenityText: {
     fontSize: 14,
-    color: "#484848",
+    textAlign: "center",
+    color: "#444",
   },
   footer: {
-    backgroundColor: "#F7F7F7",
-    paddingVertical: Spacing.xl * 2,
-    alignItems: "center",
-    marginTop: Spacing.xl * 3,
+    backgroundColor: "#1A1A1A",
+    paddingTop: Spacing.xl * 3,
+    paddingBottom: Spacing.xl,
+  },
+  footerMobile: {
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.lg,
+  },
+  footerContent: {
+    maxWidth: 1200,
+    width: "100%",
+    alignSelf: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.xl,
+    flexWrap: 'wrap',
+    gap: Spacing.xl,
+  },
+  footerColumn: {
+    flex: 1,
+    minWidth: 250,
   },
   footerLogo: {
-    width: 100,
-    height: 40,
+    width: 150,
+    height: 50,
+    tintColor: "#FFFFFF",
     marginBottom: Spacing.md,
   },
-  footerText: {
-    fontSize: 16,
-    color: "#484848",
-    marginBottom: Spacing.sm,
-  },
-  footerCopyright: {
+  footerDescription: {
+    color: "#CCCCCC",
+    lineHeight: 24,
     fontSize: 14,
-    color: "#717171",
+  },
+  footerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    marginBottom: Spacing.lg,
+  },
+  footerLink: {
+    color: "#CCCCCC",
+    marginBottom: Spacing.md,
+    fontSize: 14,
+  },
+  contactRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  contactText: {
+    color: "#CCCCCC",
+    fontSize: 14,
+  },
+  footerBottom: {
+    maxWidth: 1200,
+    width: "100%",
+    alignSelf: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#333",
+    marginTop: Spacing.xl * 2,
+    paddingTop: Spacing.xl,
+    paddingHorizontal: Spacing.xl,
+    alignItems: "center",
+  },
+  copyrightText: {
+    color: "#666",
+    fontSize: 14,
   },
   galleryModal: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  galleryHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: "#EBEBEB",
-  },
-  galleryCloseButton: {
-    width: 40,
-    height: 40,
+    backgroundColor: "#000",
     justifyContent: "center",
     alignItems: "center",
   },
-  galleryCounter: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#222222",
+  closeButton: {
+    position: "absolute",
+    top: 40,
+    right: 20,
+    zIndex: 10,
+    padding: 10,
   },
-  galleryImageWrapper: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: Spacing.lg,
-  },
-  galleryImage: {
+  modalImage: {
     width: "100%",
     height: "80%",
   },
-  galleryNavigation: {
-    position: "absolute",
-    bottom: "50%",
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-  },
-  navButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    ...Shadows.card,
-  },
-  navButtonDisabled: {
-    opacity: 0.5,
+  modalControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xl,
+    marginTop: Spacing.lg,
   },
 });

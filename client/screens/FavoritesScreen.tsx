@@ -260,9 +260,9 @@ export default function FavoritesScreen() {
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: headerHeight + Spacing.lg,
             paddingBottom: isWeb ? Spacing.xl : tabBarHeight + Spacing.xl,
           },
+          isMobileWeb && { paddingHorizontal: Spacing.md },
           favoriteProperties.length === 0 && !loading ? styles.emptyContent : null,
         ]}
         showsVerticalScrollIndicator={false}

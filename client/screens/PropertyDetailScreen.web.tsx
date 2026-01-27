@@ -246,12 +246,12 @@ export default function PropertyDetailScreenWeb() {
   return (
     <View style={[styles.container, { backgroundColor: "#FFFFFF" }]}>
       <WebNavbar activeTabOverride={sourceTab} />
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, isMobile && styles.scrollContentMobile]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
+        <View style={[styles.header, isMobile && styles.headerMobile]}>
           <Pressable onPress={handleBack} style={styles.backButton}>
             <Ionicons name="arrow-back" size={20} color="#222222" />
           </Pressable>
@@ -356,7 +356,7 @@ export default function PropertyDetailScreenWeb() {
 
             <View style={styles.descriptionSection}>
               <ThemedText style={styles.sectionTitle}>Acerca de este espacio</ThemedText>
-              <ThemedText 
+              <ThemedText
                 style={styles.descriptionText}
                 numberOfLines={showFullDescription ? undefined : 4}
               >
@@ -450,7 +450,7 @@ export default function PropertyDetailScreenWeb() {
             </ThemedText>
             <View style={{ width: 40 }} />
           </View>
-          <ScrollView 
+          <ScrollView
             style={styles.galleryScrollView}
             contentContainerStyle={styles.galleryContent}
             showsVerticalScrollIndicator={false}
@@ -1077,5 +1077,12 @@ const styles = StyleSheet.create({
     position: "relative",
     top: 0,
     width: "100%",
+  },
+  headerMobile: {
+    paddingHorizontal: Spacing.md,
+  },
+  scrollContentMobile: {
+    paddingBottom: Spacing.xl,
+    paddingTop: 60 + Spacing.md,
   },
 });

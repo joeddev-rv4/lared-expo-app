@@ -375,8 +375,8 @@ export default function ExploreScreen() {
         onPress={() => handleProjectPress(project)}
         style={({ pressed }) => [
           styles.horizontalProjectCard,
-          { 
-            backgroundColor: theme.backgroundRoot, 
+          {
+            backgroundColor: theme.backgroundRoot,
             opacity: pressed ? 0.9 : 1,
             borderColor: isSelected ? Colors.light.primary : "transparent",
             borderWidth: isSelected ? 2 : 0,
@@ -413,8 +413,8 @@ export default function ExploreScreen() {
         onPress={() => handleProjectPress(project)}
         style={({ pressed }) => [
           styles.expandedProjectCard,
-          { 
-            backgroundColor: theme.backgroundRoot, 
+          {
+            backgroundColor: theme.backgroundRoot,
             opacity: pressed ? 0.9 : 1,
             borderColor: isSelected ? Colors.light.primary : "transparent",
             borderWidth: isSelected ? 2 : 0,
@@ -467,8 +467,8 @@ export default function ExploreScreen() {
           </Pressable>
         ) : null}
         {!hideArrow ? (
-          <Pressable 
-            onPress={() => handleExpandSection(section)} 
+          <Pressable
+            onPress={() => handleExpandSection(section)}
             style={styles.expandArrowButton}
           >
             <Ionicons name="chevron-forward" size={24} color="#bf0a0a" />
@@ -508,7 +508,7 @@ export default function ExploreScreen() {
     }
 
     const data = getSectionData(expandedSection);
-    
+
     return isWeb ? (
       <View style={styles.webGrid}>
         {data.map((item) => (
@@ -635,6 +635,7 @@ export default function ExploreScreen() {
               paddingTop: isWeb ? headerHeight : headerHeight + Spacing.lg,
               paddingBottom: isWeb ? Spacing.xl : tabBarHeight + Spacing.xl,
             },
+            isMobileWeb && { paddingHorizontal: Spacing.md },
           ]}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -664,6 +665,7 @@ export default function ExploreScreen() {
             paddingTop: isWeb ? headerHeight : headerHeight + Spacing.lg,
             paddingBottom: isWeb ? Spacing.xl : tabBarHeight + Spacing.xl,
           },
+          isMobileWeb && { paddingHorizontal: Spacing.md },
         ]}
         showsVerticalScrollIndicator={false}
         refreshControl={

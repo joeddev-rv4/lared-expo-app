@@ -15,6 +15,7 @@ import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useTheme } from "@/hooks/useTheme";
 import { hasCompletedOnboarding, getUserProfile } from "@/lib/storage";
 import { Colors } from "@/constants/theme";
+import { useAuth } from "@/contexts/AuthContext";
 import { Property } from "@/data/properties";
 
 const isWeb = Platform.OS === "web";
@@ -35,15 +36,25 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function RootStackNavigator() {
   const screenOptions = useScreenOptions();
   const { theme } = useTheme();
+  const { isInitializing, user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>("Onboarding");
 
   useEffect(() => {
-    checkInitialRoute();
-  }, []);
+    if (!isInitializing) {
+      checkInitialRoute();
+    }
+  }, [isInitializing, user]);
 
   const checkInitialRoute = async () => {
     try {
+      // If user is already authenticated (session restored), go to Main
+      if (user) {
+        setInitialRoute("Main");
+        setIsLoading(false);
+        return;
+      }
+
       const onboardingComplete = await hasCompletedOnboarding();
 
       if (!isWeb) {
@@ -51,7 +62,7 @@ export default function RootStackNavigator() {
       } else if (!onboardingComplete) {
         setInitialRoute("Onboarding");
       } else {
-        // Always start at Login - let Firebase auth handle user state
+        // Default to Login if no user and onboarding complete
         setInitialRoute("Login");
       }
     } catch (error) {
@@ -61,7 +72,7 @@ export default function RootStackNavigator() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isInitializing) {
     return (
       <View
         style={{

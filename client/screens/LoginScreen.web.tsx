@@ -95,15 +95,12 @@ export default function LoginScreenWeb() {
     if (showErrorPopup) {
       Animated.spring(errorSlideAnim, {
         toValue: 0,
-        toValue: 0,
         useNativeDriver: false,
         tension: 65,
         friction: 8,
       }).start();
     } else {
       Animated.timing(errorSlideAnim, {
-        toValue: 300,
-        duration: 200,
         toValue: 300,
         duration: 200,
         useNativeDriver: false,
@@ -446,11 +443,11 @@ export default function LoginScreenWeb() {
           <View style={styles.authContainer}>
             <Image
               source={require("../../assets/images/icon.png")}
-              style={styles.logo}
+              style={[styles.logo, isMobile && styles.logoMobile]}
               resizeMode="contain"
             />
-            <ThemedText style={styles.appName}>La Red Inmobiliaria</ThemedText>
-            <ThemedText style={[styles.tagline, { color: theme.textSecondary }]}>
+            <ThemedText style={[styles.appName, isMobile && styles.appNameMobile]}>La Red Inmobiliaria</ThemedText>
+            <ThemedText style={[styles.tagline, { color: theme.textSecondary }, isMobile && styles.taglineMobile]}>
               Hecha por vendedores, para vendedores
             </ThemedText>
 
@@ -1914,7 +1911,22 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   rightPanelMobile: {
-    padding: Spacing.lg,
+    padding: Spacing.md,
+    justifyContent: 'flex-start',
+    paddingTop: Spacing["2xl"],
+  },
+  logoMobile: {
+    width: 80,
+    height: 80,
+    marginBottom: Spacing.md,
+  },
+  appNameMobile: {
+    fontSize: 24,
+    marginBottom: Spacing.xs,
+  },
+  taglineMobile: {
+    marginBottom: Spacing.xl,
+    fontSize: 14,
   },
   codeContainer: {
     flexDirection: 'row',

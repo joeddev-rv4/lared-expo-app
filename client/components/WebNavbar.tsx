@@ -122,7 +122,7 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isMobile && styles.containerMobile]}>
       <View style={styles.navbarWrapper}>
         <View style={styles.topBar}>
           <View
@@ -131,99 +131,99 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
               isMobile && styles.innerContainerMobile,
             ]}
           >
-          <Pressable
-            style={[
-              styles.logoContainer,
-              isMobile && styles.logoContainerMobile,
-            ]}
-            onPress={() => handleNavPress("ExploreTab")}
-          >
-            <Image
-              source={require("../../assets/images/icon.png")}
-              style={[styles.logoIcon, isMobile && styles.logoIconMobile]}
-              resizeMode="contain"
-            />
-          </Pressable>
-
-          {!isMobile ? (
-            <View style={styles.navItems}>
-              {NAV_ITEMS.map((item) => {
-                const isActive = getIsActive(item.key, item.route);
-
-                return (
-                  <Pressable
-                    key={item.key}
-                    onPress={() => handleNavPress(item.route)}
-                    style={({ pressed }) => [
-                      styles.navItem,
-                      { opacity: pressed ? 0.7 : 1 },
-                    ]}
-                  >
-                    <View style={styles.navItemContent}>
-                      {item.icon ? (
-                        <Image
-                          source={item.icon}
-                          style={[
-                            styles.navIcon,
-                            isActive && styles.navIconActive,
-                          ]}
-                          resizeMode="contain"
-                        />
-                      ) : null}
-                      <ThemedText
-                        style={[
-                          styles.navLabel,
-                          isActive && styles.navLabelActive,
-                        ]}
-                      >
-                        {item.label}
-                      </ThemedText>
-                    </View>
-                    {isActive ? <View style={styles.activeIndicator} /> : null}
-                  </Pressable>
-                );
-              })}
-            </View>
-          ) : null}
-
-          <View style={styles.rightSection}>
-            {!isMobile ? (
-              <Pressable
-                style={[
-                  styles.sellerButton,
-                  sellerHovered && styles.sellerButtonHovered,
-                ]}
-                onHoverIn={() => setSellerHovered(true)}
-                onHoverOut={() => setSellerHovered(false)}
-              >
-                <ThemedText
-                  style={[
-                    styles.sellerButtonText,
-                    sellerHovered && styles.sellerButtonTextHovered,
-                  ]}
-                >
-                  Conviértete en vendedor
-                </ThemedText>
-              </Pressable>
-            ) : null}
-
-            <Pressable style={styles.profileButton}>
+            <Pressable
+              style={[
+                styles.logoContainer,
+                isMobile && styles.logoContainerMobile,
+              ]}
+              onPress={() => handleNavPress("ExploreTab")}
+            >
               <Image
-                source={{
-                  uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-                }}
-                style={styles.profileImage}
+                source={require("../../assets/images/icon.png")}
+                style={[styles.logoIcon, isMobile && styles.logoIconMobile]}
+                resizeMode="contain"
               />
             </Pressable>
 
-            <Pressable
-              style={styles.menuButton}
-              onPress={() => setMenuVisible(true)}
-            >
-              <Ionicons name="menu" size={20} color="#222222" />
-            </Pressable>
+            {!isMobile ? (
+              <View style={styles.navItems}>
+                {NAV_ITEMS.map((item) => {
+                  const isActive = getIsActive(item.key, item.route);
+
+                  return (
+                    <Pressable
+                      key={item.key}
+                      onPress={() => handleNavPress(item.route)}
+                      style={({ pressed }) => [
+                        styles.navItem,
+                        { opacity: pressed ? 0.7 : 1 },
+                      ]}
+                    >
+                      <View style={styles.navItemContent}>
+                        {item.icon ? (
+                          <Image
+                            source={item.icon}
+                            style={[
+                              styles.navIcon,
+                              isActive && styles.navIconActive,
+                            ]}
+                            resizeMode="contain"
+                          />
+                        ) : null}
+                        <ThemedText
+                          style={[
+                            styles.navLabel,
+                            isActive && styles.navLabelActive,
+                          ]}
+                        >
+                          {item.label}
+                        </ThemedText>
+                      </View>
+                      {isActive ? <View style={styles.activeIndicator} /> : null}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
+
+            <View style={styles.rightSection}>
+              {!isMobile ? (
+                <Pressable
+                  style={[
+                    styles.sellerButton,
+                    sellerHovered && styles.sellerButtonHovered,
+                  ]}
+                  onHoverIn={() => setSellerHovered(true)}
+                  onHoverOut={() => setSellerHovered(false)}
+                >
+                  <ThemedText
+                    style={[
+                      styles.sellerButtonText,
+                      sellerHovered && styles.sellerButtonTextHovered,
+                    ]}
+                  >
+                    Conviértete en vendedor
+                  </ThemedText>
+                </Pressable>
+              ) : null}
+
+              <Pressable style={styles.profileButton}>
+                <Image
+                  source={{
+                    uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
+                  }}
+                  style={styles.profileImage}
+                />
+              </Pressable>
+
+              <Pressable
+                style={styles.menuButton}
+                onPress={() => setMenuVisible(true)}
+              >
+                <Ionicons name="menu" size={20} color="#222222" />
+              </Pressable>
+            </View>
           </View>
-        </View>
         </View>
       </View>
 
@@ -437,5 +437,10 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     marginVertical: -15,
+  },
+  containerMobile: {
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.sm,
+    paddingBottom: 0,
   },
 });

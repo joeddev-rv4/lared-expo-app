@@ -20,7 +20,9 @@ interface AuthContextType {
   loginGoogle: () => Promise<boolean>;
   loginFacebook: () => Promise<boolean>;
   loginAsGuest: () => void;
+
   logout: () => Promise<void>;
+  isInitializing: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,6 +41,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
   const queryClient = useQueryClient();
   const navigation = useNavigation<NavigationProp>();
@@ -78,6 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         queryClient.setQueryData(['user'], null);
         await clearUserId();
       }
+      setIsInitializing(false);
     });
 
     return () => unsubscribe();
@@ -105,15 +109,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const result = await loginWithGoogle();
-      
+
       if (result.user.status === UserStatus.BLOCKED) {
         await logout();
         throw new Error('User is blocked');
       }
-      
+
       queryClient.setQueryData(['user'], result.user);
       await setUserId(result.user.id);
-      
+
       return result.isNewUser;
     } catch (error) {
       throw error;
@@ -126,15 +130,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const result = await loginWithFacebook();
-      
+
       if (result.user.status === UserStatus.BLOCKED) {
         await logout();
         throw new Error('User is blocked');
       }
-      
+
       queryClient.setQueryData(['user'], result.user);
       await setUserId(result.user.id);
-      
+
       return result.isNewUser;
     } catch (error) {
       throw error;
@@ -157,7 +161,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isGuest, login, loginGoogle, loginFacebook, loginAsGuest, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, isGuest, login, loginGoogle, loginFacebook, loginAsGuest, logout, isInitializing }}>
       {children}
     </AuthContext.Provider>
   );
