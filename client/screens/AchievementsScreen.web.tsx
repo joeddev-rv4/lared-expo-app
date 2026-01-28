@@ -22,19 +22,6 @@ const METRICS = {
 
 const BRAND_BLUE = '#044bb8';
 
-const CHART_DATA = {
-    Month: [
-        { label: "Ganancias estimadas", values: [85] },
-        { label: "Propiedades asignadas", values: [65] },
-        { label: "Clientes obtenidos", values: [45] },
-    ],
-    Week: [
-        { label: "Ganancias estimadas", values: [85] },
-        { label: "Propiedades asignadas", values: [65] },
-        { label: "Clientes obtenidos", values: [45] },
-    ]
-};
-
 const MESSAGES = [
     { id: '1', text: "¡Estás a solo 250 XP del siguiente nivel!", icon: "trending-up" as const, color: Colors.light.primary },
     { id: '2', text: "Has conseguido 3 nuevos clientes esta semana.", icon: "people" as const, color: "#10B981" },
@@ -52,6 +39,27 @@ export default function AchievementsScreenWeb() {
         propiedades: { value: 0, spark: [0, 0, 0, 0, 0, 0, 0] },
         clientes: { value: 0, spark: [0, 0, 0, 0, 0, 0, 0] },
     });
+
+    // Calculate chart data based on metrics
+    const chartDataPropertiesClients = {
+        Month: [
+            { label: "Propiedades asignadas", values: [metrics.propiedades.value] },
+            { label: "Clientes obtenidos", values: [metrics.clientes.value] },
+        ],
+        Week: [
+            { label: "Propiedades asignadas", values: [metrics.propiedades.value] },
+            { label: "Clientes obtenidos", values: [metrics.clientes.value] },
+        ]
+    };
+
+    const chartDataGanancias = {
+        Month: [
+            { label: "Ganancias estimadas", values: [metrics.ganancias.value] },
+        ],
+        Week: [
+            { label: "Ganancias estimadas", values: [metrics.ganancias.value] },
+        ]
+    };
 
     useEffect(() => {
         const fetchMetrics = async () => {
@@ -181,6 +189,7 @@ export default function AchievementsScreenWeb() {
                         {!isMobileWeb ? <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} /> : null}
 
                         {/* Right: Chart Area */}
+<<<<<<< HEAD
                         <View style={[styles.rightColumn, !isMobileWeb && { width: columnRightWidth }, isMobileWeb && styles.rightColumnMobile]}>
                             <ThemedText style={styles.sectionTitle}>Gráfica de Actividad</ThemedText>
                             <View style={styles.chartWrapper}>
@@ -190,6 +199,31 @@ export default function AchievementsScreenWeb() {
                                     color={BRAND_BLUE}
                                     height={300}
                                 />
+=======
+                        <View style={[styles.rightColumn, { width: columnRightWidth }]}>
+                            <ThemedText style={styles.sectionTitle}>Gráficas de Actividad</ThemedText>
+                            <View style={[styles.chartWrapper, { flexDirection: 'row' }]}>
+                                <View style={{ width: '45%' }}>
+                                    <ThemedText style={[styles.subSectionTitle, { color: theme.textSecondary }]}>Propiedades y Clientes</ThemedText>
+                                    <WebChart
+                                        max={Math.max(metrics.propiedades.value, metrics.clientes.value, 100)}
+                                        data={chartDataPropertiesClients[timeRange]}
+                                        colors={['#10B981', '#F59E0B']}
+                                        height={250}
+                                        legends={['Propiedades asignadas', 'Clientes obtenidos']}
+                                    />
+                                </View>
+                                <View style={{ marginLeft: 'auto', width: '45%' }}>
+                                    <ThemedText style={[styles.subSectionTitle, { color: theme.textSecondary }]}>Ganancias Estimadas</ThemedText>
+                                    <WebChart
+                                        max={Math.max(metrics.ganancias.value, 1000)}
+                                        data={chartDataGanancias[timeRange]}
+                                        colors={['#044bb8']}
+                                        height={250}
+                                        legends={['Ganancias estimadas']}
+                                    />
+                                </View>
+>>>>>>> 77bba13 ([ADD] Graphic and Metrics)
                             </View>
                         </View>
                     </View>
@@ -313,6 +347,15 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
         marginBottom: Spacing.xl,
+    },
+    subSectionTitle: {
+        fontSize: 14,
+        fontWeight: '500',
+        marginBottom: Spacing.md,
+        marginTop: Spacing.lg,
+    },
+    chartSpacer: {
+        height: Spacing.lg,
     },
     metricsStack: {
         gap: 0, // No gap, using dividers instead

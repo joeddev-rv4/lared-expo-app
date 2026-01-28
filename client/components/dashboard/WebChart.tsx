@@ -32,16 +32,16 @@ export const WebChart = ({
         return Math.max(max, ...allValues, 10);
     }, [data, max]);
 
+    const chartHeight = 200; // Fixed height for bars
+
     return (
         <View style={[styles.container, { height }]}>
             <View style={styles.chartArea}>
                 {/* Y-Axis Lines */}
                 <View style={StyleSheet.absoluteFill}>
-                    <View style={[styles.gridLine, { borderTopColor: theme.border, top: '0%' }]} />
-                    <View style={[styles.gridLine, { borderTopColor: theme.border, top: '25%' }]} />
-                    <View style={[styles.gridLine, { borderTopColor: theme.border, top: '50%' }]} />
-                    <View style={[styles.gridLine, { borderTopColor: theme.border, top: '75%' }]} />
-                    <View style={[styles.gridLine, { borderTopColor: theme.border, top: '100%' }]} />
+                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                        <View key={i} style={[styles.gridLine, { top: `${100 - i * 10}%` }]} />
+                    ))}
                 </View>
 
                 {/* Axes */}
@@ -53,22 +53,14 @@ export const WebChart = ({
 
                     {/* Y-axis labels */}
                     {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => {
-                        const value = i * 10;
-                        const topPercent = 100 - (value / maxValue) * 100;
+                        const value = Math.round(i * (maxValue / 10));
+                        const topPercent = 100 - (i * 10);
                         return (
-                            <ThemedText
-                                key={i}
-                                style={[
-                                    styles.yAxisLabel,
-                                    {
-                                        top: `${topPercent}%`,
-                                        color: theme.textSecondary,
-                                        left: -30,
-                                    }
-                                ]}
-                            >
-                                {value}
-                            </ThemedText>
+                            <View key={i} style={[styles.yAxisLabelContainer, { top: `${topPercent - 2}%` }]}>
+                                <ThemedText style={styles.yAxisLabel}>
+                                    {value}
+                                </ThemedText>
+                            </View>
                         );
                     })}
                 </View>
@@ -83,17 +75,18 @@ export const WebChart = ({
                                 <View style={styles.barTrack}>
                                     <View style={styles.multiBarContainer}>
                                         {point.values.map((value, valueIndex) => {
+                                            const barHeight = (value / maxValue) * chartHeight;
                                             return (
                                                 <View
                                                     key={valueIndex}
                                                     style={[
                                                         styles.bar,
                                                         {
-                                                            height: value * 2,
+                                                            height: barHeight,
                                                             width: 40,
                                                             position: 'absolute',
                                                             bottom: 0,
-                                                            left: [190, 110, 10][index],
+                                                            left: data.length === 1 ? 133 : index === 0 ? 79 : index === 1 ? 57 : 0,
                                                             ...(Platform.OS === 'web' ? {
                                                                 backgroundColor: colors[index % colors.length]
                                                             } : {
@@ -133,27 +126,33 @@ const styles = StyleSheet.create({
         flex: 1,
         position: 'relative',
         paddingTop: 20, // Space for values at top
-        paddingBottom: 24, // Space for labels
+        paddingBottom: 0, // No padding for bars to touch bottom
     },
     gridLine: {
         position: 'absolute',
         left: 0,
         right: 0,
-        borderTopWidth: 1,
-        borderStyle: 'dashed',
-        opacity: 0.5,
+        height: 1,
+        backgroundColor: '#c0c0c0',
     },
     axisLine: {
         borderWidth: 1,
         borderColor: '#333',
         position: 'absolute',
     },
-    yAxisLabel: {
+    yAxisLabelContainer: {
         position: 'absolute',
+        left: -30,
+        width: 25,
+        height: 12,
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+    },
+    yAxisLabel: {
         fontSize: 10,
         fontWeight: '500',
         textAlign: 'right',
-        width: 25,
+        color: '#666',
     },
     barsContainer: {
         flex: 1,
@@ -194,7 +193,7 @@ const styles = StyleSheet.create({
     },
     multiBarContainer: {
         position: 'relative',
-        height: '100%',
+        height: 200,
         width: '100%',
     },
     legendContainer: {
