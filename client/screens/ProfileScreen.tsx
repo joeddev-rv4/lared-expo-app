@@ -9,11 +9,13 @@ import {
   TextInput,
   Image,
   Modal,
+  Share,
 } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  withSpring,
   interpolate,
   Easing,
 } from "react-native-reanimated";
@@ -26,6 +28,7 @@ import * as Haptics from "expo-haptics";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "@/navigation/ProfileStackNavigator";
+import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 const isWeb = Platform.OS === "web";
 
@@ -58,6 +61,49 @@ const ClientCountButton = ({ clientCount, onPress }: { clientCount: number; onPr
   );
 };
 
+const ShareButton = ({ property }: { property: Property }) => {
+  const shareScale = useSharedValue(1);
+  
+  const shareAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: shareScale.value }],
+  }));
+
+  const handleSharePress = async () => {
+    shareScale.value = withSpring(1.3, { damping: 10 });
+    setTimeout(() => {
+      shareScale.value = withSpring(1, { damping: 10 });
+    }, 100);
+    
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    try {
+      const priceFormatted = `Q${property.price.toLocaleString()}`;
+      const message = `${property.title}\n\n${property.location}\n${priceFormatted}\n${property.area} m²\n\n${property.description}\n\nLa Red Inmobiliaria - Hecha por vendedores, para vendedores`;
+
+      await Share.share({
+        message,
+        title: property.title,
+      });
+    } catch (error) {
+      console.error("Error sharing:", error);
+    }
+  };
+
+  return (
+    <Animated.View style={shareAnimatedStyle}>
+      <Pressable
+        onPress={handleSharePress}
+        hitSlop={12}
+        style={styles.shareIconCircle}
+      >
+        <Ionicons name="share" size={18} color="#333333" />
+      </Pressable>
+    </Animated.View>
+  );
+};
+
 import { FilterChip } from "@/components/FilterChip";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
@@ -85,7 +131,7 @@ export default function ProfileScreen() {
   const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
-  const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
+  const navigation = useNavigation<any>();
 
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("day");
   const [properties, setProperties] = useState<Property[]>([]);
@@ -201,13 +247,10 @@ export default function ProfileScreen() {
   };
 
   const handlePropertyPress = (property: Property) => {
-    // Navigate to property detail - you might want to implement this
-    console.log("Property pressed:", property.title);
-  };
-
-  const handleSharePress = (property: Property) => {
-    // Handle share - you might want to implement this
-    console.log("Share property:", property.title);
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    navigation.navigate("PropertyDetail", { property });
   };
 
   const toggleWebSearch = () => {
@@ -234,7 +277,6 @@ export default function ProfileScreen() {
 
     return (
       <Pressable
-        key={property.id}
         onPress={() => handlePropertyPress(property)}
         style={({ pressed }) => [
           styles.propertyCardContainer,
@@ -258,13 +300,7 @@ export default function ProfileScreen() {
               onPress={() => handleClientCountPress(property)}
             />
             {/* Share button like in Favorites */}
-            <Pressable
-              onPress={() => handleSharePress(property)}
-              hitSlop={12}
-              style={styles.shareIconCircle}
-            >
-              <Ionicons name="share" size={18} color="#333333" />
-            </Pressable>
+            <ShareButton property={property} />
           </View>
           {/* Removed commission badge */}
         </View>
@@ -377,14 +413,18 @@ export default function ProfileScreen() {
             isWeb ? (
               <View style={styles.webGrid}>
                 {properties.map((property) => (
-                  <View style={styles.webGridItem}>
+                  <View key={property.id} style={styles.webGridItem}>
                     {renderClientPropertyCard(property)}
                   </View>
                 ))}
               </View>
             ) : (
               <View style={styles.mobileList}>
-                {properties.map((property) => renderClientPropertyCard(property))}
+                {properties.map((property) => (
+                  <View key={property.id}>
+                    {renderClientPropertyCard(property)}
+                  </View>
+                ))}
               </View>
             )
           ) : (
