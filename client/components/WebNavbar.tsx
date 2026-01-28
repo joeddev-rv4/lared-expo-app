@@ -163,7 +163,7 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
       if (!user?.id) return;
 
       try {
-        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/notifications/user/${user.id}`);
+        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/notifications/${user.id}`);
         if (response.ok) {
           const data = await response.json();
           // Mapear la estructura de la API a la estructura del componente
