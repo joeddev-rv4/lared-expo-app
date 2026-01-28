@@ -374,9 +374,10 @@ export default function PropertyDetailScreen() {
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
         <View style={styles.priceInfoContainer}>
-          <ThemedText style={styles.price}>{formatPrice(property.price)}</ThemedText>
-          <ThemedText style={styles.priceDetail}>Hasta 12 cuotas</ThemedText>
-          <ThemedText style={styles.priceDetail}>Comisión: {formatPrice(Math.round(property.price * 0.02))}</ThemedText>
+          <ThemedText style={styles.price}>Q750.00</ThemedText>
+          <ThemedText style={styles.priceDetail}>por compartir en redes sociales</ThemedText>
+          <ThemedText style={styles.priceDetail}>Precio: {formatPrice(property.price)}</ThemedText>
+          <ThemedText style={styles.priceDetail}>Cuota desde: {formatPrice(Math.round(property.price / 180))}/mes</ThemedText>
         </View>
         <Pressable style={styles.reserveButton}>
           <ThemedText style={styles.reserveButtonText}>Comparte y gana</ThemedText>

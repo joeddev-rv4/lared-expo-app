@@ -407,17 +407,18 @@ export default function PropertyDetailScreenWeb() {
           <View style={[styles.bookingCard, isMobile && styles.bookingCardMobile]}>
             <View style={styles.bookingCardInner}>
               <View style={styles.priceRow}>
-                <ThemedText style={styles.priceAmount}>{formatPrice(property.price)}</ThemedText>
+                <ThemedText style={styles.priceAmount}>Q750.00</ThemedText>
+                <ThemedText style={styles.commissionSubtext}>por compartir en redes sociales</ThemedText>
               </View>
 
               <View style={styles.commissionInfo}>
-                <ThemedText style={styles.commissionLabel}>Cuotas disponibles:</ThemedText>
-                <ThemedText style={styles.commissionValue}>Hasta 12 cuotas</ThemedText>
+                <ThemedText style={styles.commissionLabel}>Precio:</ThemedText>
+                <ThemedText style={styles.commissionValue}>{formatPrice(property.price)}</ThemedText>
               </View>
 
               <View style={styles.commissionInfo}>
-                <ThemedText style={styles.commissionLabel}>Comisión por referido:</ThemedText>
-                <ThemedText style={styles.commissionValue}>{formatPrice(Math.round(property.price * 0.02))}</ThemedText>
+                <ThemedText style={styles.commissionLabel}>Cuota desde:</ThemedText>
+                <ThemedText style={styles.commissionValue}>{formatPrice(Math.round(property.price / 180))}/mes</ThemedText>
               </View>
 
               <Pressable style={styles.reserveButton}>
@@ -809,15 +810,20 @@ const styles = StyleSheet.create({
     ...Shadows.card,
   },
   priceRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    gap: Spacing.xs,
-    marginBottom: Spacing.xs,
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: 2,
+    marginBottom: Spacing.sm,
   },
   priceAmount: {
     fontSize: 22,
     fontWeight: "600",
     color: "#222222",
+  },
+  commissionSubtext: {
+    fontSize: 13,
+    color: "#717171",
+    marginTop: 2,
   },
   priceUnit: {
     fontSize: 16,
