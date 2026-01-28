@@ -7,6 +7,8 @@ import OnboardingScreen from "@/screens/OnboardingScreen";
 import OnboardingScreenWeb from "@/screens/OnboardingScreen.web";
 import LoginScreen from "@/screens/LoginScreen";
 import LoginScreenWeb from "@/screens/LoginScreen.web";
+import LandingScreen from "@/screens/landing/LandingScreen";
+import LandingScreenWeb from "@/screens/landing/LandingScreen.web";
 import CaptureClientScreen from "@/screens/CaptureClientScreen";
 import PropertyDetailScreen from "@/screens/PropertyDetailScreen";
 import PropertyDetailScreenWeb from "@/screens/PropertyDetailScreen.web";
@@ -21,8 +23,10 @@ import { Property } from "@/data/properties";
 const isWeb = Platform.OS === "web";
 const OnboardingComponent = isWeb ? OnboardingScreenWeb : OnboardingScreen;
 const LoginComponent = isWeb ? LoginScreenWeb : LoginScreen;
+const LandingComponent = isWeb ? LandingScreenWeb : LandingScreen;
 
 export type RootStackParamList = {
+  Landing: undefined;
   Onboarding: undefined;
   Login: undefined;
   Main: undefined;
@@ -38,7 +42,7 @@ export default function RootStackNavigator() {
   const { theme } = useTheme();
   const { isInitializing, user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>("Onboarding");
+  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>("Landing");
 
   useEffect(() => {
     if (!isInitializing) {
@@ -55,18 +59,22 @@ export default function RootStackNavigator() {
         return;
       }
 
-      const onboardingComplete = await hasCompletedOnboarding();
+      // On web, always show Landing page first
+      if (isWeb) {
+        setInitialRoute("Landing");
+        setIsLoading(false);
+        return;
+      }
 
-      if (!isWeb) {
-        setInitialRoute("Onboarding");
-      } else if (!onboardingComplete) {
+      // On mobile, check onboarding status
+      const onboardingComplete = await hasCompletedOnboarding();
+      if (!onboardingComplete) {
         setInitialRoute("Onboarding");
       } else {
-        // Default to Login if no user and onboarding complete
         setInitialRoute("Login");
       }
     } catch (error) {
-      setInitialRoute("Onboarding");
+      setInitialRoute(isWeb ? "Landing" : "Onboarding");
     } finally {
       setIsLoading(false);
     }
@@ -92,6 +100,11 @@ export default function RootStackNavigator() {
       initialRouteName={initialRoute}
       screenOptions={screenOptions}
     >
+      <Stack.Screen
+        name="Landing"
+        component={LandingComponent}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="Onboarding"
         component={OnboardingComponent}
