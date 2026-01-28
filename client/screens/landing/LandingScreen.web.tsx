@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, createContext, useContext } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
@@ -15,6 +15,19 @@ const useIsMobile = () => {
   return isMobile;
 };
 
+const ScrollContext = createContext<React.RefObject<HTMLDivElement | null> | null>(null);
+
+const scrollToSection = (id: string, scrollRef?: React.RefObject<HTMLDivElement | null> | null) => {
+  const element = document.getElementById(id);
+  const scrollContainer = scrollRef?.current;
+  if (element && scrollContainer) {
+    const offset = 100;
+    const elementPosition = element.offsetTop;
+    const offsetPosition = elementPosition - offset;
+    scrollContainer.scrollTo({ top: offsetPosition, behavior: "smooth" });
+  }
+};
+
 const baseUrl = getApiUrl();
 const heroImage1 = `${baseUrl}assets/images-lared/get-started-bg.png`;
 const heroImage2 = `${baseUrl}assets/images-lared/get-started-bg-2.png`;
@@ -27,16 +40,11 @@ const LandingNavbar = ({ onNavigate }: { onNavigate: (section: string) => void }
   const navigation = useNavigation<NavigationProp>();
   const isMobile = useIsMobile();
   const [menuOpen, setMenuOpen] = useState(false);
+  const scrollRef = useContext(ScrollContext);
 
-  const scrollToSection = (id: string) => {
+  const handleScrollTo = (id: string) => {
     setMenuOpen(false);
-    const element = document.getElementById(id);
-    if (element) {
-      const offset = 100;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
-    }
+    scrollToSection(id, scrollRef);
   };
 
   const handleLogin = () => {
@@ -48,7 +56,7 @@ const LandingNavbar = ({ onNavigate }: { onNavigate: (section: string) => void }
     <nav style={isMobile ? styles.navbarMobile : styles.navbar}>
       <div style={isMobile ? styles.navbarInnerMobile : styles.navbarInner}>
         <div style={isMobile ? styles.navbarContentMobile : styles.navbarContent}>
-          <div style={styles.logoContainer} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+          <div style={styles.logoContainer} onClick={() => scrollRef?.current?.scrollTo({ top: 0, behavior: "smooth" })}>
             <img src={logoSvg} alt="La Red" style={styles.logo} />
           </div>
           {isMobile ? (
@@ -60,14 +68,14 @@ const LandingNavbar = ({ onNavigate }: { onNavigate: (section: string) => void }
           ) : (
             <>
               <div style={styles.navLinks}>
-                <button onClick={() => scrollToSection("caracteristicas")} style={styles.navLink}>Caracteristicas</button>
-                <button onClick={() => scrollToSection("pasos-aliado")} style={styles.navLink}>Pasos para ser aliado</button>
-                <button onClick={() => scrollToSection("propiedades")} style={styles.navLink}>Propiedades</button>
-                <button onClick={() => scrollToSection("formulario")} style={styles.navLink}>Unete Ahora</button>
+                <button onClick={() => handleScrollTo("caracteristicas")} style={styles.navLink}>Caracteristicas</button>
+                <button onClick={() => handleScrollTo("pasos-aliado")} style={styles.navLink}>Pasos para ser aliado</button>
+                <button onClick={() => handleScrollTo("propiedades")} style={styles.navLink}>Propiedades</button>
+                <button onClick={() => handleScrollTo("formulario")} style={styles.navLink}>Unete Ahora</button>
               </div>
               <div style={styles.navActions}>
                 <button onClick={() => navigation.navigate("Login")} style={styles.loginButton}>Iniciar sesion</button>
-                <button onClick={() => scrollToSection("formulario")} style={styles.promoButton}>Promocionar</button>
+                <button onClick={() => handleScrollTo("formulario")} style={styles.promoButton}>Promocionar</button>
               </div>
             </>
           )}
@@ -75,13 +83,13 @@ const LandingNavbar = ({ onNavigate }: { onNavigate: (section: string) => void }
       </div>
       {isMobile && menuOpen && (
         <div style={styles.mobileMenu}>
-          <button onClick={() => scrollToSection("caracteristicas")} style={styles.mobileMenuItem}>Caracteristicas</button>
-          <button onClick={() => scrollToSection("pasos-aliado")} style={styles.mobileMenuItem}>Pasos para ser aliado</button>
-          <button onClick={() => scrollToSection("propiedades")} style={styles.mobileMenuItem}>Propiedades</button>
-          <button onClick={() => scrollToSection("formulario")} style={styles.mobileMenuItem}>Unete Ahora</button>
+          <button onClick={() => handleScrollTo("caracteristicas")} style={styles.mobileMenuItem}>Caracteristicas</button>
+          <button onClick={() => handleScrollTo("pasos-aliado")} style={styles.mobileMenuItem}>Pasos para ser aliado</button>
+          <button onClick={() => handleScrollTo("propiedades")} style={styles.mobileMenuItem}>Propiedades</button>
+          <button onClick={() => handleScrollTo("formulario")} style={styles.mobileMenuItem}>Unete Ahora</button>
           <div style={styles.mobileMenuDivider} />
           <button onClick={handleLogin} style={styles.mobileMenuItem}>Iniciar sesion</button>
-          <button onClick={() => scrollToSection("formulario")} style={styles.mobileMenuPromoButton}>Promocionar</button>
+          <button onClick={() => handleScrollTo("formulario")} style={styles.mobileMenuPromoButton}>Promocionar</button>
         </div>
       )}
     </nav>
@@ -92,6 +100,7 @@ const HeroSection = () => {
   const isMobile = useIsMobile();
   const [currentSlide, setCurrentSlide] = useState(0);
   const desktopImages = [heroImage1, heroImage2, heroImage3];
+  const scrollRef = useContext(ScrollContext);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -100,14 +109,8 @@ const HeroSection = () => {
     return () => clearInterval(interval);
   }, [desktopImages.length]);
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      const offset = 100;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
-    }
+  const handleScrollTo = (id: string) => {
+    scrollToSection(id, scrollRef);
   };
 
   return (
@@ -127,10 +130,10 @@ const HeroSection = () => {
       </div>
       <div style={isMobile ? {...styles.heroContent, bottom: 70, left: 16, right: 16} : styles.heroContent}>
         <div style={isMobile ? {...styles.heroButtonsContainer, flexDirection: "column", gap: 12} : styles.heroButtonsContainer}>
-          <button onClick={() => scrollToSection("formulario")} style={isMobile ? {...styles.primaryButton, padding: "12px 24px", fontSize: 14, width: "100%"} : styles.primaryButton}>
+          <button onClick={() => handleScrollTo("formulario")} style={isMobile ? {...styles.primaryButton, padding: "12px 24px", fontSize: 14, width: "100%"} : styles.primaryButton}>
             Comenzar Ahora
           </button>
-          <button onClick={() => scrollToSection("propiedades")} style={isMobile ? {...styles.secondaryButton, padding: "12px 24px", fontSize: 14, width: "100%"} : styles.secondaryButton}>
+          <button onClick={() => handleScrollTo("propiedades")} style={isMobile ? {...styles.secondaryButton, padding: "12px 24px", fontSize: 14, width: "100%"} : styles.secondaryButton}>
             Explorar Propiedades
           </button>
         </div>
@@ -609,22 +612,26 @@ const WhatsAppButton = () => {
 };
 
 export default function LandingScreen() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
   return (
-    <div style={styles.scrollWrapper}>
-      <div style={styles.container}>
-        <LandingNavbar onNavigate={() => {}} />
-        <HeroSection />
-        <MetricsBar />
-        <AdvantagesSection />
-        <StepsSection />
-        <TopAlliesSection />
-        <FeaturedPropertiesSection />
-        <TestimonialsSection />
-        <ContactFormSection />
-        <Footer />
-        <WhatsAppButton />
+    <ScrollContext.Provider value={scrollRef}>
+      <div ref={scrollRef} style={styles.scrollWrapper}>
+        <div style={styles.container}>
+          <LandingNavbar onNavigate={() => {}} />
+          <HeroSection />
+          <MetricsBar />
+          <AdvantagesSection />
+          <StepsSection />
+          <TopAlliesSection />
+          <FeaturedPropertiesSection />
+          <TestimonialsSection />
+          <ContactFormSection />
+          <Footer />
+          <WhatsAppButton />
+        </div>
       </div>
-    </div>
+    </ScrollContext.Provider>
   );
 }
 
