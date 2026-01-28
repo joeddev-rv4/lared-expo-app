@@ -168,6 +168,7 @@ export default function BlogScreenWeb() {
           <View style={styles.infoColumn}>
             <ThemedText style={styles.propertyTitle}>{property.title}</ThemedText>
             <ThemedText style={styles.propertyPrice}>{formatPrice(property.price)}</ThemedText>
+            <ThemedText style={styles.propertyCuota}>Cuota desde: {formatPrice(Math.round(property.price / 180))}/mes</ThemedText>
 
             <View style={styles.locationRow}>
               <Ionicons name="location-outline" size={20} color="#717171" />
@@ -486,6 +487,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "600",
     color: Colors.light.primary,
+    marginBottom: Spacing.xs,
+  },
+  propertyCuota: {
+    fontSize: 16,
+    color: "#717171",
     marginBottom: Spacing.md,
   },
   locationRow: {
