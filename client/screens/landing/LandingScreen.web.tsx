@@ -180,7 +180,7 @@ const MetricsBar = () => {
     <section style={styles.metricsSection}>
       <div style={styles.metricsContainer}>
         <h2 style={styles.metricsTitle}>Numeros que Hablan por Nosotros</h2>
-        <p style={styles.metricsSubtitle}>Miles de brokers confian en La Red para hacer crecer su negocio</p>
+        <p style={styles.metricsSubtitle}>Miles de aliados confian en La Red para hacer crecer su negocio</p>
         <div style={styles.metricsGrid}>
           {metrics.map((metric, index) => (
             <div key={index} style={styles.metricCard}>
@@ -197,7 +197,7 @@ const MetricsBar = () => {
 const AdvantagesSection = () => {
   const [advantages, setAdvantages] = useState([
     { title: "Crecimiento Acelerado", description: "Aumenta tu cartera de clientes y propiedades en un 300% gracias a nuestra red de contactos verificados y herramientas de marketing digital integradas." },
-    { title: "Conexiones Estrategicas", description: "Accede a una red exclusiva de brokers certificados, desarrolladores y compradores potenciales para cerrar mas negocios en menos tiempo." },
+    { title: "Conexiones Estrategicas", description: "Accede a una red exclusiva de aliados certificados, desarrolladores y compradores potenciales para cerrar mas negocios en menos tiempo." },
     { title: "Propiedades Premium", description: "Acceso prioritario a listados exclusivos de alta gama y oportunidades de inversion antes que lleguen al mercado publico." },
   ]);
 
@@ -227,7 +227,7 @@ const AdvantagesSection = () => {
       <div style={styles.advantagesDecorator2} />
       <div style={styles.advantagesContainer}>
         <h2 style={styles.advantagesTitle}>Ventajas de La Red Inmobiliaria</h2>
-        <p style={styles.advantagesSubtitle}>Descubre por que miles de brokers confian en nosotros para potenciar su negocio</p>
+        <p style={styles.advantagesSubtitle}>Descubre por que miles de aliados confian en nosotros para potenciar su negocio</p>
         <div style={styles.advantagesGrid}>
           {advantages.map((adv, index) => (
             <div key={index} style={styles.advantageCard}>
