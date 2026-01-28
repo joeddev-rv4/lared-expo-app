@@ -267,9 +267,10 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
       handleMenuClose();
       if (key === 'logout') {
         await logout();
+        // Redirigir a Landing en web
         navigation.reset({
           index: 0,
-          routes: [{ name: "Login" }],
+          routes: [{ name: "Landing" }],
         });
       }
     }
@@ -460,17 +461,58 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
                   inputRange: [-100, 0],
                   outputRange: [0, 1],
                 }),
-                width: notificationsVisible ? 550 : 200,
+                width: notificationsVisible
+                  ? (isWeb && !isMobile ? 550 : Math.min(550, width - Spacing.xl * 2))
+                  : 200,
               },
             ]}
           >
             <View style={styles.menuContainer}>
+              {isMobile && (
+                <>
+                  {NAV_ITEMS.map((item, index) => {
+                    const isActive = getIsActive(item.key, item.route);
+                    return (
+                      <Pressable
+                        key={item.key}
+                        style={({ pressed }) => [
+                          styles.menuOption,
+                          index === 0 && styles.menuOptionFirst,
+                          { backgroundColor: pressed ? "#F7F7F7" : "#FFFFFF" },
+                        ]}
+                        onPress={() => {
+                          handleNavPress(item.route);
+                          handleMenuClose();
+                        }}
+                      >
+                        {item.icon && (
+                          <Image
+                            source={item.icon}
+                            style={[
+                              styles.menuNavIcon,
+                              isActive && styles.menuNavIconActive
+                            ]}
+                            resizeMode="contain"
+                          />
+                        )}
+                        <ThemedText style={[
+                          styles.menuOptionText,
+                          isActive && styles.menuOptionTextActive
+                        ]}>
+                          {item.label}
+                        </ThemedText>
+                      </Pressable>
+                    );
+                  })}
+                  <View style={styles.menuDivider} />
+                </>
+              )}
               {MENU_OPTIONS.map((option, index) => (
                 <Pressable
                   key={option.key}
                   style={({ pressed }) => [
                     styles.menuOption,
-                    index === 0 && styles.menuOptionFirst,
+                    (!isMobile && index === 0) && styles.menuOptionFirst,
                     index === MENU_OPTIONS.length - 1 && styles.menuOptionLast,
                     { backgroundColor: pressed ? "#F7F7F7" : "#FFFFFF" },
                   ]}
@@ -502,7 +544,10 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
             </View>
 
             {notificationsVisible && (
-              <View style={styles.notificationsContainer}>
+              <View style={[
+                styles.notificationsContainer,
+                isMobile && { width: Math.min(350, width - Spacing.xl * 4) }
+              ]}>
                 <View style={styles.notificationsHeader}>
                   <ThemedText style={styles.notificationsTitle}>Notificaciones</ThemedText>
                 </View>
@@ -754,6 +799,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#222222",
     flex: 1,
+  },
+  menuOptionTextActive: {
+    color: "#bf0a0a",
+    fontWeight: "700",
+  },
+  menuNavIcon: {
+    width: 20,
+    height: 20,
+    opacity: 0.7,
+  },
+  menuNavIconActive: {
+    opacity: 1,
+    tintColor: "#bf0a0a",
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: "#EBEBEB",
+    marginVertical: Spacing.sm,
+    marginHorizontal: Spacing.lg,
   },
   chevronIcon: {
     marginLeft: 2, // Reducido para mover la flecha más a la izquierda

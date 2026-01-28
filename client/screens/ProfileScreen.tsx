@@ -9,6 +9,7 @@ import {
   TextInput,
   Image,
   Modal,
+  useWindowDimensions,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -86,6 +87,9 @@ export default function ProfileScreen() {
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
+  const { width: windowWidth } = useWindowDimensions();
+
+  const isMobileWeb = isWeb && windowWidth < 768;
 
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("day");
   const [properties, setProperties] = useState<Property[]>([]);
@@ -248,7 +252,7 @@ export default function ProfileScreen() {
         <View style={styles.propertyImageContainer}>
           <Image
             source={{ uri: property.imageUrl }}
-            style={styles.propertyImage}
+            style={styles.propertyImage as any}
             resizeMode="cover"
           />
           <View style={styles.propertyActionButtons}>
@@ -337,9 +341,10 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { 
+          isMobileWeb && styles.scrollContentMobile,
+          {
             paddingTop: 0,
-            paddingBottom: tabBarHeight + Spacing.xl 
+            paddingBottom: tabBarHeight + Spacing.xl
           }
         ]}
       >
@@ -375,9 +380,9 @@ export default function ProfileScreen() {
             </View>
           ) : properties.length > 0 ? (
             isWeb ? (
-              <View style={styles.webGrid}>
+              <View style={[styles.webGrid, isMobileWeb && styles.webGridMobile]}>
                 {properties.map((property) => (
-                  <View style={styles.webGridItem}>
+                  <View style={[styles.webGridItem, isMobileWeb && styles.webGridItemMobile]}>
                     {renderClientPropertyCard(property)}
                   </View>
                 ))}
@@ -415,6 +420,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: isWeb ? 90 : Spacing.lg,
+  },
+  scrollContentMobile: {
+    paddingHorizontal: Spacing.lg,
   },
 
   // Web Search Header
@@ -489,9 +497,15 @@ const styles = StyleSheet.create({
     gap: Spacing.lg,
     ...(isWeb && { display: "grid" as any, gridTemplateColumns: "repeat(3, 1fr)" as any }),
   },
+  webGridMobile: {
+    ...(isWeb && { gridTemplateColumns: "1fr" }),
+  } as any,
   webGridItem: {
     width: isWeb ? "100%" : "100%",
     minWidth: 280,
+  },
+  webGridItemMobile: {
+    minWidth: "100%",
   },
   mobileList: {
     gap: Spacing.md,
