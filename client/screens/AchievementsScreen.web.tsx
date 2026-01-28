@@ -52,8 +52,8 @@ export default function AchievementsScreenWeb() {
     const isSmallWindow = windowWidth < 1024;
     const isMobileWeb = windowWidth < 768;
 
-    const columnLeftWidth = isMobileWeb ? "100%" : (isSmallWindow ? "35%" : "30%");
-    const columnRightWidth = isMobileWeb ? "100%" : (isSmallWindow ? "65%" : "70%");
+    const columnLeftWidth = isSmallWindow ? "35%" : "30%";
+    const columnRightWidth = isSmallWindow ? "65%" : "70%";
 
     return (
         <View style={[styles.container, { backgroundColor: '#FFFFFF' }]}>
@@ -72,20 +72,20 @@ export default function AchievementsScreenWeb() {
                 <View style={styles.dashboardGrid}>
 
                     {/* Section 1: Header */}
-                    <View style={[styles.gridRow, styles.headerRow, isMobileWeb && styles.gridRowMobile]}>
+                    <View style={[styles.gridRow, styles.headerRow]}>
                         {/* Left: Title */}
-                        <View style={[styles.leftColumn, { width: columnLeftWidth }, isMobileWeb && styles.leftColumnMobile]}>
+                        <View style={[styles.leftColumn, { width: columnLeftWidth }]}>
                             <ThemedText style={styles.pageTitle}>Mis Logros</ThemedText>
                             <ThemedText style={[styles.pageDescription, { color: theme.textSecondary }]}>
                                 Aquí podrás ver tus avances en la Red Inmobiliaria.
                             </ThemedText>
                         </View>
 
-                        {/* Vertical Divider - hidden on mobile */}
-                        {!isMobileWeb && <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />}
+                        {/* Vertical Divider */}
+                        <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />
 
                         {/* Right: Controls */}
-                        <View style={[styles.rightColumn, { width: columnRightWidth, alignItems: isMobileWeb ? 'flex-start' : 'flex-end', justifyContent: 'center' }, isMobileWeb && styles.rightColumnMobile]}>
+                        <View style={[styles.rightColumn, { width: columnRightWidth, alignItems: 'flex-end', justifyContent: 'center' }]}>
                             <View style={styles.controls}>
                                 <View style={[styles.toggleContainer, { backgroundColor: theme.backgroundSecondary }]}>
                                     <Pressable onPress={() => setTimeRange("Month")} style={[styles.toggleBtn, timeRange === "Month" && styles.activeToggle]}>
@@ -105,9 +105,9 @@ export default function AchievementsScreenWeb() {
                     <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
                     {/* Section 2: Performance */}
-                    <View style={[styles.gridRow, isMobileWeb && styles.gridRowMobile]}>
+                    <View style={styles.gridRow}>
                         {/* Left: Metrics Stack */}
-                        <View style={[styles.leftColumn, { width: columnLeftWidth }, isMobileWeb && styles.leftColumnMobile]}>
+                        <View style={[styles.leftColumn, { width: columnLeftWidth }]}>
                             <ThemedText style={styles.sectionTitle}>Resumen</ThemedText>
                             <View style={styles.metricsStack}>
                                 <DashboardMetricCard
@@ -145,11 +145,11 @@ export default function AchievementsScreenWeb() {
                             </View>
                         </View>
 
-                        {/* Vertical Divider - hidden on mobile */}
-                        {!isMobileWeb && <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />}
+                        {/* Vertical Divider */}
+                        <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />
 
                         {/* Right: Chart Area */}
-                        <View style={[styles.rightColumn, { width: columnRightWidth }, isMobileWeb && styles.rightColumnMobile]}>
+                        <View style={[styles.rightColumn, { width: columnRightWidth }]}>
                             <ThemedText style={styles.sectionTitle}>Gráfica de Actividad</ThemedText>
                             <View style={styles.chartWrapper}>
                                 <WebChart
@@ -165,9 +165,9 @@ export default function AchievementsScreenWeb() {
                     <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
                     {/* Section 3: Gamification */}
-                    <View style={[styles.gridRow, isMobileWeb && styles.gridRowMobile]}>
+                    <View style={styles.gridRow}>
                         {/* Left: Metas (Percentage bars) */}
-                        <View style={[styles.leftColumn, { width: columnLeftWidth }, isMobileWeb && styles.leftColumnMobile]}>
+                        <View style={[styles.leftColumn, { width: columnLeftWidth }]}>
                             <ThemedText style={styles.sectionTitle}>Metas</ThemedText>
                             <View style={styles.metasStack}>
                                 <DashboardProgressBar label="Cierre de Tratos" current={3} target={5} color={BRAND_BLUE} />
@@ -176,11 +176,11 @@ export default function AchievementsScreenWeb() {
                             </View>
                         </View>
 
-                        {/* Vertical Divider - hidden on mobile */}
-                        {!isMobileWeb && <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />}
+                        {/* Vertical Divider */}
+                        <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />
 
                         {/* Right: Banners */}
-                        <View style={[styles.rightColumn, { width: columnRightWidth, justifyContent: 'center' }, isMobileWeb && styles.rightColumnMobile]}>
+                        <View style={[styles.rightColumn, { width: columnRightWidth, justifyContent: 'center' }]}>
                             <ThemedText style={styles.sectionTitle}>Analítico</ThemedText>
                             <DashboardBanner messages={MESSAGES} interval={2000} />
                         </View>
@@ -217,18 +217,6 @@ const styles = StyleSheet.create({
     rightColumn: {
         paddingLeft: Spacing.xl,
         flex: 1,
-    },
-    gridRowMobile: {
-        flexDirection: 'column',
-    },
-    leftColumnMobile: {
-        paddingRight: 0,
-        minWidth: '100%',
-        marginBottom: Spacing.lg,
-    },
-    rightColumnMobile: {
-        paddingLeft: 0,
-        width: '100%',
     },
     verticalDivider: {
         width: 1,
