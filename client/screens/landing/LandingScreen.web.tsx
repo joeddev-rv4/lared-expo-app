@@ -4,6 +4,17 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { getApiUrl } from "@/lib/query-client";
 
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+  return isMobile;
+};
+
 const baseUrl = getApiUrl();
 const heroImage1 = `${baseUrl}assets/images-lared/get-started-bg.png`;
 const heroImage2 = `${baseUrl}assets/images-lared/get-started-bg-2.png`;
@@ -14,17 +25,8 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const LandingNavbar = ({ onNavigate }: { onNavigate: (section: string) => void }) => {
   const navigation = useNavigation<NavigationProp>();
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   const scrollToSection = (id: string) => {
     setMenuOpen(false);
@@ -87,6 +89,7 @@ const LandingNavbar = ({ onNavigate }: { onNavigate: (section: string) => void }
 };
 
 const HeroSection = () => {
+  const isMobile = useIsMobile();
   const [currentSlide, setCurrentSlide] = useState(0);
   const desktopImages = [heroImage1, heroImage2, heroImage3];
 
@@ -108,7 +111,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section style={styles.heroSection}>
+    <section style={isMobile ? {...styles.heroSection, height: "60vh", minHeight: 350, maxHeight: 500, paddingTop: 60} : styles.heroSection}>
       <div style={styles.heroImageContainer}>
         {desktopImages.map((image, index) => (
           <img
@@ -122,24 +125,25 @@ const HeroSection = () => {
           />
         ))}
       </div>
-      <div style={styles.heroContent}>
-        <div style={styles.heroButtonsContainer}>
-          <button onClick={() => scrollToSection("formulario")} style={styles.primaryButton}>
+      <div style={isMobile ? {...styles.heroContent, bottom: 70, left: 16, right: 16} : styles.heroContent}>
+        <div style={isMobile ? {...styles.heroButtonsContainer, flexDirection: "column", gap: 12} : styles.heroButtonsContainer}>
+          <button onClick={() => scrollToSection("formulario")} style={isMobile ? {...styles.primaryButton, padding: "12px 24px", fontSize: 14, width: "100%"} : styles.primaryButton}>
             Comenzar Ahora
           </button>
-          <button onClick={() => scrollToSection("propiedades")} style={styles.secondaryButton}>
+          <button onClick={() => scrollToSection("propiedades")} style={isMobile ? {...styles.secondaryButton, padding: "12px 24px", fontSize: 14, width: "100%"} : styles.secondaryButton}>
             Explorar Propiedades
           </button>
         </div>
       </div>
-      <div style={styles.carouselIndicators}>
+      <div style={isMobile ? {...styles.carouselIndicators, bottom: 16} : styles.carouselIndicators}>
         {desktopImages.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentSlide(index)}
             style={{
               ...styles.indicator,
-              width: index === currentSlide ? 32 : 12,
+              width: index === currentSlide ? 24 : 8,
+              height: isMobile ? 8 : 12,
               backgroundColor: index === currentSlide ? "#fff" : "rgba(255,255,255,0.5)",
             }}
           />
@@ -150,6 +154,7 @@ const HeroSection = () => {
 };
 
 const MetricsBar = () => {
+  const isMobile = useIsMobile();
   const [metrics, setMetrics] = useState([
     { value: "0", label: "Propiedades Listadas" },
     { value: "0", label: "Aliados certificados" },
@@ -177,15 +182,15 @@ const MetricsBar = () => {
   }, []);
 
   return (
-    <section style={styles.metricsSection}>
-      <div style={styles.metricsContainer}>
-        <h2 style={styles.metricsTitle}>Numeros que Hablan por Nosotros</h2>
-        <p style={styles.metricsSubtitle}>Miles de aliados confian en La Red para hacer crecer su negocio</p>
-        <div style={styles.metricsGrid}>
+    <section style={isMobile ? {...styles.metricsSection, padding: "48px 0"} : styles.metricsSection}>
+      <div style={isMobile ? {...styles.metricsContainer, padding: "0 16px"} : styles.metricsContainer}>
+        <h2 style={isMobile ? {...styles.metricsTitle, fontSize: 28} : styles.metricsTitle}>Numeros que Hablan por Nosotros</h2>
+        <p style={isMobile ? {...styles.metricsSubtitle, fontSize: 14, marginBottom: 32} : styles.metricsSubtitle}>Miles de aliados confian en La Red para hacer crecer su negocio</p>
+        <div style={isMobile ? {...styles.metricsGrid, gridTemplateColumns: "1fr", gap: 24} : styles.metricsGrid}>
           {metrics.map((metric, index) => (
-            <div key={index} style={styles.metricCard}>
-              <div style={styles.metricValue}>{metric.value}</div>
-              <div style={styles.metricLabel}>{metric.label}</div>
+            <div key={index} style={isMobile ? {...styles.metricCard, padding: 16} : styles.metricCard}>
+              <div style={isMobile ? {...styles.metricValue, fontSize: 40} : styles.metricValue}>{metric.value}</div>
+              <div style={isMobile ? {...styles.metricLabel, fontSize: 16} : styles.metricLabel}>{metric.label}</div>
             </div>
           ))}
         </div>
@@ -195,6 +200,7 @@ const MetricsBar = () => {
 };
 
 const AdvantagesSection = () => {
+  const isMobile = useIsMobile();
   const [advantages, setAdvantages] = useState([
     { title: "Crecimiento Acelerado", description: "Aumenta tu cartera de clientes y propiedades en un 300% gracias a nuestra red de contactos verificados y herramientas de marketing digital integradas." },
     { title: "Conexiones Estrategicas", description: "Accede a una red exclusiva de aliados certificados, desarrolladores y compradores potenciales para cerrar mas negocios en menos tiempo." },
@@ -222,17 +228,17 @@ const AdvantagesSection = () => {
   }, []);
 
   return (
-    <section id="caracteristicas" style={styles.advantagesSection}>
+    <section id="caracteristicas" style={isMobile ? {...styles.advantagesSection, padding: "48px 0"} : styles.advantagesSection}>
       <div style={styles.advantagesDecorator1} />
       <div style={styles.advantagesDecorator2} />
-      <div style={styles.advantagesContainer}>
-        <h2 style={styles.advantagesTitle}>Ventajas de La Red Inmobiliaria</h2>
-        <p style={styles.advantagesSubtitle}>Descubre por que miles de aliados confian en nosotros para potenciar su negocio</p>
-        <div style={styles.advantagesGrid}>
+      <div style={isMobile ? {...styles.advantagesContainer, padding: "0 16px"} : styles.advantagesContainer}>
+        <h2 style={isMobile ? {...styles.advantagesTitle, fontSize: 24} : styles.advantagesTitle}>Ventajas de La Red Inmobiliaria</h2>
+        <p style={isMobile ? {...styles.advantagesSubtitle, fontSize: 14, marginBottom: 32} : styles.advantagesSubtitle}>Descubre por que miles de aliados confian en nosotros para potenciar su negocio</p>
+        <div style={isMobile ? {...styles.advantagesGrid, gridTemplateColumns: "1fr", gap: 16} : styles.advantagesGrid}>
           {advantages.map((adv, index) => (
-            <div key={index} style={styles.advantageCard}>
-              <h3 style={styles.advantageCardTitle}>{adv.title}</h3>
-              <p style={styles.advantageCardDesc}>{adv.description}</p>
+            <div key={index} style={isMobile ? {...styles.advantageCard, padding: 20} : styles.advantageCard}>
+              <h3 style={isMobile ? {...styles.advantageCardTitle, fontSize: 18} : styles.advantageCardTitle}>{adv.title}</h3>
+              <p style={isMobile ? {...styles.advantageCardDesc, fontSize: 14} : styles.advantageCardDesc}>{adv.description}</p>
             </div>
           ))}
         </div>
@@ -242,6 +248,7 @@ const AdvantagesSection = () => {
 };
 
 const StepsSection = () => {
+  const isMobile = useIsMobile();
   const [currentStep, setCurrentStep] = useState(0);
   const steps = [
     { title: "Descarga la App", showDownloadButtons: true },
@@ -252,9 +259,9 @@ const StepsSection = () => {
   ];
 
   return (
-    <section id="pasos-aliado" style={styles.stepsSection}>
-      <div style={styles.stepsContainer}>
-        <h2 style={styles.stepsTitle}>
+    <section id="pasos-aliado" style={isMobile ? {...styles.stepsSection, padding: "48px 0", minHeight: "auto"} : styles.stepsSection}>
+      <div style={isMobile ? {...styles.stepsContainer, padding: "0 16px"} : styles.stepsContainer}>
+        <h2 style={isMobile ? {...styles.stepsTitle, fontSize: 24, marginBottom: 32} : styles.stepsTitle}>
           Pasos para ser un <span style={{ color: "#bf0a0a" }}>Aliado</span>
         </h2>
         <div style={styles.stepsCarousel}>
@@ -322,6 +329,7 @@ const StepsSection = () => {
 };
 
 const TopAlliesSection = () => {
+  const isMobile = useIsMobile();
   const allies = [
     { id: 1, name: "Maria Gonzalez", company: "Premium Realty GT", properties: 127, sales: 45, clients: 312, specialty: "Propiedades de lujo" },
     { id: 2, name: "Carlos Mendez", company: "Urban Solutions", properties: 203, sales: 89, clients: 567, specialty: "Desarrollos comerciales" },
@@ -329,11 +337,11 @@ const TopAlliesSection = () => {
   ];
 
   return (
-    <section style={styles.alliesSection}>
-      <div style={styles.alliesContainer}>
-        <h2 style={styles.alliesTitle}>Top Aliados</h2>
-        <p style={styles.alliesSubtitle}>Conoce a los aliados mas destacados de nuestra plataforma</p>
-        <div style={styles.alliesGrid}>
+    <section style={isMobile ? {...styles.alliesSection, padding: "48px 0"} : styles.alliesSection}>
+      <div style={isMobile ? {...styles.alliesContainer, padding: "0 16px"} : styles.alliesContainer}>
+        <h2 style={isMobile ? {...styles.alliesTitle, fontSize: 24} : styles.alliesTitle}>Top Aliados</h2>
+        <p style={isMobile ? {...styles.alliesSubtitle, fontSize: 14, marginBottom: 32} : styles.alliesSubtitle}>Conoce a los aliados mas destacados de nuestra plataforma</p>
+        <div style={isMobile ? {...styles.alliesGrid, gridTemplateColumns: "1fr", gap: 16} : styles.alliesGrid}>
           {allies.map((ally) => (
             <div key={ally.id} style={styles.allyCard}>
               <div style={styles.allyHeader}>
@@ -368,6 +376,7 @@ const TopAlliesSection = () => {
 };
 
 const FeaturedPropertiesSection = () => {
+  const isMobile = useIsMobile();
   const properties = [
     { id: 1, title: "Casa Moderna en Zona 14", location: "Guatemala City", price: "$450,000", beds: 4, baths: 3, area: 350, image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400" },
     { id: 2, title: "Apartamento de Lujo", location: "Zona 10", price: "$280,000", beds: 3, baths: 2, area: 180, image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400" },
@@ -375,11 +384,11 @@ const FeaturedPropertiesSection = () => {
   ];
 
   return (
-    <section id="propiedades" style={styles.propertiesSection}>
-      <div style={styles.propertiesContainer}>
-        <h2 style={styles.propertiesTitle}>Propiedades Destacadas</h2>
-        <p style={styles.propertiesSubtitle}>Descubre las mejores oportunidades inmobiliarias en Guatemala</p>
-        <div style={styles.propertiesGrid}>
+    <section id="propiedades" style={isMobile ? {...styles.propertiesSection, padding: "48px 0"} : styles.propertiesSection}>
+      <div style={isMobile ? {...styles.propertiesContainer, padding: "0 16px"} : styles.propertiesContainer}>
+        <h2 style={isMobile ? {...styles.propertiesTitle, fontSize: 24} : styles.propertiesTitle}>Propiedades Destacadas</h2>
+        <p style={isMobile ? {...styles.propertiesSubtitle, fontSize: 14, marginBottom: 32} : styles.propertiesSubtitle}>Descubre las mejores oportunidades inmobiliarias en Guatemala</p>
+        <div style={isMobile ? {...styles.propertiesGrid, gridTemplateColumns: "1fr", gap: 16} : styles.propertiesGrid}>
           {properties.map((property) => (
             <div key={property.id} style={styles.propertyCard}>
               <img src={property.image} alt={property.title} style={styles.propertyImage} />
@@ -402,20 +411,21 @@ const FeaturedPropertiesSection = () => {
 };
 
 const TestimonialsSection = () => {
+  const isMobile = useIsMobile();
   const testimonials = [
-    { id: 1, name: "Juan Perez", text: "La mejor plataforma para brokers. He triplicado mis ventas en 6 meses.", rating: 5 },
+    { id: 1, name: "Juan Perez", text: "La mejor plataforma para aliados. He triplicado mis ventas en 6 meses.", rating: 5 },
     { id: 2, name: "Laura Martinez", text: "Conexiones que transforman negocios. Recomendado 100%.", rating: 5 },
     { id: 3, name: "Roberto Sanchez", text: "Crecimiento garantizado con herramientas profesionales.", rating: 5 },
   ];
 
   return (
-    <section style={styles.testimonialsSection}>
-      <div style={styles.testimonialsContainer}>
-        <h2 style={styles.testimonialsTitle}>Calificados por nuestros aliados</h2>
+    <section style={isMobile ? {...styles.testimonialsSection, padding: "48px 0"} : styles.testimonialsSection}>
+      <div style={isMobile ? {...styles.testimonialsContainer, padding: "0 16px"} : styles.testimonialsContainer}>
+        <h2 style={isMobile ? {...styles.testimonialsTitle, fontSize: 24} : styles.testimonialsTitle}>Calificados por nuestros aliados</h2>
         <div style={styles.playStoreRating}>
-          <span style={styles.starsContainer}>{"⭐".repeat(5)}</span>
+          <span style={styles.starsContainer}>{"*".repeat(5)}</span>
         </div>
-        <div style={styles.testimonialsGrid}>
+        <div style={isMobile ? {...styles.testimonialsGrid, gridTemplateColumns: "1fr", gap: 16} : styles.testimonialsGrid}>
           {testimonials.map((t) => (
             <div key={t.id} style={styles.testimonialCard}>
               <p style={styles.testimonialText}>"{t.text}"</p>
@@ -429,6 +439,7 @@ const TestimonialsSection = () => {
 };
 
 const ContactFormSection = () => {
+  const isMobile = useIsMobile();
   const navigation = useNavigation<NavigationProp>();
   const [formData, setFormData] = useState({
     fullName: "",
@@ -451,10 +462,10 @@ const ContactFormSection = () => {
   };
 
   return (
-    <section id="formulario" style={styles.contactSection}>
-      <div style={styles.contactContainer}>
-        <h2 style={styles.contactTitle}>Unete a La Red Inmobiliaria</h2>
-        <div style={styles.contactForm}>
+    <section id="formulario" style={isMobile ? {...styles.contactSection, padding: "48px 0"} : styles.contactSection}>
+      <div style={isMobile ? {...styles.contactContainer, padding: "0 16px"} : styles.contactContainer}>
+        <h2 style={isMobile ? {...styles.contactTitle, fontSize: 24} : styles.contactTitle}>Unete a La Red Inmobiliaria</h2>
+        <div style={isMobile ? {...styles.contactForm, padding: 24} : styles.contactForm}>
           <form onSubmit={handleSubmit}>
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Nombre completo</label>
@@ -539,18 +550,19 @@ const ContactFormSection = () => {
 };
 
 const Footer = () => {
+  const isMobile = useIsMobile();
   return (
-    <footer style={styles.footer}>
-      <div style={styles.footerContainer}>
-        <div style={styles.footerGrid}>
+    <footer style={isMobile ? {...styles.footer, padding: "48px 0 24px"} : styles.footer}>
+      <div style={isMobile ? {...styles.footerContainer, padding: "0 16px"} : styles.footerContainer}>
+        <div style={isMobile ? {...styles.footerGrid, gridTemplateColumns: "1fr", gap: 32, textAlign: "center"} : styles.footerGrid}>
           <div style={styles.footerColumn}>
             <img src={logoSvg} alt="La Red" style={styles.footerLogo} />
-            <p style={styles.footerDescription}>
-              La plataforma lider en Guatemala para brokers inmobiliarios.
+            <p style={isMobile ? {...styles.footerDescription, fontSize: 14} : styles.footerDescription}>
+              La plataforma lider en Guatemala para aliados inmobiliarios.
             </p>
           </div>
           <div style={styles.footerColumn}>
-            <h3 style={styles.footerTitle}>Enlaces Rapidos</h3>
+            <h3 style={isMobile ? {...styles.footerTitle, fontSize: 16} : styles.footerTitle}>Enlaces Rapidos</h3>
             <ul style={styles.footerLinks}>
               <li><a href="#" style={styles.footerLink}>Inicio</a></li>
               <li><a href="#propiedades" style={styles.footerLink}>Propiedades</a></li>
@@ -558,14 +570,14 @@ const Footer = () => {
             </ul>
           </div>
           <div style={styles.footerColumn}>
-            <h3 style={styles.footerTitle}>Contactanos</h3>
+            <h3 style={isMobile ? {...styles.footerTitle, fontSize: 16} : styles.footerTitle}>Contactanos</h3>
             <p style={styles.footerContact}>info@lared.gt</p>
             <p style={styles.footerContact}>+502 5413-9214</p>
             <p style={styles.footerContact}>Ciudad de Guatemala</p>
           </div>
           <div style={styles.footerColumn}>
-            <h3 style={styles.footerTitle}>Siguenos</h3>
-            <div style={styles.socialLinks}>
+            <h3 style={isMobile ? {...styles.footerTitle, fontSize: 16} : styles.footerTitle}>Siguenos</h3>
+            <div style={isMobile ? {...styles.socialLinks, justifyContent: "center"} : styles.socialLinks}>
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" style={styles.socialLink}>FB</a>
               <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" style={styles.socialLink}>IG</a>
               <a href="https://wa.me/50254139214" target="_blank" rel="noopener noreferrer" style={styles.socialLink}>WA</a>
@@ -573,7 +585,7 @@ const Footer = () => {
           </div>
         </div>
         <div style={styles.footerBottom}>
-          <p style={styles.copyright}>© 2025 La Red Inmobiliaria. Todos los derechos reservados.</p>
+          <p style={isMobile ? {...styles.copyright, fontSize: 12} : styles.copyright}>© 2025 La Red Inmobiliaria. Todos los derechos reservados.</p>
         </div>
       </div>
     </footer>
