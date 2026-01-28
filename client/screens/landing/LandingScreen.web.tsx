@@ -151,9 +151,9 @@ const HeroSection = () => {
 
 const MetricsBar = () => {
   const [metrics, setMetrics] = useState([
-    { icon: "🏠", value: "0", label: "Propiedades Listadas" },
-    { icon: "👥", value: "0", label: "Aliados certificados" },
-    { icon: "✅", value: "0", label: "Transacciones Exitosas" },
+    { value: "0", label: "Propiedades Listadas" },
+    { value: "0", label: "Aliados certificados" },
+    { value: "0", label: "Transacciones Exitosas" },
   ]);
 
   useEffect(() => {
@@ -163,9 +163,7 @@ const MetricsBar = () => {
         const response = await fetch(`${apiUrl}/powerbi/getDashboardStats`);
         const data = await response.json();
         if (data.data && Array.isArray(data.data)) {
-          const icons = ["🏠", "👥", "✅"];
-          const newMetrics = data.data.map((stat: { title: string; data: number }, index: number) => ({
-            icon: icons[index] || "📊",
+          const newMetrics = data.data.map((stat: { title: string; data: number }) => ({
             value: stat.data.toLocaleString(),
             label: stat.title,
           }));
@@ -186,7 +184,6 @@ const MetricsBar = () => {
         <div style={styles.metricsGrid}>
           {metrics.map((metric, index) => (
             <div key={index} style={styles.metricCard}>
-              <div style={styles.metricIcon}>{metric.icon}</div>
               <div style={styles.metricValue}>{metric.value}</div>
               <div style={styles.metricLabel}>{metric.label}</div>
             </div>
@@ -199,9 +196,9 @@ const MetricsBar = () => {
 
 const AdvantagesSection = () => {
   const [advantages, setAdvantages] = useState([
-    { emoji: "📈", title: "Crecimiento Acelerado", description: "Aumenta tu cartera de clientes y propiedades en un 300% gracias a nuestra red de contactos verificados y herramientas de marketing digital integradas." },
-    { emoji: "🤝", title: "Conexiones Estrategicas", description: "Accede a una red exclusiva de brokers certificados, desarrolladores y compradores potenciales para cerrar mas negocios en menos tiempo." },
-    { emoji: "🏢", title: "Propiedades Premium", description: "Acceso prioritario a listados exclusivos de alta gama y oportunidades de inversion antes que lleguen al mercado publico." },
+    { title: "Crecimiento Acelerado", description: "Aumenta tu cartera de clientes y propiedades en un 300% gracias a nuestra red de contactos verificados y herramientas de marketing digital integradas." },
+    { title: "Conexiones Estrategicas", description: "Accede a una red exclusiva de brokers certificados, desarrolladores y compradores potenciales para cerrar mas negocios en menos tiempo." },
+    { title: "Propiedades Premium", description: "Acceso prioritario a listados exclusivos de alta gama y oportunidades de inversion antes que lleguen al mercado publico." },
   ]);
 
   useEffect(() => {
@@ -211,9 +208,7 @@ const AdvantagesSection = () => {
         const response = await fetch(`${apiUrl}/powerbi/getSecciones`);
         const data = await response.json();
         if (data.secciones && Array.isArray(data.secciones)) {
-          const emojis = ["📈", "🤝", "🏢", "💰", "🌟", "🚀"];
-          const newAdvantages = data.secciones.map((seccion: { titulo: string; descripcion: string }, index: number) => ({
-            emoji: emojis[index] || "✨",
+          const newAdvantages = data.secciones.map((seccion: { titulo: string; descripcion: string }) => ({
             title: seccion.titulo,
             description: seccion.descripcion,
           }));
@@ -236,7 +231,6 @@ const AdvantagesSection = () => {
         <div style={styles.advantagesGrid}>
           {advantages.map((adv, index) => (
             <div key={index} style={styles.advantageCard}>
-              <div style={styles.advantageEmoji}>{adv.emoji}</div>
               <h3 style={styles.advantageCardTitle}>{adv.title}</h3>
               <p style={styles.advantageCardDesc}>{adv.description}</p>
             </div>
