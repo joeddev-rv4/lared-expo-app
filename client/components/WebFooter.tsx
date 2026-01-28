@@ -61,12 +61,15 @@ export function WebFooter() {
 
 const styles: { [key: string]: React.CSSProperties } = {
   footer: {
-    backgroundColor: "#1a1a1a",
-    color: "#ffffff",
+    background: "linear-gradient(to bottom right, #333, #000, #333)",
+    color: "#fff",
     padding: "64px 0 32px",
+    width: "100vw",
+    marginLeft: "calc(-50vw + 50%)",
+    fontFamily: "'Nunito', sans-serif",
   },
   footerContainer: {
-    maxWidth: 1200,
+    maxWidth: 1280,
     margin: "0 auto",
     padding: "0 24px",
   },
@@ -89,11 +92,13 @@ const styles: { [key: string]: React.CSSProperties } = {
   footerDescription: {
     color: "#9ca3af",
     lineHeight: 1.6,
+    fontFamily: "'Nunito', sans-serif",
   },
   footerTitle: {
     fontSize: 18,
     fontWeight: 600,
     marginBottom: 8,
+    fontFamily: "'Nunito', sans-serif",
   },
   footerLinks: {
     listStyle: "none",
@@ -107,10 +112,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: "#9ca3af",
     textDecoration: "none",
     transition: "color 0.2s",
+    fontFamily: "'Nunito', sans-serif",
   },
   footerContact: {
     color: "#9ca3af",
     margin: "4px 0",
+    fontFamily: "'Nunito', sans-serif",
   },
   socialLinks: {
     display: "flex",
@@ -128,5 +135,6 @@ const styles: { [key: string]: React.CSSProperties } = {
   copyright: {
     color: "#6b7280",
     fontSize: 14,
+    fontFamily: "'Nunito', sans-serif",
   },
 };
