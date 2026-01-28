@@ -379,9 +379,15 @@ export default function PropertyDetailScreen() {
           <ThemedText style={styles.priceDetail}>Precio: {formatPrice(property.price)}</ThemedText>
           <ThemedText style={styles.priceDetail}>Cuota desde: {formatPrice(Math.round(property.price / 180))}/mes</ThemedText>
         </View>
-        <Pressable style={styles.reserveButton}>
-          <ThemedText style={styles.reserveButtonText}>Comparte y gana</ThemedText>
-        </Pressable>
+        <View style={styles.buttonsContainer}>
+          <Pressable style={styles.reserveButton}>
+            <ThemedText style={styles.reserveButtonText}>Comparte y gana</ThemedText>
+          </Pressable>
+          <Pressable style={styles.copyLinkButton} onPress={handleShare}>
+            <Ionicons name="link-outline" size={16} color="#FFFFFF" />
+            <ThemedText style={styles.copyLinkText}>Copiar Link</ThemedText>
+          </Pressable>
+        </View>
       </View>
 
       <Modal
@@ -745,6 +751,24 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   reserveButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  buttonsContainer: {
+    gap: 8,
+  },
+  copyLinkButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#222222",
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 8,
+    gap: 8,
+  },
+  copyLinkText: {
     fontSize: 16,
     fontWeight: "600",
     color: "#FFFFFF",

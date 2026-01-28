@@ -425,12 +425,10 @@ export default function PropertyDetailScreenWeb() {
                 <ThemedText style={styles.reserveButtonText}>Comparte y gana</ThemedText>
               </Pressable>
 
-              {isFavorite ? (
-                <Pressable style={styles.copyLinkButton} onPress={handleCopyLink}>
-                  <Ionicons name="link-outline" size={16} color="#FFFFFF" />
-                  <ThemedText style={styles.copyLinkText}>Copiar Link</ThemedText>
-                </Pressable>
-              ) : null}
+              <Pressable style={styles.copyLinkButton} onPress={handleCopyLink}>
+                <Ionicons name="link-outline" size={16} color="#FFFFFF" />
+                <ThemedText style={styles.copyLinkText}>Copiar Link</ThemedText>
+              </Pressable>
             </View>
           </View>
         </View>
@@ -910,10 +908,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#bf0a0a",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    backgroundColor: "#222222",
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.sm,
     marginTop: Spacing.sm,
     gap: 8,
   },
@@ -1080,15 +1077,25 @@ const styles = StyleSheet.create({
     maxWidth: "100%",
   },
   bookingCardMobile: {
-    position: "relative",
-    top: 0,
+    position: "fixed" as any,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    top: "auto",
     width: "100%",
+    zIndex: 100,
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: "#DDDDDD",
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.lg,
   },
   headerMobile: {
     paddingHorizontal: Spacing.md,
   },
   scrollContentMobile: {
-    paddingBottom: Spacing.xl,
+    paddingBottom: 280,
     paddingTop: 60 + Spacing.md,
   },
 });
