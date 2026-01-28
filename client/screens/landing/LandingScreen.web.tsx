@@ -121,7 +121,6 @@ const HeroSection = () => {
             }}
           />
         ))}
-        <div style={styles.heroOverlay} />
       </div>
       <div style={styles.heroContent}>
         <div style={styles.heroButtonsContainer}>
@@ -750,11 +749,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: "100%",
     objectFit: "cover",
     transition: "opacity 1s ease",
-  },
-  heroOverlay: {
-    position: "absolute",
-    inset: 0,
-    background: "linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.4))",
   },
   heroContent: {
     position: "relative",
