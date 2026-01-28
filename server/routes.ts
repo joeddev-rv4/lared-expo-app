@@ -403,8 +403,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .orderBy(sql`${lead_history.created_at} DESC`)
               .limit(1);
 
-            if (history.length > 0 && history[0].history_data?.message) {
-              latestMessage = history[0].history_data.message;
+            if (history.length > 0 && history[0].history_data && typeof history[0].history_data === 'object') {
+              const historyData = history[0].history_data as { message?: string };
+              if (historyData.message) {
+                latestMessage = historyData.message;
+              }
             }
           }
 
