@@ -328,91 +328,180 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
     }
   };
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleMobileMenuClose = () => {
+    setMobileMenuOpen(false);
+  };
+
+  if (isMobile) {
+    return (
+      <>
+        <View style={styles.floatingNavContainer}>
+          <Pressable style={styles.floatingUserButton} onPress={() => handleNavPress("ProfileTab")}>
+            <Image
+              source={{
+                uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
+              }}
+              style={styles.floatingUserImage}
+            />
+          </Pressable>
+          <Pressable style={styles.floatingMenuButton} onPress={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            <View style={styles.hamburgerLine} />
+            <View style={styles.hamburgerLine} />
+            <View style={styles.hamburgerLine} />
+            {unreadNotificationsCount > 0 && (
+              <View style={styles.floatingMenuBadge}>
+                <ThemedText style={styles.floatingMenuBadgeText}>
+                  {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                </ThemedText>
+              </View>
+            )}
+          </Pressable>
+        </View>
+
+        <Modal
+          visible={mobileMenuOpen}
+          transparent
+          animationType="none"
+          onRequestClose={handleMobileMenuClose}
+        >
+          <Pressable style={styles.mobileMenuOverlay} onPress={handleMobileMenuClose}>
+            <View style={styles.mobileMenuFloating}>
+              <View style={styles.mobileMenuHeader}>
+                <Image
+                  source={require("../../assets/images/icon.png")}
+                  style={{ width: 40, height: 40 }}
+                  resizeMode="contain"
+                />
+                <Pressable onPress={handleMobileMenuClose} style={styles.mobileMenuCloseButton}>
+                  <Ionicons name="close" size={24} color="#222" />
+                </Pressable>
+              </View>
+              
+              {NAV_ITEMS.map((item) => {
+                const isActive = getIsActive(item.key, item.route);
+                return (
+                  <Pressable
+                    key={item.key}
+                    style={styles.mobileMenuItem}
+                    onPress={() => {
+                      handleMobileMenuClose();
+                      handleNavPress(item.route);
+                    }}
+                  >
+                    {item.icon ? (
+                      <Image source={item.icon} style={styles.mobileMenuItemIcon} resizeMode="contain" />
+                    ) : null}
+                    <ThemedText style={[styles.mobileMenuItemText, isActive && styles.mobileMenuItemTextActive]}>
+                      {item.label}
+                    </ThemedText>
+                  </Pressable>
+                );
+              })}
+              
+              <View style={styles.mobileMenuDivider} />
+              
+              {MENU_OPTIONS.map((option) => (
+                <Pressable
+                  key={option.key}
+                  style={styles.mobileMenuItem}
+                  onPress={() => {
+                    handleMobileMenuClose();
+                    handleMenuOptionPress(option.key);
+                  }}
+                >
+                  <Ionicons name={option.icon as keyof typeof Ionicons.glyphMap} size={20} color="#555" />
+                  <ThemedText style={styles.mobileMenuItemText}>{option.label}</ThemedText>
+                  {option.key === 'notifications' && unreadNotificationsCount > 0 && (
+                    <View style={styles.mobileMenuBadge}>
+                      <ThemedText style={styles.mobileMenuBadgeText}>
+                        {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
+                      </ThemedText>
+                    </View>
+                  )}
+                </Pressable>
+              ))}
+            </View>
+          </Pressable>
+        </Modal>
+      </>
+    );
+  }
+
   return (
-    <View style={[styles.container, isMobile && styles.containerMobile]}>
+    <View style={styles.container}>
       <View style={styles.navbarWrapper}>
         <View style={styles.topBar}>
-          <View
-            style={[
-              styles.innerContainer,
-              isMobile && styles.innerContainerMobile,
-            ]}
-          >
+          <View style={styles.innerContainer}>
             <Pressable
-              style={[
-                styles.logoContainer,
-                isMobile && styles.logoContainerMobile,
-              ]}
+              style={styles.logoContainer}
               onPress={() => handleNavPress("ExploreTab")}
             >
               <Image
                 source={require("../../assets/images/icon.png")}
-                style={[styles.logoIcon, isMobile && styles.logoIconMobile]}
+                style={styles.logoIcon}
                 resizeMode="contain"
               />
             </Pressable>
 
-            {!isMobile ? (
-              <View style={styles.navItems}>
-                {NAV_ITEMS.map((item) => {
-                  const isActive = getIsActive(item.key, item.route);
+            <View style={styles.navItems}>
+              {NAV_ITEMS.map((item) => {
+                const isActive = getIsActive(item.key, item.route);
 
-                  return (
-                    <Pressable
-                      key={item.key}
-                      onPress={() => handleNavPress(item.route)}
-                      style={({ pressed }) => [
-                        styles.navItem,
-                        { opacity: pressed ? 0.7 : 1 },
-                      ]}
-                    >
-                      <View style={styles.navItemContent}>
-                        {item.icon ? (
-                          <Image
-                            source={item.icon}
-                            style={[
-                              styles.navIcon,
-                              isActive && styles.navIconActive,
-                            ]}
-                            resizeMode="contain"
-                          />
-                        ) : null}
-                        <ThemedText
-                          style={[
-                            styles.navLabel,
-                            isActive && styles.navLabelActive,
-                          ]}
-                        >
-                          {item.label}
-                        </ThemedText>
-                      </View>
-                      {isActive ? <View style={styles.activeIndicator} /> : null}
-                    </Pressable>
-                  );
-                })}
-              </View>
-            ) : null}
-
-            <View style={styles.rightSection}>
-              {!isMobile ? (
-                <Pressable
-                  style={[
-                    styles.sellerButton,
-                    sellerHovered && styles.sellerButtonHovered,
-                  ]}
-                  onHoverIn={() => setSellerHovered(true)}
-                  onHoverOut={() => setSellerHovered(false)}
-                >
-                  <ThemedText
-                    style={[
-                      styles.sellerButtonText,
-                      sellerHovered && styles.sellerButtonTextHovered,
+                return (
+                  <Pressable
+                    key={item.key}
+                    onPress={() => handleNavPress(item.route)}
+                    style={({ pressed }) => [
+                      styles.navItem,
+                      { opacity: pressed ? 0.7 : 1 },
                     ]}
                   >
-                    Conviértete en vendedor
-                  </ThemedText>
-                </Pressable>
-              ) : null}
+                    <View style={styles.navItemContent}>
+                      {item.icon ? (
+                        <Image
+                          source={item.icon}
+                          style={[
+                            styles.navIcon,
+                            isActive && styles.navIconActive,
+                          ]}
+                          resizeMode="contain"
+                        />
+                      ) : null}
+                      <ThemedText
+                        style={[
+                          styles.navLabel,
+                          isActive && styles.navLabelActive,
+                        ]}
+                      >
+                        {item.label}
+                      </ThemedText>
+                    </View>
+                    {isActive ? <View style={styles.activeIndicator} /> : null}
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <View style={styles.rightSection}>
+              <Pressable
+                style={[
+                  styles.sellerButton,
+                  sellerHovered && styles.sellerButtonHovered,
+                ]}
+                onHoverIn={() => setSellerHovered(true)}
+                onHoverOut={() => setSellerHovered(false)}
+              >
+                <ThemedText
+                  style={[
+                    styles.sellerButtonText,
+                    sellerHovered && styles.sellerButtonTextHovered,
+                  ]}
+                >
+                  Conviértete en vendedor
+                </ThemedText>
+              </Pressable>
 
               <Pressable style={styles.profileButton}>
                 <Image
@@ -897,5 +986,143 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: "#bf0a0a",
     marginLeft: Spacing.xs,
+  },
+  floatingNavContainer: {
+    position: "fixed" as any,
+    top: 16,
+    left: 16,
+    right: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    zIndex: 1000,
+    pointerEvents: "box-none" as any,
+  },
+  floatingUserButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  floatingUserImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  floatingMenuButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+  hamburgerLine: {
+    width: 20,
+    height: 2,
+    backgroundColor: "#333",
+    borderRadius: 1,
+  },
+  floatingMenuBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: "#bf0a0a",
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  floatingMenuBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  mobileMenuOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+    flexDirection: "row",
+  },
+  mobileMenuFloating: {
+    width: "80%",
+    maxWidth: 320,
+    height: "100%",
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: -4, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 8,
+    paddingVertical: 16,
+  },
+  mobileMenuHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    marginBottom: 8,
+  },
+  mobileMenuCloseButton: {
+    padding: 8,
+  },
+  mobileMenuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  mobileMenuItemIcon: {
+    width: 20,
+    height: 20,
+  },
+  mobileMenuItemText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  mobileMenuItemTextActive: {
+    color: "#bf0a0a",
+  },
+  mobileMenuDivider: {
+    height: 1,
+    backgroundColor: "#eee",
+    marginVertical: 8,
+    marginHorizontal: 24,
+  },
+  mobileMenuBadge: {
+    backgroundColor: "#bf0a0a",
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 6,
+    marginLeft: "auto",
+  },
+  mobileMenuBadgeText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "700",
   },
 });
