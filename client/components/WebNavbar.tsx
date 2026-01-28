@@ -162,7 +162,7 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
       if (!user?.id) return;
 
       try {
-        const response = await fetch(`http://localhost:5000/api/notifications/user/${user.id}`);
+        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/notifications/user/${user.id}`);
         if (response.ok) {
           const data = await response.json();
           // Mapear la estructura de la API a la estructura del componente
@@ -295,7 +295,7 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
 
     try {
       // Hacer la petición al servidor para actualizar en la base de datos
-      const response = await fetch(`http://localhost:5000/api/notifications/${notificationId}/read`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/notifications/${notificationId}/read`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
