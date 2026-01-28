@@ -15,6 +15,7 @@ interface WebChartProps {
     colors?: string[];
     max: number;
     legends?: string[];
+    xLabels?: string[];
 }
 
 export const WebChart = ({
@@ -22,7 +23,8 @@ export const WebChart = ({
     height = 250,
     colors = [Colors.light.primary, '#10B981', '#F59E0B'],
     max,
-    legends = ['Serie 1', 'Serie 2', 'Serie 3']
+    legends = ['Serie 1', 'Serie 2', 'Serie 3'],
+    xLabels
 }: WebChartProps) => {
     const { theme } = useTheme();
 
@@ -37,13 +39,6 @@ export const WebChart = ({
     return (
         <View style={[styles.container, { height }]}>
             <View style={styles.chartArea}>
-                {/* Y-Axis Lines */}
-                <View style={StyleSheet.absoluteFill}>
-                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-                        <View key={i} style={[styles.gridLine, { top: `${100 - i * 10}%` }]} />
-                    ))}
-                </View>
-
                 {/* Axes */}
                 <View style={StyleSheet.absoluteFill}>
                     {/* Horizontal axis at bottom */}
@@ -75,6 +70,7 @@ export const WebChart = ({
                                 <View style={styles.barTrack}>
                                     <View style={styles.multiBarContainer}>
                                         {point.values.map((value, valueIndex) => {
+                                            if (value <= 0) return null;
                                             const barHeight = (value / maxValue) * chartHeight;
                                             return (
                                                 <View
@@ -83,14 +79,14 @@ export const WebChart = ({
                                                         styles.bar,
                                                         {
                                                             height: barHeight,
-                                                            width: 40,
+                                                            width: 5,
                                                             position: 'absolute',
                                                             bottom: 0,
-                                                            left: data.length === 1 ? 133 : index === 0 ? 79 : index === 1 ? 57 : 0,
+                                                            left: index * 6,
                                                             ...(Platform.OS === 'web' ? {
-                                                                backgroundColor: colors[index % colors.length]
+                                                                backgroundColor: colors[0]
                                                             } : {
-                                                                backgroundColor: colors[index % colors.length]
+                                                                backgroundColor: colors[0]
                                                             })
                                                         }
                                                     ]}
@@ -114,6 +110,15 @@ export const WebChart = ({
                     </View>
                 ))}
             </View>
+
+            {/* X Labels */}
+            {xLabels && xLabels.length > 0 && (
+                <View style={styles.xLabelsContainer}>
+                    {xLabels.map((label, index) => (
+                        <ThemedText key={index} style={[styles.xLabel, { color: theme.textSecondary }]}>{label}</ThemedText>
+                    ))}
+                </View>
+            )}
         </View>
     );
 };
@@ -217,5 +222,16 @@ const styles = StyleSheet.create({
     legendText: {
         fontSize: 12,
         fontWeight: '500',
+    },
+    xLabelsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: Spacing.sm,
+        paddingHorizontal: Spacing.md,
+    },
+    xLabel: {
+        fontSize: 10,
+        textAlign: 'center',
+        minWidth: 20,
     },
 });

@@ -39,18 +39,13 @@ export default function AchievementsScreenWeb() {
         propiedades: { value: 0, spark: [0, 0, 0, 0, 0, 0, 0] },
         clientes: { value: 0, spark: [0, 0, 0, 0, 0, 0, 0] },
     });
+    const [chartData, setChartData] = useState({
+        Month: [] as { label: string; values: number[] }[],
+        Week: [] as { label: string; values: number[] }[],
+    });
 
     // Calculate chart data based on metrics
-    const chartDataPropertiesClients = {
-        Month: [
-            { label: "Propiedades asignadas", values: [metrics.propiedades.value] },
-            { label: "Clientes obtenidos", values: [metrics.clientes.value] },
-        ],
-        Week: [
-            { label: "Propiedades asignadas", values: [metrics.propiedades.value] },
-            { label: "Clientes obtenidos", values: [metrics.clientes.value] },
-        ]
-    };
+    // Moved to useEffect
 
     const chartDataGanancias = {
         Month: [
@@ -75,6 +70,24 @@ export default function AchievementsScreenWeb() {
                 const portfolioPropertyIds = await getPortfolioProperties(user.id);
                 const totalFavorites = portfolioPropertyIds.length;
 
+                // Parse selected month - fixed to January 2026
+                const year = 2026;
+                const month = 1;
+                const monthIndex = month - 1;
+                const daysInMonth = new Date(year, month, 0).getDate();
+
+                // Group leads by day
+                const leadsByDay: { [key: number]: number } = {};
+                if (Array.isArray(leads)) {
+                    leads.forEach(lead => {
+                        const date = new Date(lead.createdAt || lead.created_at || lead.date);
+                        if (date.getMonth() === monthIndex && date.getFullYear() === year) {
+                            const day = date.getDate();
+                            leadsByDay[day] = (leadsByDay[day] || 0) + 1;
+                        }
+                    });
+                }
+
                 // Calculate metrics
                 const gananciasValue = totalLeads * 750;
                 const propiedadesValue = totalFavorites;
@@ -90,6 +103,21 @@ export default function AchievementsScreenWeb() {
                     propiedades: { value: propiedadesValue, spark: sparkPropiedades },
                     clientes: { value: clientesValue, spark: sparkClientes },
                 });
+
+                // Set chart data with daily leads
+                const chartData = {
+                    Month: Array.from({ length: daysInMonth }, (_, i) => {
+                        const day = i + 1;
+                        const value = leadsByDay[day] || 0;
+                        return { label: `Día ${day}`, values: [value] };
+                    }),
+                    Week: Array.from({ length: daysInMonth }, (_, i) => {
+                        const day = i + 1;
+                        const value = leadsByDay[day] || 0;
+                        return { label: `Día ${day}`, values: [value] };
+                    })
+                };
+                setChartData(chartData);
             } catch (error) {
                 console.error('Error fetching metrics:', error);
             }
@@ -154,9 +182,15 @@ export default function AchievementsScreenWeb() {
                     <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
                     {/* Section 2: Performance */}
+<<<<<<< HEAD
                     <View style={[styles.gridRow, isMobileWeb && styles.gridRowMobile]}>
                         {/* Left: Metrics Stack */}
                         <View style={[styles.leftColumn, !isMobileWeb && { width: columnLeftWidth }, isMobileWeb && styles.leftColumnMobile]}>
+=======
+                    <View style={[styles.gridRow, isMobileWeb && { flexDirection: 'column' }]}>
+                        {/* Left: Metrics Stack */}
+                        <View style={[styles.leftColumn, { width: isMobileWeb ? '100%' : columnLeftWidth }]}>
+>>>>>>> 2187cd9 ([ADD] Graphic Logic)
                             <ThemedText style={styles.sectionTitle}>Resumen</ThemedText>
                             <View style={styles.metricsStack}>
                                 <DashboardMetricCard
@@ -185,6 +219,7 @@ export default function AchievementsScreenWeb() {
                             </View>
                         </View>
 
+<<<<<<< HEAD
                         {/* Vertical Divider - hidden on mobile */}
                         {!isMobileWeb ? <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} /> : null}
 
@@ -224,6 +259,23 @@ export default function AchievementsScreenWeb() {
                                     />
                                 </View>
 >>>>>>> 77bba13 ([ADD] Graphic and Metrics)
+=======
+                        {!isMobileWeb && <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />}
+
+                        {/* Right: Chart Area */}
+                        <View style={[styles.rightColumn, { width: isMobileWeb ? '100%' : columnRightWidth }]}>
+
+                            <View style={styles.chartWrapper}>
+                                <ThemedText style={[styles.subSectionTitle, { color: theme.textSecondary }]}>Actividad Diaria - Enero 2026</ThemedText>
+                                <WebChart
+                                    max={Math.max(...chartData[timeRange].map(d => d.values[0]), 10)}
+                                    data={chartData[timeRange]}
+                                    colors={['#10B981']}
+                                    height={250}
+                                    legends={[]}
+                                    xLabels={Array.from({ length: 31 }, (_, i) => (i + 1).toString())}
+                                />
+>>>>>>> 2187cd9 ([ADD] Graphic Logic)
                             </View>
                         </View>
                     </View>
