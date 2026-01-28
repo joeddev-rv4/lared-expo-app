@@ -9,6 +9,7 @@ import {
   TextInput,
   Image,
   Modal,
+  useWindowDimensions,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -86,6 +87,9 @@ export default function ProfileScreen() {
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
+  const { width: windowWidth } = useWindowDimensions();
+  
+  const isMobileWeb = isWeb && windowWidth < 768;
 
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("day");
   const [properties, setProperties] = useState<Property[]>([]);
@@ -339,7 +343,8 @@ export default function ProfileScreen() {
           styles.scrollContent,
           { 
             paddingTop: 0,
-            paddingBottom: tabBarHeight + Spacing.xl 
+            paddingBottom: tabBarHeight + Spacing.xl,
+            paddingHorizontal: isMobileWeb ? Spacing.md : (isWeb ? 90 : Spacing.lg),
           }
         ]}
       >
@@ -375,9 +380,9 @@ export default function ProfileScreen() {
             </View>
           ) : properties.length > 0 ? (
             isWeb ? (
-              <View style={styles.webGrid}>
+              <View style={[styles.webGrid, isMobileWeb && styles.webGridMobile]}>
                 {properties.map((property) => (
-                  <View style={styles.webGridItem}>
+                  <View style={[styles.webGridItem, isMobileWeb && styles.webGridItemMobile]} key={property.id}>
                     {renderClientPropertyCard(property)}
                   </View>
                 ))}
@@ -414,7 +419,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: isWeb ? 90 : Spacing.lg,
   },
 
   // Web Search Header
@@ -492,6 +496,14 @@ const styles = StyleSheet.create({
   webGridItem: {
     width: isWeb ? "100%" : "100%",
     minWidth: 280,
+  },
+  webGridMobile: {
+    flexDirection: "column",
+    gap: Spacing.md,
+  },
+  webGridItemMobile: {
+    width: "100%",
+    minWidth: 0,
   },
   mobileList: {
     gap: Spacing.md,

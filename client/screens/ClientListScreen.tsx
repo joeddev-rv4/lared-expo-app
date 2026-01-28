@@ -9,6 +9,7 @@ import {
   Image,
   Modal,
   Animated,
+  useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -48,6 +49,9 @@ export default function ClientListScreen() {
   const route = useRoute<NativeStackScreenProps<ProfileStackParamList, 'ClientList'>['route']>();
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
+  const { width: windowWidth } = useWindowDimensions();
+  
+  const isMobileWeb = isWeb && windowWidth < 768;
 
   const { property }: { property: Property } = route.params;
   const [clients, setClients] = useState<PropertyClient[]>([]);
@@ -162,6 +166,12 @@ export default function ClientListScreen() {
     return status ? statusColors[status] || '#6B7280' : '#6B7280';
   };
 
+  const getCardWidth = () => {
+    if (!isWeb) return CARD_WIDTH;
+    if (isMobileWeb) return '100%';
+    return '30%';
+  };
+
   const renderClientCard = (client: PropertyClient) => {
     return (
       <Pressable
@@ -170,6 +180,7 @@ export default function ClientListScreen() {
           styles.clientCard,
           {
             backgroundColor: theme.backgroundRoot,
+            width: getCardWidth(),
           },
           !isWeb && !isDark ? Shadows.card : null,
         ]}
@@ -206,7 +217,13 @@ export default function ClientListScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
+      <View style={[
+        styles.header, 
+        { 
+          paddingTop: insets.top + Spacing.md,
+          paddingHorizontal: isMobileWeb ? Spacing.md : (isWeb ? 90 : Spacing.lg),
+        }
+      ]}>
         <Pressable onPress={handleBackPress} style={styles.backButton}>
           <View style={styles.backButtonCircle}>
             <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
@@ -214,7 +231,7 @@ export default function ClientListScreen() {
         </Pressable>
         <View style={styles.headerContent}>
           <ThemedText style={styles.headerTitle}>Clientes Interesados</ThemedText>
-          <ThemedText style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
+          <ThemedText style={[styles.headerSubtitle, { color: theme.textSecondary }]} numberOfLines={1}>
             {property.title}
           </ThemedText>
         </View>
@@ -320,7 +337,10 @@ export default function ClientListScreen() {
           { paddingBottom: insets.bottom + Spacing.xl }
         ]}
       >
-        <View style={styles.clientsGrid}>
+        <View style={[
+          styles.clientsGrid,
+          { paddingHorizontal: isMobileWeb ? Spacing.md : (isWeb ? 90 : Spacing.lg) }
+        ]}>
           {clients?.map((client) => renderClientCard(client)) || (
             <View style={styles.emptyState}>
               <Ionicons name="people-outline" size={64} color={theme.textSecondary} />
@@ -342,7 +362,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: isWeb ? 90 : Spacing.lg,
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.1)',
@@ -376,13 +395,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    paddingHorizontal: isWeb ? 90 : Spacing.lg,
+    gap: Spacing.md,
   },
   clientCard: {
     borderRadius: BorderRadius.md,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
     overflow: "hidden",
-    width: isWeb ? '30%' : CARD_WIDTH,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.1)',
   },
