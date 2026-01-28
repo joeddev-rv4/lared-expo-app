@@ -1,0 +1,66 @@
+export const powerbiService = {
+  /**
+   * Obtiene las estadísticas del dashboard
+   * @returns Promise con el array de estadísticas
+   */
+  getDashboardStats: async (): Promise<DashboardStat[]> => {
+    try {
+      // Usar la API route interna de Next.js para evitar problemas de CORS
+      const response = await axios.get<DashboardStatsResponse>(
+        '/powerbi/getDashboardStats'
+      );
+      return response.data.data;
+    } catch (error) {
+      console.error('Error al obtener estadísticas del dashboard:', error);
+      // Retornar datos por defecto en caso de error
+      return [
+        {
+          title: 'Propiedades Listadas',
+          data: 0,
+        },
+        {
+          title: 'Aliados certificados',
+          data: 0,
+        },
+        {
+          title: 'Transacciones Exitosas',
+          data: 0,
+        },
+      ];
+    }
+  },
+
+  /**
+   * Obtiene las secciones de ventajas
+   * @returns Promise con el array de secciones
+   */
+  getSecciones: async (): Promise<Seccion[]> => {
+    try {
+      // Usar la API route interna de Next.js para evitar problemas de CORS
+      const response = await axios.get<SeccionesResponse>(
+        '/powerbi/getSecciones'
+      );
+      return response.data.secciones;
+    } catch (error) {
+      console.error('Error al obtener secciones:', error);
+      // Retornar datos por defecto en caso de error
+      return [
+        {
+          titulo: 'Crecimiento Acelerado',
+          descripcion:
+            'Aumenta tu cartera de clientes y propiedades en un 300% gracias a nuestra red de contactos verificados y herramientas de marketing digital integradas.',
+        },
+        {
+          titulo: 'Conexiones Estratégicas',
+          descripcion:
+            'Accede a una red exclusiva de aliados certificados, desarrolladores y compradores potenciales para cerrar más negocios en menos tiempo.',
+        },
+        {
+          titulo: 'Propiedades Premium',
+          descripcion:
+            'Acceso prioritario a listados exclusivos de alta gama y oportunidades de inversión antes que lleguen al mercado público.',
+        },
+      ];
+    }
+  },
+};
