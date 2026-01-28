@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { View, StyleSheet, Pressable, Image, Dimensions, Share, Platform, Alert } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -13,6 +13,66 @@ import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { Property } from "@/data/properties";
 import { Spacing, BorderRadius, Colors, Shadows } from "@/constants/theme";
+
+declare global {
+  interface Window {
+    ttq?: any;
+    TiktokAnalyticsObject?: string;
+  }
+}
+
+const TikTokIcon = ({ size = 24, color = "#000000" }: { size?: number; color?: string }) => (
+  <Ionicons name="logo-tiktok" size={size} color={color} />
+);
+
+const initTikTokPixel = () => {
+  if (Platform.OS !== "web" || typeof window === "undefined") return;
+  
+  const pixelId = process.env.EXPO_PUBLIC_TIKTOK_PIXEL_ID;
+  if (!pixelId || window.ttq) return;
+
+  const w = window as any;
+  const d = document;
+  const t = "ttq";
+  
+  w.TiktokAnalyticsObject = t;
+  const ttq = w[t] = w[t] || [];
+  ttq.methods = ["page", "track", "identify", "instances", "debug", "on", "off", "once", "ready", "alias", "group", "enableCookie", "disableCookie", "holdConsent", "revokeConsent", "grantConsent"];
+  ttq.setAndDefer = function(t: any, e: string) {
+    t[e] = function() {
+      t.push([e].concat(Array.prototype.slice.call(arguments, 0)));
+    };
+  };
+  for (let i = 0; i < ttq.methods.length; i++) {
+    ttq.setAndDefer(ttq, ttq.methods[i]);
+  }
+  ttq.instance = function(t: string) {
+    const e = ttq._i[t] || [];
+    for (let n = 0; n < ttq.methods.length; n++) {
+      ttq.setAndDefer(e, ttq.methods[n]);
+    }
+    return e;
+  };
+  ttq.load = function(e: string, n?: any) {
+    const r = "https://analytics.tiktok.com/i18n/pixel/events.js";
+    ttq._i = ttq._i || {};
+    ttq._i[e] = [];
+    ttq._i[e]._u = r;
+    ttq._t = ttq._t || {};
+    ttq._t[e] = +new Date();
+    ttq._o = ttq._o || {};
+    ttq._o[e] = n || {};
+    const script = d.createElement("script");
+    script.type = "text/javascript";
+    script.async = true;
+    script.src = r + "?sdkid=" + e + "&lib=" + t;
+    const firstScript = d.getElementsByTagName("script")[0];
+    firstScript.parentNode?.insertBefore(script, firstScript);
+  };
+  
+  ttq.load(pixelId);
+  ttq.page();
+};
 
 interface PropertyCardProps {
   property: Property;
@@ -49,6 +109,13 @@ export function PropertyCard({
   const heartScale = useSharedValue(1);
   const shareScale = useSharedValue(1);
   const copyScale = useSharedValue(1);
+  const tiktokScale = useSharedValue(1);
+
+  useEffect(() => {
+    if (isWeb) {
+      initTikTokPixel();
+    }
+  }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -64,6 +131,10 @@ export function PropertyCard({
 
   const copyAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: copyScale.value }],
+  }));
+
+  const tiktokAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: tiktokScale.value }],
   }));
 
   const handlePressIn = () => {
@@ -167,6 +238,77 @@ export function PropertyCard({
     }
   };
 
+  const handleTikTokShare = async () => {
+    tiktokScale.value = withSpring(1.3, { damping: 10 });
+    setTimeout(() => {
+      tiktokScale.value = withSpring(1, { damping: 10 });
+    }, 100);
+    
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    if (isGuest) {
+      if (onGuestAction) {
+        onGuestAction();
+      } else {
+        Alert.alert(
+          "Accion no disponible",
+          "Debes crear una cuenta para compartir propiedades en TikTok.",
+          [{ text: "Entendido" }]
+        );
+      }
+      return;
+    }
+
+    const pixelId = process.env.EXPO_PUBLIC_TIKTOK_PIXEL_ID;
+    if (!pixelId) {
+      Alert.alert("Error", "TikTok Pixel no esta configurado.");
+      return;
+    }
+
+    if (isWeb && typeof window !== "undefined" && window.ttq) {
+      window.ttq.track("Share", {
+        content_type: "property",
+        content_id: property.id,
+        content_name: property.title,
+        value: property.price,
+        currency: "GTQ",
+      });
+    }
+
+    let baseUrl = "";
+    if (isWeb && typeof window !== "undefined" && window.location) {
+      baseUrl = window.location.origin;
+    } else {
+      const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
+      baseUrl = domain ? `https://${domain.replace(':5000', '')}` : "";
+    }
+    
+    const propertyUrl = userId 
+      ? `${baseUrl}/blog/${userId}/${property.id}`
+      : `${baseUrl}/property/${property.id}`;
+    
+    const tiktokShareUrl = `https://www.tiktok.com/upload?caption=${encodeURIComponent(
+      `${property.title} - Q${property.price.toLocaleString()} - ${property.location}\n\nLa Red Inmobiliaria\n${propertyUrl}`
+    )}`;
+    
+    if (isWeb && typeof window !== "undefined") {
+      window.open(tiktokShareUrl, "_blank");
+    } else {
+      try {
+        const priceFormatted = `Q${property.price.toLocaleString()}`;
+        const message = `${property.title}\n\n${property.location}\n${priceFormatted}\n\nCompartido desde La Red Inmobiliaria`;
+        await Share.share({
+          message,
+          title: "Compartir en TikTok",
+        });
+      } catch (error) {
+        console.error("Error sharing to TikTok:", error);
+      }
+    }
+  };
+
   const bankQuota = Math.round(property.price / 180);
 
   return (
@@ -217,6 +359,18 @@ export function PropertyCard({
                 size={18}
                 color="#333333"
               />
+            </Pressable>
+          </Animated.View>
+          <Animated.View style={tiktokAnimatedStyle}>
+            <Pressable
+              onPress={handleTikTokShare}
+              hitSlop={12}
+              style={[styles.iconCircle, styles.tiktokCircle]}
+              testID={`tiktok-button-${property.id}`}
+            >
+              <View style={styles.tiktokIcon}>
+                <TikTokIcon size={18} color="#FFFFFF" />
+              </View>
             </Pressable>
           </Animated.View>
         </View>
@@ -282,6 +436,13 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 18,
     backgroundColor: "rgba(255, 255, 255, 0.85)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  tiktokCircle: {
+    backgroundColor: "#000000",
+  },
+  tiktokIcon: {
     justifyContent: "center",
     alignItems: "center",
   },
