@@ -525,6 +525,31 @@ const WhatsAppButton = () => {
 };
 
 export default function LandingScreen() {
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = 'auto';
+      document.body.style.height = 'auto';
+      document.documentElement.style.height = 'auto';
+      const root = document.getElementById('root');
+      if (root) {
+        root.style.height = 'auto';
+        root.style.overflow = 'visible';
+      }
+    }
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = '';
+        document.body.style.height = '';
+        document.documentElement.style.height = '';
+        const root = document.getElementById('root');
+        if (root) {
+          root.style.height = '';
+          root.style.overflow = '';
+        }
+      }
+    };
+  }, []);
+
   return (
     <div style={styles.container}>
       <LandingNavbar onNavigate={() => {}} />
