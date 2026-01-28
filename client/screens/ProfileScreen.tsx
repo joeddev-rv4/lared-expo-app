@@ -9,7 +9,7 @@ import {
   TextInput,
   Image,
   Modal,
-  useWindowDimensions,
+  Share,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -17,6 +17,7 @@ import Animated, {
   withTiming,
   interpolate,
   Easing,
+  withSpring,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -102,6 +103,7 @@ export default function ProfileScreen() {
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
   const searchExpandAnim = useSharedValue(0);
+  const shareScale = useSharedValue(1);
 
   const searchButtonAnimatedStyle = useAnimatedStyle(() => ({
     width: interpolate(searchExpandAnim.value, [0, 1], [48, 400]),
@@ -110,6 +112,10 @@ export default function ProfileScreen() {
   const searchInputAnimatedStyle = useAnimatedStyle(() => ({
     opacity: searchExpandAnim.value,
     transform: [{ scale: searchExpandAnim.value }],
+  }));
+
+  const shareAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: shareScale.value }],
   }));
 
   const filters: { key: FilterType; label: string }[] = [
@@ -206,13 +212,29 @@ export default function ProfileScreen() {
   };
 
   const handlePropertyPress = (property: Property) => {
-    // Navigate to property detail - you might want to implement this
-    console.log("Property pressed:", property.title);
+    navigation.navigate('PropertyDetail', { property });
   };
 
-  const handleSharePress = (property: Property) => {
-    // Handle share - you might want to implement this
-    console.log("Share property:", property.title);
+  const handleSharePress = async (property: Property) => {
+    shareScale.value = withSpring(1.3, { damping: 10 });
+    setTimeout(() => {
+      shareScale.value = withSpring(1, { damping: 10 });
+    }, 100);
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    try {
+      const priceFormatted = `Q${property.price.toLocaleString()}`;
+      const message = `${property.title}\n\n${property.location}\n${priceFormatted}\n${property.area} m²\n\n${property.description}\n\nLa Red Inmobiliaria - Hecha por vendedores, para vendedores`;
+
+      await Share.share({
+        message,
+        title: property.title,
+      });
+    } catch (error) {
+      console.error("Error sharing:", error);
+    }
   };
 
   const toggleWebSearch = () => {
@@ -263,13 +285,15 @@ export default function ProfileScreen() {
               onPress={() => handleClientCountPress(property)}
             />
             {/* Share button like in Favorites */}
-            <Pressable
-              onPress={() => handleSharePress(property)}
-              hitSlop={12}
-              style={styles.shareIconCircle}
-            >
-              <Ionicons name="share" size={18} color="#333333" />
-            </Pressable>
+            <Animated.View style={shareAnimatedStyle}>
+              <Pressable
+                onPress={() => handleSharePress(property)}
+                hitSlop={12}
+                style={styles.shareIconCircle}
+              >
+                <Ionicons name="share" size={18} color="#333333" />
+              </Pressable>
+            </Animated.View>
           </View>
           {/* Removed commission badge */}
         </View>
