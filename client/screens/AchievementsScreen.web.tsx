@@ -5,6 +5,7 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import { Ionicons } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
+import { WebFooter } from "@/components/WebFooter";
 import { DashboardMetricCard } from "@/components/dashboard/DashboardMetricCard";
 import { WebChart } from "@/components/dashboard/WebChart";
 import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
@@ -187,6 +188,7 @@ export default function AchievementsScreenWeb() {
                     </View>
 
                 </View>
+                <WebFooter />
             </ScrollView>
         </View>
     );

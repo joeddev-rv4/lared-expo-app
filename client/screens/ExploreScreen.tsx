@@ -40,6 +40,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { EmptyState } from "@/components/EmptyState";
 import { ThemedText } from "@/components/ThemedText";
 import { ExploreScreenSkeleton } from "@/components/SkeletonLoader";
+import { WebFooter } from "@/components/WebFooter";
 import { useTheme } from "@/hooks/useTheme";
 import { Property, mapAPIPropertyToProperty } from "@/data/properties";
 import { toggleFavorite } from "@/lib/storage";
@@ -814,6 +815,7 @@ export default function ExploreScreen() {
       >
         {isWeb ? renderWebSearchHeader() : renderMobileSearchHeader()}
         {renderContent()}
+        {isWeb ? <WebFooter /> : null}
       </ScrollView>
 
       {isWeb && (
