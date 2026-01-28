@@ -525,49 +525,35 @@ const WhatsAppButton = () => {
 };
 
 export default function LandingScreen() {
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      document.body.style.overflow = 'auto';
-      document.body.style.height = 'auto';
-      document.documentElement.style.height = 'auto';
-      const root = document.getElementById('root');
-      if (root) {
-        root.style.height = 'auto';
-        root.style.overflow = 'visible';
-      }
-    }
-    return () => {
-      if (typeof document !== 'undefined') {
-        document.body.style.overflow = '';
-        document.body.style.height = '';
-        document.documentElement.style.height = '';
-        const root = document.getElementById('root');
-        if (root) {
-          root.style.height = '';
-          root.style.overflow = '';
-        }
-      }
-    };
-  }, []);
-
   return (
-    <div style={styles.container}>
-      <LandingNavbar onNavigate={() => {}} />
-      <HeroSection />
-      <MetricsBar />
-      <AdvantagesSection />
-      <StepsSection />
-      <TopAlliesSection />
-      <FeaturedPropertiesSection />
-      <TestimonialsSection />
-      <ContactFormSection />
-      <Footer />
-      <WhatsAppButton />
+    <div style={styles.scrollWrapper}>
+      <div style={styles.container}>
+        <LandingNavbar onNavigate={() => {}} />
+        <HeroSection />
+        <MetricsBar />
+        <AdvantagesSection />
+        <StepsSection />
+        <TopAlliesSection />
+        <FeaturedPropertiesSection />
+        <TestimonialsSection />
+        <ContactFormSection />
+        <Footer />
+        <WhatsAppButton />
+      </div>
     </div>
   );
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
+  scrollWrapper: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    overflowY: "auto",
+    overflowX: "hidden",
+  },
   container: {
     width: "100%",
     minHeight: "100vh",
