@@ -198,15 +198,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async () => {
-    await signOut(auth);
-    await clearUserId();
-    setIsGuest(false);
-    queryClient.setQueryData(['user'], null);
-    // Limpiar storage
-    if (Platform.OS === "web") {
-      localStorage.removeItem('userData');
-    } else {
-      await AsyncStorage.removeItem('userData');
+    try {
+      // Limpiar storage primero
+      if (Platform.OS === "web") {
+        localStorage.removeItem('userData');
+      } else {
+        await AsyncStorage.removeItem('userData');
+      }
+      
+      // Limpiar estado
+      await clearUserId();
+      setIsGuest(false);
+      queryClient.setQueryData(['user'], null);
+      queryClient.clear();
+      
+      // Cerrar sesión de Firebase
+      await signOut(auth);
+      
+      // Navegar a Landing (web) o Onboarding (mobile)
+      const isWeb = Platform.OS === "web";
+      navigation.reset({
+        index: 0,
+        routes: [{ name: isWeb ? 'Landing' : 'Onboarding' }],
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
     }
   };
 
