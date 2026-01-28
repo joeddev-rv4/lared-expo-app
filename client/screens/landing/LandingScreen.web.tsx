@@ -7,8 +7,20 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const LandingNavbar = ({ onNavigate }: { onNavigate: (section: string) => void }) => {
   const navigation = useNavigation<NavigationProp>();
+  const [isMobile, setIsMobile] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const scrollToSection = (id: string) => {
+    setMenuOpen(false);
     const element = document.getElementById(id);
     if (element) {
       const offset = 100;
@@ -18,25 +30,51 @@ const LandingNavbar = ({ onNavigate }: { onNavigate: (section: string) => void }
     }
   };
 
+  const handleLogin = () => {
+    setMenuOpen(false);
+    navigation.navigate("Login");
+  };
+
   return (
-    <nav style={styles.navbar}>
-      <div style={styles.navbarInner}>
-        <div style={styles.navbarContent}>
+    <nav style={isMobile ? styles.navbarMobile : styles.navbar}>
+      <div style={isMobile ? styles.navbarInnerMobile : styles.navbarInner}>
+        <div style={isMobile ? styles.navbarContentMobile : styles.navbarContent}>
           <div style={styles.logoContainer} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
             <img src="/logo.svg" alt="La Red" style={styles.logo} />
           </div>
-          <div style={styles.navLinks}>
-            <button onClick={() => scrollToSection("caracteristicas")} style={styles.navLink}>Caracteristicas</button>
-            <button onClick={() => scrollToSection("pasos-aliado")} style={styles.navLink}>Pasos para ser aliado</button>
-            <button onClick={() => scrollToSection("propiedades")} style={styles.navLink}>Propiedades</button>
-            <button onClick={() => scrollToSection("formulario")} style={styles.navLink}>Unete Ahora</button>
-          </div>
-          <div style={styles.navActions}>
-            <button onClick={() => navigation.navigate("Login")} style={styles.loginButton}>Iniciar sesion</button>
-            <button onClick={() => scrollToSection("formulario")} style={styles.promoButton}>Promocionar</button>
-          </div>
+          {isMobile ? (
+            <button onClick={() => setMenuOpen(!menuOpen)} style={styles.hamburgerButton}>
+              <div style={{...styles.hamburgerLine, transform: menuOpen ? "rotate(45deg) translate(5px, 5px)" : "none"}} />
+              <div style={{...styles.hamburgerLine, opacity: menuOpen ? 0 : 1}} />
+              <div style={{...styles.hamburgerLine, transform: menuOpen ? "rotate(-45deg) translate(5px, -5px)" : "none"}} />
+            </button>
+          ) : (
+            <>
+              <div style={styles.navLinks}>
+                <button onClick={() => scrollToSection("caracteristicas")} style={styles.navLink}>Caracteristicas</button>
+                <button onClick={() => scrollToSection("pasos-aliado")} style={styles.navLink}>Pasos para ser aliado</button>
+                <button onClick={() => scrollToSection("propiedades")} style={styles.navLink}>Propiedades</button>
+                <button onClick={() => scrollToSection("formulario")} style={styles.navLink}>Unete Ahora</button>
+              </div>
+              <div style={styles.navActions}>
+                <button onClick={() => navigation.navigate("Login")} style={styles.loginButton}>Iniciar sesion</button>
+                <button onClick={() => scrollToSection("formulario")} style={styles.promoButton}>Promocionar</button>
+              </div>
+            </>
+          )}
         </div>
       </div>
+      {isMobile && menuOpen && (
+        <div style={styles.mobileMenu}>
+          <button onClick={() => scrollToSection("caracteristicas")} style={styles.mobileMenuItem}>Caracteristicas</button>
+          <button onClick={() => scrollToSection("pasos-aliado")} style={styles.mobileMenuItem}>Pasos para ser aliado</button>
+          <button onClick={() => scrollToSection("propiedades")} style={styles.mobileMenuItem}>Propiedades</button>
+          <button onClick={() => scrollToSection("formulario")} style={styles.mobileMenuItem}>Unete Ahora</button>
+          <div style={styles.mobileMenuDivider} />
+          <button onClick={handleLogin} style={styles.mobileMenuItem}>Iniciar sesion</button>
+          <button onClick={() => scrollToSection("formulario")} style={styles.mobileMenuPromoButton}>Promocionar</button>
+        </div>
+      )}
     </nav>
   );
 };
@@ -569,11 +607,22 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: "85%",
     maxWidth: 1400,
   },
+  navbarMobile: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 50,
+  },
   navbarInner: {
     backgroundColor: "#fff",
     borderRadius: 50,
     boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
     border: "1px solid rgba(0,0,0,0.05)",
+  },
+  navbarInnerMobile: {
+    backgroundColor: "#fff",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
   },
   navbarContent: {
     display: "flex",
@@ -581,6 +630,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: "space-between",
     padding: "0 32px",
     height: 70,
+  },
+  navbarContentMobile: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0 16px",
+    height: 60,
   },
   logoContainer: {
     cursor: "pointer",
@@ -624,6 +680,60 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: "none",
     borderRadius: 50,
     cursor: "pointer",
+  },
+  hamburgerButton: {
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    padding: 8,
+    display: "flex",
+    flexDirection: "column",
+    gap: 5,
+  },
+  hamburgerLine: {
+    width: 24,
+    height: 3,
+    backgroundColor: "#333",
+    borderRadius: 2,
+    transition: "all 0.3s ease",
+  },
+  mobileMenu: {
+    position: "absolute",
+    top: 60,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+    padding: "16px 0",
+    display: "flex",
+    flexDirection: "column",
+  },
+  mobileMenuItem: {
+    background: "none",
+    border: "none",
+    padding: "14px 24px",
+    fontSize: 16,
+    fontWeight: 600,
+    color: "#333",
+    textAlign: "left",
+    cursor: "pointer",
+  },
+  mobileMenuDivider: {
+    height: 1,
+    backgroundColor: "#eee",
+    margin: "8px 24px",
+  },
+  mobileMenuPromoButton: {
+    margin: "8px 24px",
+    padding: "14px 24px",
+    fontSize: 16,
+    fontWeight: 700,
+    color: "#fff",
+    background: "linear-gradient(to right, #bf0a0a, #d91010)",
+    border: "none",
+    borderRadius: 8,
+    cursor: "pointer",
+    textAlign: "center",
   },
   heroSection: {
     position: "relative",
