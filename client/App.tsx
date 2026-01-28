@@ -34,10 +34,11 @@ const linking: LinkingOptions<RootStackParamList> = {
   ].filter(Boolean),
   config: {
     screens: {
+      Landing: "",
       Blog: "blog/:userId/:propertyId",
       Onboarding: "onboarding",
       Login: "login",
-      Main: "",
+      Main: "app",
       PropertyDetail: "property",
       AddListingModal: "add-listing",
     },
