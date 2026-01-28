@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { ThemedText } from "@/components/ThemedText";
+import { Avatar } from "@/components/Avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 
@@ -339,11 +340,9 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
       <>
         <View style={styles.floatingNavContainer}>
           <Pressable style={styles.floatingUserButton} onPress={() => handleNavPress("ProfileTab")}>
-            <Image
-              source={{
-                uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-              }}
-              style={styles.floatingUserImage}
+            <Avatar 
+              name={user?.name || "Usuario"} 
+              size={40} 
             />
           </Pressable>
           <Pressable style={styles.floatingMenuButton} onPress={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -504,11 +503,9 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
               </Pressable>
 
               <Pressable style={styles.profileButton}>
-                <Image
-                  source={{
-                    uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-                  }}
-                  style={styles.profileImage}
+                <Avatar 
+                  name={user?.name || "Usuario"} 
+                  size={36} 
                 />
               </Pressable>
 
