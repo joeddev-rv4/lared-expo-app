@@ -32,6 +32,9 @@ const baseUrl = getApiUrl();
 const heroImage1 = `${baseUrl}assets/images-lared/get-started-bg.png`;
 const heroImage2 = `${baseUrl}assets/images-lared/get-started-bg-2.png`;
 const heroImage3 = `${baseUrl}assets/images-lared/get-started-bg-3.png`;
+const heroImageMobile1 = `${baseUrl}assets/images-lared/get-started-bg-mobile-1.png`;
+const heroImageMobile2 = `${baseUrl}assets/images-lared/get-started-bg-mobile-2.png`;
+const heroImageMobile3 = `${baseUrl}assets/images-lared/get-started-bg-mobile-3.png`;
 const logoSvg = `${baseUrl}assets/images-lared/logo.svg`;
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -121,14 +124,16 @@ const HeroSection = () => {
   const isMobile = useIsMobile();
   const [currentSlide, setCurrentSlide] = useState(0);
   const desktopImages = [heroImage1, heroImage2, heroImage3];
+  const mobileImages = [heroImageMobile1, heroImageMobile2, heroImageMobile3];
+  const images = isMobile ? mobileImages : desktopImages;
   const scrollRef = useContext(ScrollContext);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % desktopImages.length);
+      setCurrentSlide((prev) => (prev + 1) % images.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [desktopImages.length]);
+  }, [images.length]);
 
   const handleScrollTo = (id: string) => {
     scrollToSection(id, scrollRef);
@@ -137,7 +142,7 @@ const HeroSection = () => {
   return (
     <section style={isMobile ? {...styles.heroSection, height: "60vh", minHeight: 350, maxHeight: 500, paddingTop: 60} : styles.heroSection}>
       <div style={styles.heroImageContainer}>
-        {desktopImages.map((image, index) => (
+        {images.map((image, index) => (
           <img
             key={image}
             src={image}
@@ -160,7 +165,7 @@ const HeroSection = () => {
         </div>
       </div>
       <div style={isMobile ? {...styles.carouselIndicators, bottom: 16} : styles.carouselIndicators}>
-        {desktopImages.map((_, index) => (
+        {images.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentSlide(index)}
