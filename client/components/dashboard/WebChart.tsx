@@ -6,27 +6,30 @@ import { Spacing, BorderRadius, Colors } from '@/constants/theme';
 
 interface DataPoint {
     label: string;
-    value: number;
+    values: number[];
 }
 
 interface WebChartProps {
     data: DataPoint[];
     height?: number;
-    color?: string;
+    colors?: string[];
     max: number;
+    legends?: string[];
 }
 
 export const WebChart = ({
     data,
     height = 250,
-    color = Colors.light.primary,
-    max
+    colors = [Colors.light.primary, '#10B981', '#F59E0B'],
+    max,
+    legends = ['Serie 1', 'Serie 2', 'Serie 3']
 }: WebChartProps) => {
     const { theme } = useTheme();
 
     // Use 'max' prop or fallback to data max
     const maxValue = useMemo(() => {
-        return Math.max(max, ...data.map(d => d.value), 10);
+        const allValues = data.flatMap(d => d.values);
+        return Math.max(max, ...allValues, 10);
     }, [data, max]);
 
     return (
@@ -41,43 +44,82 @@ export const WebChart = ({
                     <View style={[styles.gridLine, { borderTopColor: theme.border, top: '100%' }]} />
                 </View>
 
+                {/* Axes */}
+                <View style={StyleSheet.absoluteFill}>
+                    {/* Horizontal axis at bottom */}
+                    <View style={[styles.axisLine, { borderTopColor: theme.text, top: '100%', left: 0, right: 0 }]} />
+                    {/* Vertical axis at left */}
+                    <View style={[styles.axisLine, { borderLeftColor: theme.text, left: 0, top: 0, bottom: 0 }]} />
+
+                    {/* Y-axis labels */}
+                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => {
+                        const value = i * 10;
+                        const topPercent = 100 - (value / maxValue) * 100;
+                        return (
+                            <ThemedText
+                                key={i}
+                                style={[
+                                    styles.yAxisLabel,
+                                    {
+                                        top: `${topPercent}%`,
+                                        color: theme.textSecondary,
+                                        left: -30,
+                                    }
+                                ]}
+                            >
+                                {value}
+                            </ThemedText>
+                        );
+                    })}
+                </View>
+
                 {/* Bars */}
                 <View style={styles.barsContainer}>
                     {data.map((point, index) => {
-                        const percentage = (point.value / maxValue) * 100;
-                        const barWidth = data.length > 20 ? 12 : 32;
+                        const barWidth = data.length > 20 ? 8 : 24;
+                        const groupWidth = barWidth * point.values.length + 4 * (point.values.length - 1);
                         return (
                             <View key={index} style={styles.barColumn}>
                                 <View style={styles.barTrack}>
-                                    <View style={styles.valueContainer}>
-                                        <ThemedText style={[styles.barValue, { color: theme.textSecondary }]}>
-                                            {point.value}
-                                        </ThemedText>
+                                    <View style={styles.multiBarContainer}>
+                                        {point.values.map((value, valueIndex) => {
+                                            return (
+                                                <View
+                                                    key={valueIndex}
+                                                    style={[
+                                                        styles.bar,
+                                                        {
+                                                            height: value * 2,
+                                                            width: 40,
+                                                            position: 'absolute',
+                                                            bottom: 0,
+                                                            left: [190, 110, 10][index],
+                                                            ...(Platform.OS === 'web' ? {
+                                                                backgroundColor: colors[index % colors.length]
+                                                            } : {
+                                                                backgroundColor: colors[index % colors.length]
+                                                            })
+                                                        }
+                                                    ]}
+                                                />
+                                            );
+                                        })}
                                     </View>
-                                    <View
-                                        style={[
-                                            styles.bar,
-                                            {
-                                                height: `${percentage}%`,
-                                                width: barWidth,
-                                                borderTopLeftRadius: barWidth / 2,
-                                                borderTopRightRadius: barWidth / 2,
-                                                ...(Platform.OS === 'web' ? {
-                                                    backgroundImage: `radial-gradient(circle at 50% 50%, #044bb8, #000000)`
-                                                } : {
-                                                    backgroundColor: color
-                                                })
-                                            }
-                                        ]}
-                                    />
                                 </View>
-                                <ThemedText style={[styles.label, { color: theme.textSecondary }]}>
-                                    {point.label}
-                                </ThemedText>
                             </View>
                         );
                     })}
                 </View>
+            </View>
+
+            {/* Legend */}
+            <View style={styles.legendContainer}>
+                {legends.map((legend, index) => (
+                    <View key={index} style={styles.legendItem}>
+                        <View style={[styles.legendColor, { backgroundColor: colors[index % colors.length] }]} />
+                        <ThemedText style={[styles.legendText, { color: theme.text }]}>{legend}</ThemedText>
+                    </View>
+                ))}
             </View>
         </View>
     );
@@ -100,6 +142,18 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderStyle: 'dashed',
         opacity: 0.5,
+    },
+    axisLine: {
+        borderWidth: 1,
+        borderColor: '#333',
+        position: 'absolute',
+    },
+    yAxisLabel: {
+        position: 'absolute',
+        fontSize: 10,
+        fontWeight: '500',
+        textAlign: 'right',
+        width: 25,
     },
     barsContainer: {
         flex: 1,
@@ -137,5 +191,32 @@ const styles = StyleSheet.create({
         marginTop: 8,
         position: 'absolute',
         bottom: -24,
+    },
+    multiBarContainer: {
+        position: 'relative',
+        height: '100%',
+        width: '100%',
+    },
+    legendContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginTop: Spacing.md,
+        flexWrap: 'wrap',
+    },
+    legendItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginHorizontal: Spacing.sm,
+        marginVertical: Spacing.xs,
+    },
+    legendColor: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        marginRight: Spacing.xs,
+    },
+    legendText: {
+        fontSize: 12,
+        fontWeight: '500',
     },
 });

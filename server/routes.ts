@@ -291,9 +291,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Obtener propiedades favoritas del usuario con conteo de clientes
-  app.get("/api/user/favorites-with-clients", async (req, res) => {
+  app.get("/api/user/favorites-with-clients/:userId", async (req, res) => {
     try {
-      const { userId } = req.query;
+      const { userId } = req.params;
 
       if (!userId || typeof userId !== 'string') {
         return res.status(400).json({
@@ -407,8 +407,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .orderBy(sql`${lead_history.created_at} DESC`)
               .limit(1);
 
-            if (history.length > 0 && history[0].history_data?.message) {
-              latestMessage = history[0].history_data.message;
+            if (history.length > 0 && (history[0].history_data as any)?.message) {
+              latestMessage = (history[0].history_data as any).message;
             }
           }
 

@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Pressable, Platform, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { Ionicons } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
-import { WebFooter } from "@/components/WebFooter";
 import { DashboardMetricCard } from "@/components/dashboard/DashboardMetricCard";
 import { WebChart } from "@/components/dashboard/WebChart";
 import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
+import { getPortfolioProperties } from "@/lib/portfolioService";
 import { DashboardProgressBar } from "@/components/dashboard/DashboardProgressBar";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius, Colors, Shadows } from "@/constants/theme";
@@ -23,18 +23,15 @@ const METRICS = {
 const BRAND_BLUE = '#044bb8';
 
 const CHART_DATA = {
-    Month: Array.from({ length: 30 }, (_, i) => ({
-        label: (i + 1).toString(),
-        value: Math.floor(Math.random() * 60) + 20,
-    })),
+    Month: [
+        { label: "Ganancias estimadas", values: [85] },
+        { label: "Propiedades asignadas", values: [65] },
+        { label: "Clientes obtenidos", values: [45] },
+    ],
     Week: [
-        { label: "Lun", value: 12 },
-        { label: "Mar", value: 19 },
-        { label: "Mié", value: 3 },
-        { label: "Jue", value: 5 },
-        { label: "Vie", value: 22 },
-        { label: "Sáb", value: 30 },
-        { label: "Dom", value: 15 },
+        { label: "Ganancias estimadas", values: [85] },
+        { label: "Propiedades asignadas", values: [65] },
+        { label: "Clientes obtenidos", values: [45] },
     ]
 };
 
@@ -46,9 +43,52 @@ const MESSAGES = [
 
 export default function AchievementsScreenWeb() {
     const { theme, isDark } = useTheme();
+    const { user } = useAuth();
     const headerHeight = useHeaderHeight();
     const { width: windowWidth } = useWindowDimensions();
     const [timeRange, setTimeRange] = useState<"Month" | "Week">("Month");
+    const [metrics, setMetrics] = useState({
+        ganancias: { value: 0, spark: [0, 0, 0, 0, 0, 0, 0] },
+        propiedades: { value: 0, spark: [0, 0, 0, 0, 0, 0, 0] },
+        clientes: { value: 0, spark: [0, 0, 0, 0, 0, 0, 0] },
+    });
+
+    useEffect(() => {
+        const fetchMetrics = async () => {
+            if (!user?.id) return;
+
+            try {
+                // Fetch leads
+                const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${user.id}`);
+                const leads = await leadsResponse.json();
+                const totalLeads = Array.isArray(leads) ? leads.length : 0;
+
+                // Fetch favorites from Firebase
+                const portfolioPropertyIds = await getPortfolioProperties(user.id);
+                const totalFavorites = portfolioPropertyIds.length;
+
+                // Calculate metrics
+                const gananciasValue = totalLeads * 750;
+                const propiedadesValue = totalFavorites;
+                const clientesValue = totalLeads;
+
+                // Mock sparkline data (you can make this dynamic if needed)
+                const sparkGanancias = [gananciasValue * 0.7, gananciasValue * 0.8, gananciasValue * 0.75, gananciasValue * 0.9, gananciasValue * 0.85, gananciasValue * 0.95, gananciasValue];
+                const sparkPropiedades = [propiedadesValue * 0.6, propiedadesValue * 0.7, propiedadesValue * 0.65, propiedadesValue * 0.8, propiedadesValue * 0.75, propiedadesValue * 0.9, propiedadesValue];
+                const sparkClientes = [clientesValue * 0.5, clientesValue * 0.6, clientesValue * 0.55, clientesValue * 0.7, clientesValue * 0.65, clientesValue * 0.8, clientesValue];
+
+                setMetrics({
+                    ganancias: { value: gananciasValue, spark: sparkGanancias },
+                    propiedades: { value: propiedadesValue, spark: sparkPropiedades },
+                    clientes: { value: clientesValue, spark: sparkClientes },
+                });
+            } catch (error) {
+                console.error('Error fetching metrics:', error);
+            }
+        };
+
+        fetchMetrics();
+    }, [user?.id]);
 
     const isSmallWindow = windowWidth < 1024;
     const isMobileWeb = windowWidth < 768;
@@ -86,8 +126,8 @@ export default function AchievementsScreenWeb() {
                         {!isMobileWeb ? <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} /> : null}
 
                         {/* Right: Controls */}
-                        <View style={[styles.rightColumn, !isMobileWeb && { width: columnRightWidth, alignItems: 'flex-end' }, isMobileWeb && styles.rightColumnMobile, { justifyContent: 'center' }]}>
-                            <View style={[styles.controls, isMobileWeb && styles.controlsMobile]}>
+                        <View style={[styles.rightColumn, { width: columnRightWidth, alignItems: 'flex-end', justifyContent: 'center' }]}>
+                            <View style={styles.controls}>
                                 <View style={[styles.toggleContainer, { backgroundColor: theme.backgroundSecondary }]}>
                                     <Pressable onPress={() => setTimeRange("Month")} style={[styles.toggleBtn, timeRange === "Month" && styles.activeToggle]}>
                                         <ThemedText style={[styles.toggleText, timeRange === "Month" && styles.activeToggleText]}>Este mes</ThemedText>
@@ -112,36 +152,27 @@ export default function AchievementsScreenWeb() {
                             <ThemedText style={styles.sectionTitle}>Resumen</ThemedText>
                             <View style={styles.metricsStack}>
                                 <DashboardMetricCard
-                                    title="Propiedades Asignadas"
-                                    value={METRICS.assigned.value}
-                                    icon="home-outline"
+                                    title="Ganancias Estimadas"
+                                    value={metrics.ganancias.value}
+                                    icon="cash-outline"
                                     color={BRAND_BLUE}
-                                    trend={{ value: 12, label: "vs mes ant.", positive: true }}
                                     noBackground
-                                    sparklineData={METRICS.assigned.spark}
-                                    sparklineType="bar"
+                                />
+                                <View style={[styles.innerDivider, { backgroundColor: theme.border }]} />
+                                <DashboardMetricCard
+                                    title="Propiedades Asignadas"
+                                    value={metrics.propiedades.value}
+                                    icon="cash-outline"
+                                    color={BRAND_BLUE}
+                                    noBackground
                                 />
                                 <View style={[styles.innerDivider, { backgroundColor: theme.border }]} />
                                 <DashboardMetricCard
                                     title="Clientes Obtenidos"
-                                    value={METRICS.clients.value}
-                                    icon="people-outline"
+                                    value={metrics.clientes.value}
+                                    icon="cash-outline"
                                     color={BRAND_BLUE}
-                                    trend={{ value: 5, label: "vs mes ant.", positive: true }}
                                     noBackground
-                                    sparklineData={METRICS.clients.spark}
-                                    sparklineType="area"
-                                />
-                                <View style={[styles.innerDivider, { backgroundColor: theme.border }]} />
-                                <DashboardMetricCard
-                                    title="Visitas Totales"
-                                    value={METRICS.views.value.toLocaleString()}
-                                    icon="eye-outline"
-                                    color={BRAND_BLUE}
-                                    trend={{ value: 2, label: "vs mes ant.", positive: false }}
-                                    noBackground
-                                    sparklineData={[METRICS.views.value, 2000]}
-                                    sparklineType="donut"
                                 />
                             </View>
                         </View>
@@ -157,7 +188,7 @@ export default function AchievementsScreenWeb() {
                                     max={100}
                                     data={CHART_DATA[timeRange]}
                                     color={BRAND_BLUE}
-                                    height={isMobileWeb ? 200 : 300}
+                                    height={300}
                                 />
                             </View>
                         </View>
@@ -168,7 +199,7 @@ export default function AchievementsScreenWeb() {
                     {/* Section 3: Gamification */}
                     <View style={[styles.gridRow, isMobileWeb && styles.gridRowMobile]}>
                         {/* Left: Metas (Percentage bars) */}
-                        <View style={[styles.leftColumn, !isMobileWeb && { width: columnLeftWidth }, isMobileWeb && styles.leftColumnMobile]}>
+                        <View style={[styles.leftColumn, { width: columnLeftWidth }]}>
                             <ThemedText style={styles.sectionTitle}>Metas</ThemedText>
                             <View style={styles.metasStack}>
                                 <DashboardProgressBar label="Cierre de Tratos" current={3} target={5} color={BRAND_BLUE} />
@@ -177,11 +208,11 @@ export default function AchievementsScreenWeb() {
                             </View>
                         </View>
 
-                        {/* Vertical Divider - hidden on mobile */}
-                        {!isMobileWeb ? <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} /> : null}
+                        {/* Vertical Divider */}
+                        <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />
 
                         {/* Right: Banners */}
-                        <View style={[styles.rightColumn, !isMobileWeb && { width: columnRightWidth }, isMobileWeb && styles.rightColumnMobile, { justifyContent: 'center' }]}>
+                        <View style={[styles.rightColumn, { width: columnRightWidth, justifyContent: 'center' }]}>
                             <ThemedText style={styles.sectionTitle}>Analítico</ThemedText>
                             <DashboardBanner messages={MESSAGES} interval={2000} />
                         </View>

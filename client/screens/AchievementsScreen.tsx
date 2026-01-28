@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Platform, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -14,6 +14,7 @@ import { BadgeComponent } from "@/components/dashboard/BadgeComponent";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { auth } from "@/lib/config";
+import { getPortfolioProperties } from "@/lib/portfolioService";
 import { Spacing, BorderRadius, Colors, Shadows } from "@/constants/theme";
 
 const isWeb = Platform.OS === "web";
@@ -61,8 +62,45 @@ export default function AchievementsScreen() {
   const { user, isGuest } = useAuth();
   const navigation = useNavigation<any>();
   const [timeRange, setTimeRange] = useState<"Día" | "Semana" | "Mes">("Semana");
+  const [metrics, setMetrics] = useState({
+    ganancias: 0,
+    propiedades: 0,
+    clientes: 0,
+  });
 
   const userId = user?.id || auth.currentUser?.uid;
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      if (!userId) return;
+
+      try {
+        // Fetch leads
+        const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`);
+        const leads = await leadsResponse.json();
+        const totalLeads = Array.isArray(leads) ? leads.length : 0;
+
+        // Fetch favorites from Firebase
+        const portfolioPropertyIds = await getPortfolioProperties(userId);
+        const totalFavorites = portfolioPropertyIds.length;
+
+        // Calculate metrics
+        const gananciasValue = totalLeads * 750;
+        const propiedadesValue = totalFavorites;
+        const clientesValue = totalLeads;
+
+        setMetrics({
+          ganancias: gananciasValue,
+          propiedades: propiedadesValue,
+          clientes: clientesValue,
+        });
+      } catch (error) {
+        console.error('Error fetching metrics:', error);
+      }
+    };
+
+    fetchMetrics();
+  }, [userId]);
 
   const handleNavigateToSignup = () => {
     navigation.getParent()?.getParent()?.reset({
@@ -136,33 +174,24 @@ export default function AchievementsScreen() {
           <ThemedText style={styles.sectionTitle}>Resumen</ThemedText>
           <View style={styles.metricsGrid}>
             <DashboardMetricCard
-              title="Asignadas"
-              value={METRICS.properties.toString()}
-              icon="home-outline"
-              trend={{ value: 12, label: "vs mes ant.", positive: true }}
+              title="Ganancias Estimadas"
+              value={metrics.ganancias.toString()}
+              icon="cash-outline"
               color="#3B82F6"
             />
             <DashboardMetricCard
-              title="Clientes"
-              value={METRICS.clients.toString()}
-              icon="people-outline"
-              trend={{ value: 5, label: "vs mes ant.", positive: true }}
+              title="Propiedades Asignadas"
+              value={metrics.propiedades.toString()}
+              icon="cash-outline"
               color="#10B981"
             />
           </View>
           <View style={[styles.metricsGrid, { marginTop: Spacing.md }]}>
             <DashboardMetricCard
-              title="Vistas Totales"
-              value={METRICS.views.toLocaleString()}
-              icon="eye-outline"
-              trend={{ value: 2, label: "vs mes ant.", positive: false }}
+              title="Clientes Obtenidos"
+              value={metrics.clientes.toString()}
+              icon="cash-outline"
               color="#8B5CF6"
-            />
-            <DashboardMetricCard
-              title="Ranking"
-              value="#42"
-              icon="trophy-outline"
-              color="#F59E0B"
             />
           </View>
         </View>
