@@ -3,6 +3,11 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
+const heroImage1 = "/assets/images-lared/get-started-bg.png";
+const heroImage2 = "/assets/images-lared/get-started-bg-2.png";
+const heroImage3 = "/assets/images-lared/get-started-bg-3.png";
+const logoSvg = "/assets/images-lared/logo.svg";
+
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const LandingNavbar = ({ onNavigate }: { onNavigate: (section: string) => void }) => {
@@ -40,7 +45,7 @@ const LandingNavbar = ({ onNavigate }: { onNavigate: (section: string) => void }
       <div style={isMobile ? styles.navbarInnerMobile : styles.navbarInner}>
         <div style={isMobile ? styles.navbarContentMobile : styles.navbarContent}>
           <div style={styles.logoContainer} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <img src="/logo.svg" alt="La Red" style={styles.logo} />
+            <img src={logoSvg} alt="La Red" style={styles.logo} />
           </div>
           {isMobile ? (
             <button onClick={() => setMenuOpen(!menuOpen)} style={styles.hamburgerButton}>
@@ -81,11 +86,7 @@ const LandingNavbar = ({ onNavigate }: { onNavigate: (section: string) => void }
 
 const HeroSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const desktopImages = [
-    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920",
-    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920",
-    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1920",
-  ];
+  const desktopImages = [heroImage1, heroImage2, heroImage3];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -510,7 +511,7 @@ const Footer = () => {
       <div style={styles.footerContainer}>
         <div style={styles.footerGrid}>
           <div style={styles.footerColumn}>
-            <img src="/logo.svg" alt="La Red" style={styles.footerLogo} />
+            <img src={logoSvg} alt="La Red" style={styles.footerLogo} />
             <p style={styles.footerDescription}>
               La plataforma lider en Guatemala para brokers inmobiliarios.
             </p>
