@@ -52,46 +52,67 @@ const LandingNavbar = ({ onNavigate }: { onNavigate: (section: string) => void }
     navigation.navigate("Login");
   };
 
+  if (isMobile) {
+    return (
+      <>
+        <div style={styles.floatingNavContainer}>
+          <button onClick={handleLogin} style={styles.floatingUserButton}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </button>
+          <button onClick={() => setMenuOpen(!menuOpen)} style={styles.floatingMenuButton}>
+            <div style={{...styles.hamburgerLine, transform: menuOpen ? "rotate(45deg) translate(5px, 5px)" : "none"}} />
+            <div style={{...styles.hamburgerLine, opacity: menuOpen ? 0 : 1}} />
+            <div style={{...styles.hamburgerLine, transform: menuOpen ? "rotate(-45deg) translate(5px, -5px)" : "none"}} />
+          </button>
+        </div>
+        {menuOpen && (
+          <div style={styles.mobileMenuOverlay} onClick={() => setMenuOpen(false)}>
+            <div style={styles.mobileMenuFloating} onClick={(e) => e.stopPropagation()}>
+              <div style={styles.mobileMenuHeader}>
+                <img src={logoSvg} alt="La Red" style={{ height: 32 }} />
+                <button onClick={() => setMenuOpen(false)} style={styles.mobileMenuCloseButton}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+              <button onClick={() => handleScrollTo("caracteristicas")} style={styles.mobileMenuItem}>Caracteristicas</button>
+              <button onClick={() => handleScrollTo("pasos-aliado")} style={styles.mobileMenuItem}>Pasos para ser aliado</button>
+              <button onClick={() => handleScrollTo("propiedades")} style={styles.mobileMenuItem}>Propiedades</button>
+              <button onClick={() => handleScrollTo("formulario")} style={styles.mobileMenuItem}>Unete Ahora</button>
+              <div style={styles.mobileMenuDivider} />
+              <button onClick={handleLogin} style={styles.mobileMenuItem}>Iniciar sesion</button>
+              <button onClick={() => handleScrollTo("formulario")} style={styles.mobileMenuPromoButton}>Promocionar</button>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
-    <nav style={isMobile ? styles.navbarMobile : styles.navbar}>
-      <div style={isMobile ? styles.navbarInnerMobile : styles.navbarInner}>
-        <div style={isMobile ? styles.navbarContentMobile : styles.navbarContent}>
+    <nav style={styles.navbar}>
+      <div style={styles.navbarInner}>
+        <div style={styles.navbarContent}>
           <div style={styles.logoContainer} onClick={() => scrollRef?.current?.scrollTo({ top: 0, behavior: "smooth" })}>
             <img src={logoSvg} alt="La Red" style={styles.logo} />
           </div>
-          {isMobile ? (
-            <button onClick={() => setMenuOpen(!menuOpen)} style={styles.hamburgerButton}>
-              <div style={{...styles.hamburgerLine, transform: menuOpen ? "rotate(45deg) translate(5px, 5px)" : "none"}} />
-              <div style={{...styles.hamburgerLine, opacity: menuOpen ? 0 : 1}} />
-              <div style={{...styles.hamburgerLine, transform: menuOpen ? "rotate(-45deg) translate(5px, -5px)" : "none"}} />
-            </button>
-          ) : (
-            <>
-              <div style={styles.navLinks}>
-                <button onClick={() => handleScrollTo("caracteristicas")} style={styles.navLink}>Caracteristicas</button>
-                <button onClick={() => handleScrollTo("pasos-aliado")} style={styles.navLink}>Pasos para ser aliado</button>
-                <button onClick={() => handleScrollTo("propiedades")} style={styles.navLink}>Propiedades</button>
-                <button onClick={() => handleScrollTo("formulario")} style={styles.navLink}>Unete Ahora</button>
-              </div>
-              <div style={styles.navActions}>
-                <button onClick={() => navigation.navigate("Login")} style={styles.loginButton}>Iniciar sesion</button>
-                <button onClick={() => handleScrollTo("formulario")} style={styles.promoButton}>Promocionar</button>
-              </div>
-            </>
-          )}
+          <div style={styles.navLinks}>
+            <button onClick={() => handleScrollTo("caracteristicas")} style={styles.navLink}>Caracteristicas</button>
+            <button onClick={() => handleScrollTo("pasos-aliado")} style={styles.navLink}>Pasos para ser aliado</button>
+            <button onClick={() => handleScrollTo("propiedades")} style={styles.navLink}>Propiedades</button>
+            <button onClick={() => handleScrollTo("formulario")} style={styles.navLink}>Unete Ahora</button>
+          </div>
+          <div style={styles.navActions}>
+            <button onClick={() => navigation.navigate("Login")} style={styles.loginButton}>Iniciar sesion</button>
+            <button onClick={() => handleScrollTo("formulario")} style={styles.promoButton}>Promocionar</button>
+          </div>
         </div>
       </div>
-      {isMobile && menuOpen && (
-        <div style={styles.mobileMenu}>
-          <button onClick={() => handleScrollTo("caracteristicas")} style={styles.mobileMenuItem}>Caracteristicas</button>
-          <button onClick={() => handleScrollTo("pasos-aliado")} style={styles.mobileMenuItem}>Pasos para ser aliado</button>
-          <button onClick={() => handleScrollTo("propiedades")} style={styles.mobileMenuItem}>Propiedades</button>
-          <button onClick={() => handleScrollTo("formulario")} style={styles.mobileMenuItem}>Unete Ahora</button>
-          <div style={styles.mobileMenuDivider} />
-          <button onClick={handleLogin} style={styles.mobileMenuItem}>Iniciar sesion</button>
-          <button onClick={() => handleScrollTo("formulario")} style={styles.mobileMenuPromoButton}>Promocionar</button>
-        </div>
-      )}
     </nav>
   );
 };
@@ -756,6 +777,81 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: "#333",
     borderRadius: 2,
     transition: "all 0.3s ease",
+  },
+  floatingNavContainer: {
+    position: "fixed",
+    top: 16,
+    left: 16,
+    right: 16,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    zIndex: 1000,
+    pointerEvents: "none",
+  },
+  floatingUserButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#fff",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
+    border: "none",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    pointerEvents: "auto",
+  },
+  floatingMenuButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#fff",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
+    border: "none",
+    cursor: "pointer",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    pointerEvents: "auto",
+  },
+  mobileMenuOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    zIndex: 1001,
+    display: "flex",
+    justifyContent: "flex-end",
+  },
+  mobileMenuFloating: {
+    width: "80%",
+    maxWidth: 320,
+    height: "100%",
+    backgroundColor: "#fff",
+    boxShadow: "-4px 0 20px rgba(0,0,0,0.15)",
+    padding: "16px 0",
+    display: "flex",
+    flexDirection: "column",
+    overflowY: "auto",
+  },
+  mobileMenuHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "8px 24px 24px 24px",
+    borderBottom: "1px solid #eee",
+    marginBottom: 8,
+  },
+  mobileMenuCloseButton: {
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    padding: 8,
   },
   mobileMenu: {
     position: "absolute",
