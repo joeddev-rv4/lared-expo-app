@@ -306,7 +306,8 @@ export default function ExploreScreen() {
   };
 
   const searchButtonAnimatedStyle = useAnimatedStyle(() => {
-    const width = interpolate(searchExpandAnim.value, [0, 1], [48, 400]);
+    const maxWidth = isMobileWeb ? windowWidth - 32 : 400;
+    const width = interpolate(searchExpandAnim.value, [0, 1], [48, maxWidth]);
     return {
       width,
     };
@@ -383,27 +384,31 @@ export default function ExploreScreen() {
           ) : null}
         </Animated.View>
 
-        {!isMobileWeb ? (
-          <View style={styles.webTagsContainer}>
+        {!webSearchExpanded ? (
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[styles.webTagsContainer, isMobileWeb && styles.webTagsContainerMobile]}
+          >
             <Pressable 
-              style={[styles.webTag, webFilterType === "properties" && styles.webTagActive]}
+              style={[styles.webTag, isMobileWeb && styles.webTagMobile, webFilterType === "properties" && styles.webTagActive]}
               onPress={() => setWebFilterType(webFilterType === "properties" ? "all" : "properties")}
             >
-              <ThemedText style={[styles.webTagText, webFilterType === "properties" && styles.webTagTextActive]}>Propiedades</ThemedText>
+              <ThemedText style={[styles.webTagText, isMobileWeb && styles.webTagTextMobile, webFilterType === "properties" && styles.webTagTextActive]}>Propiedades</ThemedText>
             </Pressable>
             <Pressable 
-              style={[styles.webTag, webFilterType === "projects" && styles.webTagActive]}
+              style={[styles.webTag, isMobileWeb && styles.webTagMobile, webFilterType === "projects" && styles.webTagActive]}
               onPress={() => setWebFilterType(webFilterType === "projects" ? "all" : "projects")}
             >
-              <ThemedText style={[styles.webTagText, webFilterType === "projects" && styles.webTagTextActive]}>Proyectos</ThemedText>
+              <ThemedText style={[styles.webTagText, isMobileWeb && styles.webTagTextMobile, webFilterType === "projects" && styles.webTagTextActive]}>Proyectos</ThemedText>
             </Pressable>
             <Pressable 
-              style={[styles.webTag, webFilterType === "new" && styles.webTagActive]}
+              style={[styles.webTag, isMobileWeb && styles.webTagMobile, webFilterType === "new" && styles.webTagActive]}
               onPress={() => setWebFilterType(webFilterType === "new" ? "all" : "new")}
             >
-              <ThemedText style={[styles.webTagText, webFilterType === "new" && styles.webTagTextActive]}>Propiedades nuevas</ThemedText>
+              <ThemedText style={[styles.webTagText, isMobileWeb && styles.webTagTextMobile, webFilterType === "new" && styles.webTagTextActive]}>Nuevas</ThemedText>
             </Pressable>
-          </View>
+          </ScrollView>
         ) : null}
       </View>
     </View>
@@ -884,16 +889,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: Spacing.sm,
   },
+  webTagsContainerMobile: {
+    paddingRight: Spacing.md,
+  },
   webTag: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     backgroundColor: "#F5F5F5",
     borderRadius: BorderRadius.full,
   },
+  webTagMobile: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+  },
   webTagText: {
     fontSize: 14,
     color: "#222222",
     fontWeight: "500",
+  },
+  webTagTextMobile: {
+    fontSize: 12,
   },
   webTagActive: {
     backgroundColor: "#bf0a0a",
