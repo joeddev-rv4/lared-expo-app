@@ -13,6 +13,8 @@ const pool = new Pool({
 });
 const db = drizzle(pool);
 
+const EXTERNAL_API = process.env.EXPO_PUBLIC_API_URL || "https://panel.laredgt.com/api";
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Proxy para la API de leads (soluciona CORS)
   app.get("/lead/user/:userId", async (req, res) => {
@@ -23,7 +25,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         // Intentar hacer la petición al servidor de la API de leads
-        const response = await fetch(`http://localhost:3000/lead/user/${userId}`);
+        const response = await fetch(`${EXTERNAL_API}/lead/user/${userId}`);
 
         if (!response.ok) {
           console.error("❌ Error en API de leads:", response.status);
@@ -99,6 +101,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         console.log(`✅ Proxy: ${testLeads.length} leads de prueba devueltos`);
 
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "Content-Type");
         return res.json(testLeads);
       }
 
@@ -120,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         // Intentar hacer la petición al servidor de la API de notificaciones
-        const response = await fetch(`http://localhost:3000/notifications/${userId}`);
+        const response = await fetch(`${EXTERNAL_API}/notifications/${userId}`);
 
         if (!response.ok) {
           console.error("❌ Error en API de notificaciones:", response.status);
@@ -193,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         // Intentar hacer la petición al servidor de la API de notificaciones
-        const response = await fetch(`http://localhost:3000/notifications/${notificationId}/read`, {
+        const response = await fetch(`${EXTERNAL_API}/notifications/${notificationId}/read`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

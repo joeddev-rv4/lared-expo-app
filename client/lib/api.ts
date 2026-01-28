@@ -225,6 +225,7 @@ export interface PropertyClient {
 export async function getUserFavoritePropertiesWithClients(userId: string): Promise<FavoritePropertyWithClients[]> {
   try {
     // Obtener leads del usuario desde nuestro servidor proxy (evita CORS)
+    // El puerto 5000 es el del servidor Express local (ahora usando variable de entorno)
     const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`);
 
     if (!leadsResponse.ok) {

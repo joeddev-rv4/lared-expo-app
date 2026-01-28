@@ -51,9 +51,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { data: user } = useQuery({
     queryKey: ['user'],
     queryFn: async () => {
-      // Intentar cargar desde storage
+      // Verificar primero si hay una sesión de Firebase activa
+      const currentFirebaseUser = auth.currentUser;
+
+      if (!currentFirebaseUser) {
+        // No hay sesión de Firebase, limpiar storage por seguridad
+        if (Platform.OS === "web") {
+          localStorage.removeItem('userData');
+          localStorage.removeItem('user_id');
+        } else {
+          await AsyncStorage.multiRemove(['userData', 'user_id']);
+        }
+        return null;
+      }
+
+      // Intentar cargar desde storage solo si hay sesión de Firebase
       try {
-        const storedUser = Platform.OS === "web" 
+        const storedUser = Platform.OS === "web"
           ? localStorage.getItem('userData')
           : await AsyncStorage.getItem('userData');
         if (storedUser) {
@@ -65,7 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return null;
     },
     initialData: null,
-    staleTime: Infinity,
+    staleTime: 0, // No cachear el estado de usuario para evitar falsos positivos al recargar
   });
 
   useEffect(() => {
@@ -87,7 +101,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               } else {
                 await AsyncStorage.setItem('userData', userString);
               }
-            } else {
             }
           } catch (error) {
             console.error('Error loading user data from Firestore:', error);
@@ -103,7 +116,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           await AsyncStorage.removeItem('userData');
         }
       }
-      setIsInitializing(false);
       setIsInitializing(false);
     });
 
@@ -198,15 +210,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async () => {
-    await signOut(auth);
-    await clearUserId();
-    setIsGuest(false);
-    queryClient.setQueryData(['user'], null);
-    // Limpiar storage
-    if (Platform.OS === "web") {
-      localStorage.removeItem('userData');
-    } else {
-      await AsyncStorage.removeItem('userData');
+    try {
+      // Limpiar storage PRIMERO antes de signOut
+      if (Platform.OS === "web") {
+        localStorage.removeItem('userData');
+        // Limpiar cualquier otro dato de sesión
+        localStorage.removeItem('onboardingComplete');
+      } else {
+        await AsyncStorage.removeItem('userData');
+        await AsyncStorage.removeItem('onboardingComplete');
+      }
+
+      // Limpiar userId
+      await clearUserId();
+
+      // Limpiar estado local
+      setIsGuest(false);
+
+      // Limpiar cache de react-query completamente
+      queryClient.setQueryData(['user'], null);
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.clear();
+
+      // Finalmente cerrar sesión de Firebase
+      await signOut(auth);
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Aún así intentar limpiar todo
+      queryClient.setQueryData(['user'], null);
+      queryClient.clear();
     }
   };
 

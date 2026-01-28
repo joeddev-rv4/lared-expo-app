@@ -290,7 +290,7 @@ export default function ProfileScreen() {
         <View style={styles.propertyImageContainer}>
           <Image
             source={{ uri: property.imageUrl }}
-            style={styles.propertyImage}
+            style={styles.propertyImage as any}
             resizeMode="cover"
           />
           <View style={styles.propertyActionButtons}>
@@ -373,9 +373,10 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { 
+          isMobileWeb && styles.scrollContentMobile,
+          {
             paddingTop: 0,
-            paddingBottom: tabBarHeight + Spacing.xl 
+            paddingBottom: tabBarHeight + Spacing.xl
           }
         ]}
       >
@@ -411,7 +412,7 @@ export default function ProfileScreen() {
             </View>
           ) : properties.length > 0 ? (
             isWeb ? (
-              <View style={styles.webGrid}>
+              <View style={[styles.webGrid, isMobileWeb && styles.webGridMobile]}>
                 {properties.map((property) => (
                   <View key={property.id} style={styles.webGridItem}>
                     {renderClientPropertyCard(property)}
@@ -455,6 +456,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: isWeb ? 90 : Spacing.lg,
+  },
+  scrollContentMobile: {
+    paddingHorizontal: Spacing.lg,
   },
 
   // Web Search Header
@@ -529,9 +533,15 @@ const styles = StyleSheet.create({
     gap: Spacing.lg,
     ...(isWeb && { display: "grid" as any, gridTemplateColumns: "repeat(3, 1fr)" as any }),
   },
+  webGridMobile: {
+    ...(isWeb && { gridTemplateColumns: "1fr" }),
+  } as any,
   webGridItem: {
     width: isWeb ? "100%" : "100%",
     minWidth: 280,
+  },
+  webGridItemMobile: {
+    minWidth: "100%",
   },
   mobileList: {
     gap: Spacing.md,
