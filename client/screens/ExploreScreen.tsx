@@ -93,6 +93,7 @@ export default function ExploreScreen() {
   const [favoritesPopupVisible, setFavoritesPopupVisible] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [webFilterType, setWebFilterType] = useState<"all" | "properties" | "projects" | "new">("all");
 
   const searchExpandAnim = useSharedValue(0);
 
@@ -248,6 +249,11 @@ export default function ExploreScreen() {
     return shuffled.slice(0, 10);
   }, [properties]);
 
+  const randomNewProperties = useMemo(() => {
+    const shuffled = [...properties].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 10);
+  }, [properties, webFilterType]);
+
   const topProperties = useMemo(() => {
     return properties
       .sort((a, b) => b.price - a.price)
@@ -264,7 +270,13 @@ export default function ExploreScreen() {
       });
     }
 
-    if (searchQuery) {
+    if (webSearchQuery && isWeb) {
+      filtered = filtered.filter((property) =>
+        property.title.toLowerCase().includes(webSearchQuery.toLowerCase()) ||
+        property.location.toLowerCase().includes(webSearchQuery.toLowerCase()) ||
+        property.projectName.toLowerCase().includes(webSearchQuery.toLowerCase())
+      );
+    } else if (searchQuery) {
       filtered = filtered.filter((property) =>
         property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         property.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -273,7 +285,7 @@ export default function ExploreScreen() {
     }
 
     return filtered;
-  }, [properties, searchQuery, selectedProjectId, projects]);
+  }, [properties, searchQuery, webSearchQuery, selectedProjectId, projects]);
 
   const toggleWebSearch = () => {
     const newState = !webSearchExpanded;
@@ -373,14 +385,23 @@ export default function ExploreScreen() {
 
         {!isMobileWeb ? (
           <View style={styles.webTagsContainer}>
-            <Pressable style={styles.webTag}>
-              <ThemedText style={styles.webTagText}>Propiedades</ThemedText>
+            <Pressable 
+              style={[styles.webTag, webFilterType === "properties" && styles.webTagActive]}
+              onPress={() => setWebFilterType(webFilterType === "properties" ? "all" : "properties")}
+            >
+              <ThemedText style={[styles.webTagText, webFilterType === "properties" && styles.webTagTextActive]}>Propiedades</ThemedText>
             </Pressable>
-            <Pressable style={styles.webTag}>
-              <ThemedText style={styles.webTagText}>Proyectos</ThemedText>
+            <Pressable 
+              style={[styles.webTag, webFilterType === "projects" && styles.webTagActive]}
+              onPress={() => setWebFilterType(webFilterType === "projects" ? "all" : "projects")}
+            >
+              <ThemedText style={[styles.webTagText, webFilterType === "projects" && styles.webTagTextActive]}>Proyectos</ThemedText>
             </Pressable>
-            <Pressable style={styles.webTag}>
-              <ThemedText style={styles.webTagText}>Propiedades nuevas</ThemedText>
+            <Pressable 
+              style={[styles.webTag, webFilterType === "new" && styles.webTagActive]}
+              onPress={() => setWebFilterType(webFilterType === "new" ? "all" : "new")}
+            >
+              <ThemedText style={[styles.webTagText, webFilterType === "new" && styles.webTagTextActive]}>Propiedades nuevas</ThemedText>
             </Pressable>
           </View>
         ) : null}
@@ -576,6 +597,92 @@ export default function ExploreScreen() {
           actionLabel="Reintentar"
           onAction={loadData}
         />
+      );
+    }
+
+    if (isWeb && webSearchQuery) {
+      return (
+        <>
+          <ThemedText style={styles.sectionTitle}>
+            Resultados para "{webSearchQuery}" ({filteredProperties.length})
+          </ThemedText>
+          <View style={[styles.webGrid, isMobileWeb && styles.webGridMobile, isTabletWeb && styles.webGridTablet]}>
+            {filteredProperties.map((item) => (
+              <View key={item.id} style={[styles.webGridItem, isMobileWeb && styles.webGridItemMobile, isTabletWeb && styles.webGridItemTablet]}>
+                <PropertyCard
+                  property={item}
+                  isFavorite={favorites.includes(item.id)}
+                  onPress={() => handlePropertyPress(item)}
+                  onFavoritePress={() => handleFavoriteToggle(item.id)}
+                  onSharePress={() => handleSharePress(item)}
+                  isGuest={isGuest}
+                />
+              </View>
+            ))}
+          </View>
+          {filteredProperties.length === 0 ? (
+            <EmptyState
+              image={require("../../assets/images/empty-states/search.png")}
+              title="Sin resultados"
+              description={`No encontramos propiedades que coincidan con "${webSearchQuery}"`}
+            />
+          ) : null}
+        </>
+      );
+    }
+
+    if (isWeb && webFilterType === "projects") {
+      return (
+        <>
+          <ThemedText style={styles.sectionTitle}>Proyectos disponibles</ThemedText>
+          <View style={styles.webProjectsGrid}>
+            {projects.map(renderExpandedProjectCard)}
+          </View>
+        </>
+      );
+    }
+
+    if (isWeb && webFilterType === "properties") {
+      return (
+        <>
+          <ThemedText style={styles.sectionTitle}>Todas las propiedades ({filteredProperties.length})</ThemedText>
+          <View style={[styles.webGrid, isMobileWeb && styles.webGridMobile, isTabletWeb && styles.webGridTablet]}>
+            {filteredProperties.map((item) => (
+              <View key={item.id} style={[styles.webGridItem, isMobileWeb && styles.webGridItemMobile, isTabletWeb && styles.webGridItemTablet]}>
+                <PropertyCard
+                  property={item}
+                  isFavorite={favorites.includes(item.id)}
+                  onPress={() => handlePropertyPress(item)}
+                  onFavoritePress={() => handleFavoriteToggle(item.id)}
+                  onSharePress={() => handleSharePress(item)}
+                  isGuest={isGuest}
+                />
+              </View>
+            ))}
+          </View>
+        </>
+      );
+    }
+
+    if (isWeb && webFilterType === "new") {
+      return (
+        <>
+          <ThemedText style={styles.sectionTitle}>Propiedades nuevas (10)</ThemedText>
+          <View style={[styles.webGrid, isMobileWeb && styles.webGridMobile, isTabletWeb && styles.webGridTablet]}>
+            {randomNewProperties.map((item) => (
+              <View key={item.id} style={[styles.webGridItem, isMobileWeb && styles.webGridItemMobile, isTabletWeb && styles.webGridItemTablet]}>
+                <PropertyCard
+                  property={item}
+                  isFavorite={favorites.includes(item.id)}
+                  onPress={() => handlePropertyPress(item)}
+                  onFavoritePress={() => handleFavoriteToggle(item.id)}
+                  onSharePress={() => handleSharePress(item)}
+                  isGuest={isGuest}
+                />
+              </View>
+            ))}
+          </View>
+        </>
       );
     }
 
@@ -787,6 +894,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#222222",
     fontWeight: "500",
+  },
+  webTagActive: {
+    backgroundColor: "#bf0a0a",
+  },
+  webTagTextActive: {
+    color: "#FFFFFF",
   },
   mobileSearchHeader: {
     marginBottom: Spacing.md,
