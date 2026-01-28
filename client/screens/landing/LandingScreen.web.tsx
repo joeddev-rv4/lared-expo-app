@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
+import { getApiUrl } from "@/lib/query-client";
 
-const heroImage1 = "/assets/images-lared/get-started-bg.png";
-const heroImage2 = "/assets/images-lared/get-started-bg-2.png";
-const heroImage3 = "/assets/images-lared/get-started-bg-3.png";
-const logoSvg = "/assets/images-lared/logo.svg";
+const baseUrl = getApiUrl();
+const heroImage1 = `${baseUrl}assets/images-lared/get-started-bg.png`;
+const heroImage2 = `${baseUrl}assets/images-lared/get-started-bg-2.png`;
+const heroImage3 = `${baseUrl}assets/images-lared/get-started-bg-3.png`;
+const logoSvg = `${baseUrl}assets/images-lared/logo.svg`;
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
