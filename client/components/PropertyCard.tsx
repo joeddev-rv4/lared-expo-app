@@ -8,6 +8,7 @@ import Animated, {
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
+import * as Linking from "expo-linking";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
@@ -262,12 +263,7 @@ export function PropertyCard({
     }
 
     const pixelId = process.env.EXPO_PUBLIC_TIKTOK_PIXEL_ID;
-    if (!pixelId) {
-      Alert.alert("Error", "TikTok Pixel no esta configurado.");
-      return;
-    }
-
-    if (isWeb && typeof window !== "undefined" && window.ttq) {
+    if (isWeb && typeof window !== "undefined" && window.ttq && pixelId) {
       window.ttq.track("Share", {
         content_type: "property",
         content_id: property.id,
@@ -289,23 +285,51 @@ export function PropertyCard({
       ? `${baseUrl}/blog/${userId}/${property.id}`
       : `${baseUrl}/property/${property.id}`;
     
-    const tiktokShareUrl = `https://www.tiktok.com/upload?caption=${encodeURIComponent(
-      `${property.title} - Q${property.price.toLocaleString()} - ${property.location}\n\nLa Red Inmobiliaria\n${propertyUrl}`
-    )}`;
+    const priceFormatted = `Q${property.price.toLocaleString()}`;
+    const shareText = `${property.title} - ${priceFormatted} - ${property.location}\n\nLa Red Inmobiliaria\n${propertyUrl}`;
     
-    if (isWeb && typeof window !== "undefined") {
-      window.open(tiktokShareUrl, "_blank");
-    } else {
-      try {
-        const priceFormatted = `Q${property.price.toLocaleString()}`;
-        const message = `${property.title}\n\n${property.location}\n${priceFormatted}\n\nCompartido desde La Red Inmobiliaria`;
-        await Share.share({
-          message,
-          title: "Compartir en TikTok",
-        });
-      } catch (error) {
-        console.error("Error sharing to TikTok:", error);
+    try {
+      await Clipboard.setStringAsync(shareText);
+      
+      if (isWeb && typeof window !== "undefined") {
+        Alert.alert(
+          "Texto copiado",
+          "El texto de la propiedad fue copiado. Ahora puedes pegarlo en TikTok.",
+          [
+            {
+              text: "Abrir TikTok",
+              onPress: () => window.open("https://www.tiktok.com", "_blank"),
+            },
+            { text: "Cerrar" },
+          ]
+        );
+      } else {
+        const tiktokAppUrl = "snssdk1233://";
+        const canOpen = await Linking.canOpenURL(tiktokAppUrl);
+        
+        if (canOpen) {
+          Alert.alert(
+            "Texto copiado",
+            "El texto fue copiado al portapapeles. Pega el contenido en tu video de TikTok.",
+            [
+              {
+                text: "Abrir TikTok",
+                onPress: () => Linking.openURL(tiktokAppUrl),
+              },
+              { text: "Cerrar" },
+            ]
+          );
+        } else {
+          Alert.alert(
+            "Texto copiado",
+            "El texto fue copiado al portapapeles. Abre TikTok y pega el contenido en tu video.",
+            [{ text: "Entendido" }]
+          );
+        }
       }
+    } catch (error) {
+      console.error("Error sharing to TikTok:", error);
+      Alert.alert("Error", "No se pudo preparar el contenido para compartir.");
     }
   };
 
