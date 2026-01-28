@@ -124,19 +124,13 @@ const HeroSection = () => {
         <div style={styles.heroOverlay} />
       </div>
       <div style={styles.heroContent}>
-        <div style={styles.heroText}>
-          <h1 style={styles.heroTitle}>Bienvenido a La Red</h1>
-          <p style={styles.heroSubtitle}>
-            La plataforma lider en Guatemala para brokers inmobiliarios. Conecta, crece y cierra mas negocios.
-          </p>
-          <div style={styles.heroButtons}>
-            <button onClick={() => scrollToSection("formulario")} style={styles.primaryButton}>
-              Comenzar Ahora
-            </button>
-            <button onClick={() => scrollToSection("propiedades")} style={styles.secondaryButton}>
-              Explorar Propiedades
-            </button>
-          </div>
+        <div style={styles.heroButtonsContainer}>
+          <button onClick={() => scrollToSection("formulario")} style={styles.primaryButton}>
+            Comenzar Ahora
+          </button>
+          <button onClick={() => scrollToSection("propiedades")} style={styles.secondaryButton}>
+            Explorar Propiedades
+          </button>
         </div>
       </div>
       <div style={styles.carouselIndicators}>
@@ -740,7 +734,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   heroSection: {
     position: "relative",
-    height: "100vh",
+    height: "70vh",
+    minHeight: 400,
+    maxHeight: 600,
     overflow: "hidden",
     paddingTop: 80,
   },
@@ -758,7 +754,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   heroOverlay: {
     position: "absolute",
     inset: 0,
-    background: "linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5))",
+    background: "linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.4))",
   },
   heroContent: {
     position: "relative",
@@ -768,7 +764,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "0 24px",
     height: "100%",
     display: "flex",
-    alignItems: "center",
+    alignItems: "flex-end",
+    justifyContent: "center",
+    paddingBottom: 80,
+  },
+  heroButtonsContainer: {
+    display: "flex",
+    gap: 16,
+    justifyContent: "center",
   },
   heroText: {
     maxWidth: 600,
