@@ -11,6 +11,8 @@ import { DashboardBanner } from "@/components/dashboard/DashboardBanner";
 import { getPortfolioProperties } from "@/lib/portfolioService";
 import { DashboardProgressBar } from "@/components/dashboard/DashboardProgressBar";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/contexts/AuthContext";
+import { WebFooter } from "@/components/WebFooter";
 import { Spacing, BorderRadius, Colors, Shadows } from "@/constants/theme";
 
 // Mock Data
@@ -182,15 +184,9 @@ export default function AchievementsScreenWeb() {
                     <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
                     {/* Section 2: Performance */}
-<<<<<<< HEAD
                     <View style={[styles.gridRow, isMobileWeb && styles.gridRowMobile]}>
                         {/* Left: Metrics Stack */}
                         <View style={[styles.leftColumn, !isMobileWeb && { width: columnLeftWidth }, isMobileWeb && styles.leftColumnMobile]}>
-=======
-                    <View style={[styles.gridRow, isMobileWeb && { flexDirection: 'column' }]}>
-                        {/* Left: Metrics Stack */}
-                        <View style={[styles.leftColumn, { width: isMobileWeb ? '100%' : columnLeftWidth }]}>
->>>>>>> 2187cd9 ([ADD] Graphic Logic)
                             <ThemedText style={styles.sectionTitle}>Resumen</ThemedText>
                             <View style={styles.metricsStack}>
                                 <DashboardMetricCard
@@ -219,52 +215,12 @@ export default function AchievementsScreenWeb() {
                             </View>
                         </View>
 
-<<<<<<< HEAD
                         {/* Vertical Divider - hidden on mobile */}
                         {!isMobileWeb ? <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} /> : null}
 
                         {/* Right: Chart Area */}
-<<<<<<< HEAD
                         <View style={[styles.rightColumn, !isMobileWeb && { width: columnRightWidth }, isMobileWeb && styles.rightColumnMobile]}>
                             <ThemedText style={styles.sectionTitle}>Gráfica de Actividad</ThemedText>
-                            <View style={styles.chartWrapper}>
-                                <WebChart
-                                    max={100}
-                                    data={CHART_DATA[timeRange]}
-                                    color={BRAND_BLUE}
-                                    height={300}
-                                />
-=======
-                        <View style={[styles.rightColumn, { width: columnRightWidth }]}>
-                            <ThemedText style={styles.sectionTitle}>Gráficas de Actividad</ThemedText>
-                            <View style={[styles.chartWrapper, { flexDirection: 'row' }]}>
-                                <View style={{ width: '45%' }}>
-                                    <ThemedText style={[styles.subSectionTitle, { color: theme.textSecondary }]}>Propiedades y Clientes</ThemedText>
-                                    <WebChart
-                                        max={Math.max(metrics.propiedades.value, metrics.clientes.value, 100)}
-                                        data={chartDataPropertiesClients[timeRange]}
-                                        colors={['#10B981', '#F59E0B']}
-                                        height={250}
-                                        legends={['Propiedades asignadas', 'Clientes obtenidos']}
-                                    />
-                                </View>
-                                <View style={{ marginLeft: 'auto', width: '45%' }}>
-                                    <ThemedText style={[styles.subSectionTitle, { color: theme.textSecondary }]}>Ganancias Estimadas</ThemedText>
-                                    <WebChart
-                                        max={Math.max(metrics.ganancias.value, 1000)}
-                                        data={chartDataGanancias[timeRange]}
-                                        colors={['#044bb8']}
-                                        height={250}
-                                        legends={['Ganancias estimadas']}
-                                    />
-                                </View>
->>>>>>> 77bba13 ([ADD] Graphic and Metrics)
-=======
-                        {!isMobileWeb && <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />}
-
-                        {/* Right: Chart Area */}
-                        <View style={[styles.rightColumn, { width: isMobileWeb ? '100%' : columnRightWidth }]}>
-
                             <View style={styles.chartWrapper}>
                                 <ThemedText style={[styles.subSectionTitle, { color: theme.textSecondary }]}>Actividad Diaria - Enero 2026</ThemedText>
                                 <WebChart
@@ -275,7 +231,6 @@ export default function AchievementsScreenWeb() {
                                     legends={[]}
                                     xLabels={Array.from({ length: 31 }, (_, i) => (i + 1).toString())}
                                 />
->>>>>>> 2187cd9 ([ADD] Graphic Logic)
                             </View>
                         </View>
                     </View>
