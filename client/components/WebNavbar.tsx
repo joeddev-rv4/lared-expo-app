@@ -234,9 +234,8 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
   };
 
   const handleNavPress = (routeName: string) => {
-    // On web, we navigate directly to the tab screen since MainTabNavigator is used directly
-    // Cast to any to handle dynamic route names
-    (navigation as any).navigate(routeName);
+    // Navigate to tab screen through the Main screen which contains MainTabNavigator
+    (navigation as any).navigate('Main', { screen: routeName });
   };
 
   const handleMenuToggle = () => {
