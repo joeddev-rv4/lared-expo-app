@@ -221,51 +221,71 @@ export function PropertyCard({
     
     try {
       if (isWeb) {
-        const response = await fetch(selectedMedia.url);
-        const blob = await response.blob();
-        const extension = isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "mp4" : "jpg";
-        const mimeType = isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "video/mp4" : "image/jpeg";
-        const file = new File([blob], `propiedad.${extension}`, { type: mimeType });
+        try {
+          const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
+          const baseUrl = domain ? `https://${domain.replace(':5000', '')}:5000` : "";
+          const proxyUrl = `${baseUrl}/api/image-proxy?url=${encodeURIComponent(selectedMedia.url)}`;
+          
+          const response = await fetch(proxyUrl);
+          if (response.ok) {
+            const blob = await response.blob();
+            const extension = isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "mp4" : "jpg";
+            const mimeType = isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "video/mp4" : "image/jpeg";
+            const file = new File([blob], `propiedad.${extension}`, { type: mimeType });
+            
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                title: property.title,
+                text: shareText,
+                files: [file],
+              });
+              return;
+            }
+          }
+        } catch (proxyError) {
+          console.log("Proxy error, falling back to text share:", proxyError);
+        }
         
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        if (navigator.share) {
           await navigator.share({
             title: property.title,
             text: shareText,
-            files: [file],
+            url: getShareUrl(),
           });
         } else {
-          await Share.share({
-            message: shareText,
-            title: property.title,
-          });
+          await Clipboard.setStringAsync(shareText);
+          Alert.alert(
+            "Contenido copiado",
+            "El texto ha sido copiado al portapapeles. Puedes pegarlo donde desees compartirlo."
+          );
         }
       } else {
         const extension = isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "mp4" : "jpg";
         const cacheDir = FileSystem.documentDirectory || "";
-        const localUri = `${cacheDir}propiedad_${property.id}.${extension}`;
+        const localUri = `${cacheDir}propiedad_${property.id}_${Date.now()}.${extension}`;
         
-        const downloadResult = await FileSystem.downloadAsync(selectedMedia.url, localUri);
-        
-        if (downloadResult.status === 200) {
-          const isSharingAvailable = await Sharing.isAvailableAsync();
+        try {
+          const downloadResult = await FileSystem.downloadAsync(selectedMedia.url, localUri);
           
-          if (isSharingAvailable) {
-            await Sharing.shareAsync(downloadResult.uri, {
-              mimeType: isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "video/mp4" : "image/jpeg",
-              dialogTitle: property.title,
-            });
-          } else {
-            await Share.share({
-              message: shareText,
-              title: property.title,
-            });
+          if (downloadResult.status === 200) {
+            const isSharingAvailable = await Sharing.isAvailableAsync();
+            
+            if (isSharingAvailable) {
+              await Sharing.shareAsync(downloadResult.uri, {
+                mimeType: isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "video/mp4" : "image/jpeg",
+                dialogTitle: property.title,
+              });
+              return;
+            }
           }
-        } else {
-          await Share.share({
-            message: shareText,
-            title: property.title,
-          });
+        } catch (downloadError) {
+          console.error("Download error:", downloadError);
         }
+        
+        await Share.share({
+          message: shareText,
+          title: property.title,
+        });
       }
     } catch (error) {
       console.error("Error sharing:", error);

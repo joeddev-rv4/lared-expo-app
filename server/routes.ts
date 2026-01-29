@@ -440,6 +440,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Proxy para descargar imágenes externas (soluciona CORS para compartir)
+  app.get("/api/image-proxy", async (req, res) => {
+    try {
+      const imageUrl = req.query.url as string;
+      
+      if (!imageUrl) {
+        return res.status(400).json({ error: "URL de imagen requerida" });
+      }
+      
+      console.log("📷 Image proxy: Descargando imagen:", imageUrl.substring(0, 100));
+      
+      const response = await fetch(imageUrl);
+      
+      if (!response.ok) {
+        console.error("❌ Error descargando imagen:", response.status);
+        return res.status(response.status).json({ error: "Error descargando imagen" });
+      }
+      
+      const contentType = response.headers.get("content-type") || "image/jpeg";
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      
+      res.setHeader("Content-Type", contentType);
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      
+      return res.send(buffer);
+    } catch (error) {
+      console.error("❌ Error en image proxy:", error);
+      return res.status(500).json({ error: "Error interno del servidor" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
