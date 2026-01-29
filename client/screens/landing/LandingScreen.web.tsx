@@ -796,37 +796,68 @@ const StepsSection = () => {
   );
 };
 
+interface TopAlly {
+  id: string;
+  name: string;
+  company: string;
+  properties: number;
+  sales: number;
+  clients: number;
+  photoUrl?: string;
+}
+
 const TopAlliesSection = () => {
   const isMobile = useIsMobile();
-  const allies = [
-    {
-      id: 1,
-      name: "Maria Gonzalez",
-      company: "Premium Realty GT",
-      properties: 127,
-      sales: 45,
-      clients: 312,
-      specialty: "Propiedades de lujo",
-    },
-    {
-      id: 2,
-      name: "Carlos Mendez",
-      company: "Urban Solutions",
-      properties: 203,
-      sales: 89,
-      clients: 567,
-      specialty: "Desarrollos comerciales",
-    },
-    {
-      id: 3,
-      name: "Ana Rodriguez",
-      company: "Costa Properties",
-      properties: 156,
-      sales: 67,
-      clients: 423,
-      specialty: "Propiedades costeras",
-    },
-  ];
+  const [allies, setAllies] = useState<TopAlly[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTopAllies = async () => {
+      try {
+        const API_URL = process.env.EXPO_PUBLIC_API_URL;
+        const response = await fetch(`${API_URL}/properties/getTopUsersWithProperties`, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const mappedAllies: TopAlly[] = (data || []).slice(0, 6).map((user: any, index: number) => ({
+            id: user.id || user.userId || `ally-${index}`,
+            name: user.name || user.nombre || user.fullName || 'Aliado',
+            company: user.company || user.empresa || user.businessName || 'Inmobiliaria',
+            properties: user.propertyCount || user.properties || user.totalProperties || 0,
+            sales: user.sales || user.ventas || user.totalSales || 0,
+            clients: user.clients || user.clientes || user.totalClients || 0,
+            photoUrl: user.photoUrl || user.photo || user.avatar || null,
+          }));
+          setAllies(mappedAllies);
+        }
+      } catch (error) {
+        console.error('Error fetching top allies:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTopAllies();
+  }, []);
+
+  if (loading) {
+    return (
+      <section style={isMobile ? { ...styles.alliesSection, padding: "48px 0" } : styles.alliesSection}>
+        <div style={isMobile ? { ...styles.alliesContainer, padding: "0 16px" } : styles.alliesContainer}>
+          <h2 style={isMobile ? { ...styles.alliesTitle, fontSize: 24 } : styles.alliesTitle}>Top Aliados</h2>
+          <p style={{ textAlign: 'center', color: '#666' }}>Cargando...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (allies.length === 0) {
+    return null;
+  }
 
   return (
     <section
@@ -871,9 +902,20 @@ const TopAlliesSection = () => {
           {allies.map((ally) => (
             <div key={ally.id} style={styles.allyCard}>
               <div style={styles.allyHeader}>
-                <div style={styles.allyAvatar}>
-                  <span style={styles.allyAvatarText}>{ally.name[0]}</span>
-                </div>
+                {ally.photoUrl ? (
+                  <img 
+                    src={ally.photoUrl} 
+                    alt={ally.name}
+                    style={{
+                      ...styles.allyAvatar,
+                      objectFit: 'cover' as const,
+                    }}
+                  />
+                ) : (
+                  <div style={styles.allyAvatar}>
+                    <span style={styles.allyAvatarText}>{ally.name[0]}</span>
+                  </div>
+                )}
                 <div style={styles.allyInfo}>
                   <h3 style={styles.allyName}>{ally.name}</h3>
                   <p style={styles.allyCompany}>{ally.company}</p>
