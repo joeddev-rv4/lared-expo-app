@@ -944,14 +944,18 @@ const TopAlliesSection = () => {
                   <div style={styles.allyStatValue}>{ally.properties}</div>
                   <div style={styles.allyStatLabel}>Propiedades</div>
                 </div>
-                <div style={styles.allyStat}>
-                  <div style={styles.allyStatValue}>{ally.sales}</div>
-                  <div style={styles.allyStatLabel}>Ventas</div>
-                </div>
-                <div style={styles.allyStat}>
-                  <div style={styles.allyStatValue}>{ally.clients}</div>
-                  <div style={styles.allyStatLabel}>Clientes</div>
-                </div>
+                {ally.sales > 0 ? (
+                  <div style={styles.allyStat}>
+                    <div style={styles.allyStatValue}>{ally.sales}</div>
+                    <div style={styles.allyStatLabel}>Ventas</div>
+                  </div>
+                ) : null}
+                {ally.clients > 0 ? (
+                  <div style={styles.allyStat}>
+                    <div style={styles.allyStatValue}>{ally.clients}</div>
+                    <div style={styles.allyStatLabel}>Clientes</div>
+                  </div>
+                ) : null}
               </div>
             </div>
           ))}
