@@ -815,15 +815,26 @@ const TopAlliesSection = () => {
     const fetchTopAllies = async () => {
       try {
         const API_URL = process.env.EXPO_PUBLIC_API_URL;
-        const response = await fetch(`${API_URL}/properties/getTopUsersWithProperties`, {
+        const url = `${API_URL}/properties/getTopUsersWithProperties`;
+        console.log('🔍 Fetching top allies from:', url);
+        
+        const response = await fetch(url, {
           headers: {
             'ngrok-skip-browser-warning': 'true',
           },
         });
         
+        console.log('📥 Top allies response status:', response.status, response.ok);
+        
         if (response.ok) {
-          const data = await response.json();
-          const mappedAllies: TopAlly[] = (data || []).slice(0, 6).map((user: any, index: number) => {
+          const rawText = await response.text();
+          console.log('📄 Top allies raw response (first 500 chars):', rawText.substring(0, 500));
+          
+          const data = JSON.parse(rawText);
+          console.log('✅ Top allies parsed data:', data);
+          
+          const usersArray = data.users || data || [];
+          const mappedAllies: TopAlly[] = usersArray.slice(0, 6).map((user: any, index: number) => {
             const validProperties = (user.properties || []).filter((p: any) => p !== null);
             const firstPropertyImage = validProperties.length > 0 && validProperties[0].imagenes?.length > 0
               ? validProperties[0].imagenes.find((img: any) => img.tipo === 'Imagen')?.url
