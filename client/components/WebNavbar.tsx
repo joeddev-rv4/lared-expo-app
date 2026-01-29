@@ -211,13 +211,27 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
 
   // Get the active tab route from nested navigation state
   const detectedTabRoute = useNavigationState((state) => {
-    // Navigate through: DrawerNavigator -> MainTabs -> Tab.Navigator
-    const drawerRoute = state?.routes?.[state.index];
-    if (drawerRoute?.name === 'MainTabs' && drawerRoute.state) {
-      const tabState = drawerRoute.state;
-      const activeTab = tabState.routes?.[tabState.index ?? 0];
+    if (!state) return 'explore';
+    
+    // Find the Main route which contains MainTabNavigator
+    const mainRoute = state.routes?.find(r => r.name === 'Main');
+    if (mainRoute?.state) {
+      // MainTabNavigator state - get the active tab
+      const tabState = mainRoute.state;
+      const activeTabIndex = tabState.index ?? 0;
+      const activeTab = tabState.routes?.[activeTabIndex];
       return activeTab?.name || 'explore';
     }
+    
+    // Fallback: check if current route IS the Main route at current index
+    const currentRoute = state.routes?.[state.index];
+    if (currentRoute?.name === 'Main' && currentRoute.state) {
+      const tabState = currentRoute.state;
+      const activeTabIndex = tabState.index ?? 0;
+      const activeTab = tabState.routes?.[activeTabIndex];
+      return activeTab?.name || 'explore';
+    }
+    
     return 'explore';
   });
 
