@@ -36,6 +36,11 @@ const heroImageMobile1 = `${baseUrl}assets/images-lared/get-started-bg-mobile-1.
 const heroImageMobile2 = `${baseUrl}assets/images-lared/get-started-bg-mobile-2.png`;
 const heroImageMobile3 = `${baseUrl}assets/images-lared/get-started-bg-mobile-3.png`;
 const logoSvg = `${baseUrl}assets/images-lared/logo.svg`;
+const horizontalLinesImg = `${baseUrl}assets/images-lared/horizontal-lines.png`;
+const phoneImg = `${baseUrl}assets/images-lared/phone.png`;
+const portfolioImg = `${baseUrl}assets/images-lared/portfolio_v2.png`;
+const rrssImg = `${baseUrl}assets/images-lared/rrss_v2.png`;
+const hombreFelizImg = `${baseUrl}assets/images-lared/hombre_feliz_v2.png`;
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -274,17 +279,27 @@ const StepsSection = () => {
   const isMobile = useIsMobile();
   const [currentStep, setCurrentStep] = useState(0);
   const steps = [
-    { title: "Descarga la App", showDownloadButtons: true },
-    { title: "Crea tu Cuenta", showRegisterButton: true },
-    { title: "Agrega Propiedades" },
-    { title: "Publica en Redes Sociales" },
-    { title: "Gana Comisiones" },
+    { title: "Descarga la App", description: "Descarga nuestra aplicacion desde App Store o Google Play para comenzar tu camino como aliado.", showDownloadButtons: true, image: null },
+    { title: "Crea tu Cuenta", description: "Registrate con tus datos y completa tu perfil para acceder a todas las herramientas.", image: phoneImg },
+    { title: "Agrega Propiedades", description: "Sube las propiedades que deseas promocionar con fotos, descripcion y detalles.", image: portfolioImg },
+    { title: "Publica en Redes Sociales", description: "Comparte las propiedades en tus redes sociales para llegar a mas clientes potenciales.", image: rrssImg },
+    { title: "Gana Comisiones", description: "Recibe comisiones por cada venta o alquiler que concretes a traves de la plataforma.", image: hombreFelizImg },
   ];
 
+  const sectionStyle: React.CSSProperties = {
+    ...styles.stepsSection,
+    background: "radial-gradient(circle at 50% 50%, #044BB8, #000)",
+    position: "relative",
+    ...(isMobile ? { padding: "48px 0", minHeight: "auto" } : {}),
+  };
+
   return (
-    <section id="pasos-aliado" style={isMobile ? {...styles.stepsSection, padding: "48px 0", minHeight: "auto"} : styles.stepsSection}>
-      <div style={isMobile ? {...styles.stepsContainer, padding: "0 16px"} : styles.stepsContainer}>
-        <h2 style={isMobile ? {...styles.stepsTitle, fontSize: 24, marginBottom: 32} : styles.stepsTitle}>
+    <section id="pasos-aliado" style={sectionStyle}>
+      <div style={styles.stepsBackgroundOverlay}>
+        <img src={horizontalLinesImg} alt="" style={styles.stepsBackgroundImage} />
+      </div>
+      <div style={{...styles.stepsContainer, padding: isMobile ? "0 16px" : "0 24px", position: "relative", zIndex: 1}}>
+        <h2 style={{...styles.stepsTitle, fontSize: isMobile ? 24 : 48, marginBottom: isMobile ? 32 : 48, color: "#fff"}}>
           Pasos para ser un <span style={{ color: "#bf0a0a" }}>Aliado</span>
         </h2>
         <div style={styles.stepsCarousel}>
@@ -294,20 +309,37 @@ const StepsSection = () => {
               style={{
                 ...styles.stepCard,
                 display: index === currentStep ? "flex" : "none",
+                flexDirection: isMobile ? "column" : "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: isMobile ? 24 : 48,
               }}
             >
-              <div style={styles.stepNumber}>{index + 1}</div>
-              <h3 style={styles.stepCardTitle}>{step.title}</h3>
-              {step.showDownloadButtons && (
-                <div style={styles.downloadButtons}>
-                  <a href="https://apps.apple.com/gt/app/la-red-inmobiliaria/id6748619383" target="_blank" rel="noopener noreferrer">
-                    <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store" style={styles.storeButton} />
-                  </a>
-                  <a href="https://play.google.com/store/apps/details?id=com.lared.inmobiliaria" target="_blank" rel="noopener noreferrer">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" style={styles.storeButton} />
-                  </a>
+              {step.image ? (
+                <div style={{...styles.stepImageContainer, order: isMobile ? 1 : 0}}>
+                  <img src={step.image} alt={step.title} style={styles.stepImage} />
                 </div>
-              )}
+              ) : null}
+              <div style={{
+                ...styles.stepContentContainer,
+                order: isMobile ? 0 : 1,
+                textAlign: isMobile ? "center" : (step.image ? "left" : "center"),
+                maxWidth: step.image ? 400 : 600,
+              }}>
+                <div style={{...styles.stepNumber, margin: isMobile || !step.image ? "0 auto 16px" : "0 0 16px"}}>{index + 1}</div>
+                <h3 style={{...styles.stepCardTitle, color: "#fff"}}>{step.title}</h3>
+                <p style={styles.stepDescription}>{step.description}</p>
+                {step.showDownloadButtons && (
+                  <div style={{...styles.downloadButtons, justifyContent: isMobile ? "center" : "flex-start"}}>
+                    <a href="https://apps.apple.com/gt/app/la-red-inmobiliaria/id6748619383" target="_blank" rel="noopener noreferrer">
+                      <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store" style={styles.storeButton} />
+                    </a>
+                    <a href="https://play.google.com/store/apps/details?id=com.lared.inmobiliaria" target="_blank" rel="noopener noreferrer">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" style={styles.storeButton} />
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -318,7 +350,7 @@ const StepsSection = () => {
               onClick={() => setCurrentStep(index)}
               style={{
                 ...styles.stepIndicator,
-                backgroundColor: index === currentStep ? "#bf0a0a" : "rgba(0,0,0,0.2)",
+                backgroundColor: index === currentStep ? "#bf0a0a" : "rgba(255,255,255,0.4)",
                 transform: index === currentStep ? "scale(1.25)" : "scale(1)",
               }}
             />
@@ -1103,6 +1135,21 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
+    overflow: "hidden",
+  },
+  stepsBackgroundOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 0,
+    opacity: 0.3,
+  },
+  stepsBackgroundImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
   },
   stepsContainer: {
     maxWidth: 1280,
@@ -1126,6 +1173,24 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: 32,
     minHeight: 300,
   },
+  stepImageContainer: {
+    flex: "0 0 auto",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepImage: {
+    maxWidth: 280,
+    maxHeight: 320,
+    width: "100%",
+    height: "auto",
+    objectFit: "contain",
+  },
+  stepContentContainer: {
+    flex: "0 1 auto",
+    display: "flex",
+    flexDirection: "column",
+  },
   stepNumber: {
     width: 64,
     height: 64,
@@ -1143,6 +1208,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: 24,
     fontWeight: 700,
     color: "#333",
+    marginBottom: 16,
+  },
+  stepDescription: {
+    fontSize: 16,
+    color: "rgba(255,255,255,0.8)",
+    lineHeight: 1.6,
     marginBottom: 24,
   },
   downloadButtons: {
