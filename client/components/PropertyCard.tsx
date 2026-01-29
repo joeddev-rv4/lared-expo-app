@@ -92,6 +92,7 @@ const CARD_WIDTH = SCREEN_WIDTH - Spacing.lg * 2;
 const IMAGE_HEIGHT = 200;
 const isWeb = Platform.OS === "web";
 const isMobileWeb = isWeb && SCREEN_WIDTH < 768;
+const isTikTokEnabled = process.env.EXPO_PUBLIC_TIKTOK_VALIDATOR === "true";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -386,18 +387,20 @@ export function PropertyCard({
               />
             </Pressable>
           </Animated.View>
-          <Animated.View style={tiktokAnimatedStyle}>
-            <Pressable
-              onPress={handleTikTokShare}
-              hitSlop={12}
-              style={[styles.iconCircle, styles.tiktokCircle]}
-              testID={`tiktok-button-${property.id}`}
-            >
-              <View style={styles.tiktokIcon}>
-                <TikTokIcon size={18} color="#FFFFFF" />
-              </View>
-            </Pressable>
-          </Animated.View>
+          {isTikTokEnabled ? (
+            <Animated.View style={tiktokAnimatedStyle}>
+              <Pressable
+                onPress={handleTikTokShare}
+                hitSlop={12}
+                style={[styles.iconCircle, styles.tiktokCircle]}
+                testID={`tiktok-button-${property.id}`}
+              >
+                <View style={styles.tiktokIcon}>
+                  <TikTokIcon size={18} color="#FFFFFF" />
+                </View>
+              </Pressable>
+            </Animated.View>
+          ) : null}
         </View>
         <View style={styles.commissionBadge}>
           <ThemedText style={styles.commissionText}>
