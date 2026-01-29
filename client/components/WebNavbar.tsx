@@ -234,8 +234,9 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
   };
 
   const handleNavPress = (routeName: string) => {
-    // Navigate to nested tab screen through the drawer navigator
-    navigation.navigate('MainTabs', { screen: routeName });
+    // On web, we navigate directly to the tab screen since MainTabNavigator is used directly
+    // Cast to any to handle dynamic route names
+    (navigation as any).navigate(routeName);
   };
 
   const handleMenuToggle = () => {
