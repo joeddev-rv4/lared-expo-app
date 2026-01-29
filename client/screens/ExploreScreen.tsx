@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   View,
   FlatList,
@@ -27,7 +27,7 @@ const isWeb = Platform.OS === "web";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
@@ -100,6 +100,23 @@ export default function ExploreScreen() {
   useEffect(() => {
     loadData();
   }, [user?.id]);
+
+  const loadFavorites = useCallback(async () => {
+    const userId = user?.id || auth.currentUser?.uid;
+    if (userId) {
+      const firebaseFavs = await getPortfolioProperties(userId);
+      const firebaseFavsStrings = firebaseFavs.map(id => id.toString());
+      setFavorites(firebaseFavsStrings);
+    } else {
+      setFavorites([]);
+    }
+  }, [user?.id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadFavorites();
+    }, [loadFavorites])
+  );
 
   const loadData = async () => {
     try {
