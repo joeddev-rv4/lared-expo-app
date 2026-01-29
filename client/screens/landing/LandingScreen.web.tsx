@@ -1714,7 +1714,7 @@ const ContactFormSection = () => {
             </div>
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>
-                Numero de telefono (opcional)
+                Numero de telefono 
               </label>
               <div style={{ display: "flex", gap: 8 }}>
                 <select
@@ -1736,11 +1736,12 @@ const ContactFormSection = () => {
                 <input
                   type="tel"
                   value={formData.phoneNumber}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phoneNumber: e.target.value })
-                  }
+                  onChange={(e) => {
+                    const numericOnly = e.target.value.replace(/[^0-9]/g, '');
+                    setFormData({ ...formData, phoneNumber: numericOnly });
+                  }}
                   style={{ ...styles.formInput, flex: 1 }}
-                  placeholder="1234-5678"
+                  placeholder="12345678"
                 />
               </div>
             </div>

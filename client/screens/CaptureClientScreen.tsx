@@ -331,7 +331,7 @@ export default function CaptureClientScreen() {
 
       <View style={styles.inputContainer}>
         <ThemedText style={[styles.label, { color: theme.textSecondary }]}>
-          Comentarios (opcional)
+          Comentarios
         </ThemedText>
         <TextInput
           style={[

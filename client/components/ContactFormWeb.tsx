@@ -1,7 +1,14 @@
 import React, { useState } from "react";
-import { View, StyleSheet, TextInput, Pressable, ActivityIndicator, Alert } from "react-native";
+import {
+    View,
+    StyleSheet,
+    TextInput,
+    Pressable,
+    ActivityIndicator,
+    Alert,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection } from "firebase/firestore";
 import { db } from "@/lib/config";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
@@ -13,7 +20,12 @@ interface ContactFormProps {
     style?: any;
 }
 
-export default function ContactFormWeb({ userId, propertyId, title, style }: ContactFormProps) {
+export default function ContactFormWeb({
+    userId,
+    propertyId,
+    title,
+    style,
+}: ContactFormProps) {
     const [contactForm, setContactForm] = useState({
         name: "",
         email: "",
@@ -25,31 +37,31 @@ export default function ContactFormWeb({ userId, propertyId, title, style }: Con
 
     const handleSubmitContact = async () => {
         if (!contactForm.name || !contactForm.email || !contactForm.phone) {
-            Alert.alert('Error', 'Por favor completa los campos requeridos');
+            Alert.alert("Error", "Por favor completa los campos requeridos");
             return;
         }
 
         setSubmitting(true);
         try {
             const requestData = {
-                brokerId: userId || '',
+                brokerId: userId || "",
                 clientName: contactForm.name,
                 clientPhone: `+502 ${contactForm.phone}`,
-                comment: contactForm.message || '',
+                comment: contactForm.message || "",
                 createdAt: new Date(),
                 documentationProcess: [],
                 paymentProgress: [],
                 propertyId: Number(propertyId),
-                status: 'pending'
+                status: "pending",
             };
 
-            await addDoc(collection(db, 'requests'), requestData);
+            await addDoc(collection(db, "requests"), requestData);
 
             setSubmitSuccess(true);
             setContactForm({ name: "", email: "", phone: "", message: "" });
         } catch (err) {
             console.error("Error submitting contact:", err);
-            Alert.alert('Error', 'Hubo un problema al enviar tu solicitud.');
+            Alert.alert("Error", "Hubo un problema al enviar tu solicitud.");
         } finally {
             setSubmitting(false);
         }
@@ -57,11 +69,17 @@ export default function ContactFormWeb({ userId, propertyId, title, style }: Con
 
     return (
         <View style={[styles.contactFormSection, style]}>
-            <ThemedText style={styles.formTitle}>{title || "Solicitar información"}</ThemedText>
+            <ThemedText style={styles.formTitle}>
+                {title || "Solicitar información"}
+            </ThemedText>
 
             {submitSuccess ? (
                 <View style={styles.successMessage}>
-                    <Ionicons name="checkmark-circle" size={48} color={Colors.light.primary} />
+                    <Ionicons
+                        name="checkmark-circle"
+                        size={48}
+                        color={Colors.light.primary}
+                    />
                     <ThemedText style={styles.successText}>
                         ¡Gracias! Tu solicitud ha sido enviada.
                     </ThemedText>
@@ -76,7 +94,9 @@ export default function ContactFormWeb({ userId, propertyId, title, style }: Con
                         placeholder="Tu nombre completo"
                         placeholderTextColor="#999"
                         value={contactForm.name}
-                        onChangeText={(text) => setContactForm({ ...contactForm, name: text })}
+                        onChangeText={(text) =>
+                            setContactForm({ ...contactForm, name: text })
+                        }
                     />
                     <TextInput
                         style={styles.input}
@@ -84,7 +104,9 @@ export default function ContactFormWeb({ userId, propertyId, title, style }: Con
                         placeholderTextColor="#999"
                         keyboardType="email-address"
                         value={contactForm.email}
-                        onChangeText={(text) => setContactForm({ ...contactForm, email: text })}
+                        onChangeText={(text) =>
+                            setContactForm({ ...contactForm, email: text })
+                        }
                     />
                     <TextInput
                         style={styles.input}
@@ -92,30 +114,43 @@ export default function ContactFormWeb({ userId, propertyId, title, style }: Con
                         placeholderTextColor="#999"
                         keyboardType="phone-pad"
                         value={contactForm.phone}
-                        onChangeText={(text) => setContactForm({ ...contactForm, phone: text })}
+                        onChangeText={(text) =>
+                            setContactForm({ ...contactForm, phone: text })
+                        }
                     />
                     <TextInput
                         style={[styles.input, styles.textArea]}
-                        placeholder="Mensaje (opcional)"
+                        placeholder="Mensaje"
                         placeholderTextColor="#999"
                         multiline
                         numberOfLines={4}
                         value={contactForm.message}
-                        onChangeText={(text) => setContactForm({ ...contactForm, message: text })}
+                        onChangeText={(text) =>
+                            setContactForm({ ...contactForm, message: text })
+                        }
                     />
                     <Pressable
                         style={[
                             styles.submitButton,
-                            (!contactForm.name || !contactForm.email || !contactForm.phone) &&
-                            styles.submitButtonDisabled,
+                            (!contactForm.name ||
+                                !contactForm.email ||
+                                !contactForm.phone) &&
+                                styles.submitButtonDisabled,
                         ]}
                         onPress={handleSubmitContact}
-                        disabled={!contactForm.name || !contactForm.email || !contactForm.phone || submitting}
+                        disabled={
+                            !contactForm.name ||
+                            !contactForm.email ||
+                            !contactForm.phone ||
+                            submitting
+                        }
                     >
                         {submitting ? (
                             <ActivityIndicator size="small" color="#FFFFFF" />
                         ) : (
-                            <ThemedText style={styles.submitButtonText}>Enviar solicitud</ThemedText>
+                            <ThemedText style={styles.submitButtonText}>
+                                Enviar solicitud
+                            </ThemedText>
                         )}
                     </Pressable>
                 </>
