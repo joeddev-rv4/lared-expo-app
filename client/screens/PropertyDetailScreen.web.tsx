@@ -303,26 +303,41 @@ export default function PropertyDetailScreenWeb() {
             ) : null}
           </View>
           {isMobile ? (
-            <View style={styles.mobileButtonsRow}>
-              <Pressable style={styles.showAllPhotosButtonMobile} onPress={() => setShowGallery(true)}>
-                <Ionicons name="grid-outline" size={14} color="#222222" />
-                <ThemedText style={styles.showAllPhotosText}>Ver fotos ({galleryImages.length})</ThemedText>
-              </Pressable>
-              <Pressable
-                style={styles.kitPromoButtonMobile}
-                onPress={downloadAllMedia}
-                disabled={downloadingAll}
-              >
-                {downloadingAll ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Ionicons name="download-outline" size={16} color="#FFFFFF" />
-                )}
-                <ThemedText style={styles.kitPromoText}>
-                  {downloadingAll ? "Descargando..." : "Kit Promocional"}
-                </ThemedText>
-              </Pressable>
-            </View>
+            <>
+              <View style={styles.mobileButtonsRow}>
+                <Pressable style={styles.showAllPhotosButtonMobile} onPress={() => setShowGallery(true)}>
+                  <Ionicons name="grid-outline" size={14} color="#222222" />
+                  <ThemedText style={styles.showAllPhotosText}>Ver fotos ({galleryImages.length})</ThemedText>
+                </Pressable>
+                <Pressable
+                  style={styles.kitPromoButtonMobile}
+                  onPress={downloadAllMedia}
+                  disabled={downloadingAll}
+                >
+                  {downloadingAll ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Ionicons name="download-outline" size={16} color="#FFFFFF" />
+                  )}
+                  <ThemedText style={styles.kitPromoText}>
+                    {downloadingAll ? "Descargando..." : "Kit Promocional"}
+                  </ThemedText>
+                </Pressable>
+              </View>
+              <View style={styles.mobilePriceSection}>
+                <View style={styles.mobilePriceRow}>
+                  <ThemedText style={styles.mobilePriceLabel}>Precio:</ThemedText>
+                  <ThemedText style={styles.mobilePriceValue}>{formatPrice(property.price)}</ThemedText>
+                </View>
+                <View style={styles.mobilePriceRow}>
+                  <ThemedText style={styles.mobilePriceLabel}>Cuota desde:</ThemedText>
+                  <ThemedText style={styles.mobilePriceValue}>{formatPrice(Math.round(property.price / 180))}/mes</ThemedText>
+                </View>
+                <View style={styles.mobileCommissionRow}>
+                  <ThemedText style={styles.mobileCommissionText}>Gana Q750.00 por compartir</ThemedText>
+                </View>
+              </View>
+            </>
           ) : null}
           <ThemedText style={[styles.descriptionBelowImages, isMobile && styles.descriptionBelowImagesMobile]}>{property.descripcionCorta || property.description}</ThemedText>
         </View>
@@ -1120,9 +1135,42 @@ const styles = StyleSheet.create({
     maxWidth: "100%",
   },
   bookingCardMobile: {
-    position: "relative" as any,
-    width: "100%",
-    marginTop: Spacing.lg,
+    display: "none" as any,
+  },
+  mobilePriceSection: {
+    backgroundColor: "#F7F7F7",
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  mobilePriceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.xs,
+  },
+  mobilePriceLabel: {
+    fontSize: 14,
+    color: "#717171",
+  },
+  mobilePriceValue: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#222222",
+  },
+  mobileCommissionRow: {
+    backgroundColor: "#bf0a0a",
+    borderRadius: BorderRadius.sm,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    marginTop: Spacing.sm,
+    alignItems: "center",
+  },
+  mobileCommissionText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   headerMobile: {
     paddingHorizontal: Spacing.md,
