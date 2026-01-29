@@ -128,15 +128,6 @@ export default function BlogScreenWeb() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <View style={styles.headerRight}>
-            <Pressable style={styles.headerButton}>
-              <ThemedText style={styles.headerButtonText}>Cotizar</ThemedText>
-            </Pressable>
-            <Pressable style={styles.headerButton}>
-              <Ionicons name="share-social-outline" size={20} color="#222222" />
-              <ThemedText style={styles.headerButtonText}>Compartir</ThemedText>
-            </Pressable>
-          </View>
         </View>
       </View>
 
