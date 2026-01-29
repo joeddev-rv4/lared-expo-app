@@ -10,6 +10,7 @@ import {
   Image,
   Modal,
   Share,
+  useWindowDimensions,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -85,7 +86,8 @@ interface Client {
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
-  const tabBarHeight = isWeb ? 0 : useBottomTabBarHeight();
+  const nativeTabBarHeight = useBottomTabBarHeight();
+  const tabBarHeight = isWeb ? 0 : nativeTabBarHeight;
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();

@@ -4,14 +4,17 @@ import { Platform } from "react-native";
 
 import ProfileScreen from "@/screens/ProfileScreen";
 import ClientListScreen from "@/screens/ClientListScreen";
+import PropertyDetailScreen from "@/screens/PropertyDetailScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { Colors } from "@/constants/theme";
+import { Property } from "@/data/properties";
 
 const isWeb = Platform.OS === "web";
 
 export type ProfileStackParamList = {
   Profile: undefined;
   ClientList: { property: any };
+  PropertyDetail: { property: Property };
 };
 
 const Stack = createNativeStackNavigator<ProfileStackParamList>();
@@ -40,6 +43,14 @@ export default function ProfileStackNavigator() {
           headerTintColor: '#FFFFFF',
           headerShown: false, // Ya que tiene su propio header
           presentation: 'modal',
+        }}
+      />
+      <Stack.Screen
+        name="PropertyDetail"
+        component={PropertyDetailScreen}
+        options={{
+          headerTitle: "",
+          headerShown: false,
         }}
       />
     </Stack.Navigator>
