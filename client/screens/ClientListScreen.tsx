@@ -6,10 +6,10 @@ import {
   ScrollView,
   Dimensions,
   Platform,
-  Image,
   Modal,
   Animated,
   useWindowDimensions,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -18,30 +18,14 @@ import { ProfileStackParamList } from "@/navigation/ProfileStackNavigator";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const CARD_WIDTH = SCREEN_WIDTH - 16 * 2;
-const IMAGE_HEIGHT = 200;
 const isWeb = Platform.OS === "web";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { getPropertyClients, PropertyClient } from "@/lib/api";
 import { useTheme } from "@/hooks/useTheme";
-import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
+import { Spacing, BorderRadius } from "@/constants/theme";
 import { ThemedText } from "@/components/ThemedText";
 import { Property } from "@/data/properties";
-
-type ClientStatus =
-  | 'Interacción'
-  | 'Visita'
-  | 'Cotización'
-  | 'Reserva'
-  | 'Documentos'
-  | 'Pre investigación'
-  | 'Traslado de documentos'
-  | 'Validación'
-  | 'Traslado a cartera y cobro'
-  | 'Venta finalizada'
-  | 'Pago a aliado';
 
 export default function ClientListScreen() {
   const insets = useSafeAreaInsets();
@@ -51,7 +35,16 @@ export default function ClientListScreen() {
   const { user } = useAuth();
   const { width: windowWidth } = useWindowDimensions();
   
-  const isMobileWeb = isWeb && windowWidth < 768;
+  const isMobile = windowWidth < 640;
+  const isTablet = windowWidth >= 640 && windowWidth < 1024;
+  const isDesktop = windowWidth >= 1024;
+
+  const getColumns = () => {
+    if (isMobile) return 1;
+    if (isTablet) return 2;
+    if (windowWidth >= 1400) return 4;
+    return 3;
+  };
 
   const { property }: { property: Property } = route.params;
   const [clients, setClients] = useState<PropertyClient[]>([]);
@@ -66,12 +59,10 @@ export default function ClientListScreen() {
       setLoading(true);
 
       if (!user?.id || !property) {
-        console.log('Missing user ID or property data');
         setClients([]);
         return;
       }
 
-      console.log('Loading clients for property:', property.id);
       const propertyClients = await getPropertyClients(property.id.toString(), user.id);
       setClients(propertyClients);
 
@@ -89,14 +80,15 @@ export default function ClientListScreen() {
   const modalOpacity = useRef(new Animated.Value(0)).current;
 
   const handleBackPress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     navigation.goBack();
   };
 
   const handleStatusPress = (client: PropertyClient) => {
     setSelectedClient(client);
     setIsModalVisible(true);
-    // Animar entrada del modal
     Animated.parallel([
       Animated.spring(modalScale, {
         toValue: 1,
@@ -113,7 +105,6 @@ export default function ClientListScreen() {
   };
 
   const handleCloseModal = () => {
-    // Animar salida del modal
     Animated.parallel([
       Animated.spring(modalScale, {
         toValue: 0,
@@ -134,15 +125,15 @@ export default function ClientListScreen() {
 
   const getStatusText = (status?: string): string => {
     const statusTexts: Record<string, string> = {
-      '1': 'Interacción',
+      '1': 'Interaccion',
       '2': 'Visita',
-      '3': 'Cotización',
+      '3': 'Cotizacion',
       '4': 'Reserva',
       '5': 'Documentos',
-      '6': 'Pre investigación',
-      '7': 'Traslado de documentos',
-      '8': 'Validación',
-      '9': 'Traslado a cartera y cobro',
+      '6': 'Pre investigacion',
+      '7': 'Traslado docs',
+      '8': 'Validacion',
+      '9': 'Cartera y cobro',
       '10': 'Venta finalizada',
       '11': 'Pago a aliado',
     };
@@ -151,93 +142,168 @@ export default function ClientListScreen() {
 
   const getStatusColor = (status?: string): string => {
     const statusColors: Record<string, string> = {
-      '1': '#6B7280', // Interacción
-      '2': '#3B82F6', // Visita
-      '3': '#F59E0B', // Cotización
-      '4': '#10B981', // Reserva
-      '5': '#8B5CF6', // Documentos
-      '6': '#EF4444', // Pre investigación
-      '7': '#F97316', // Traslado de documentos
-      '8': '#06B6D4', // Validación
-      '9': '#84CC16', // Traslado a cartera y cobro
-      '10': '#22C55E', // Venta finalizada
-      '11': '#16A34A', // Pago a aliado
+      '1': '#64748B',
+      '2': '#3B82F6',
+      '3': '#F59E0B',
+      '4': '#10B981',
+      '5': '#8B5CF6',
+      '6': '#EF4444',
+      '7': '#F97316',
+      '8': '#06B6D4',
+      '9': '#84CC16',
+      '10': '#22C55E',
+      '11': '#16A34A',
     };
-    return status ? statusColors[status] || '#6B7280' : '#6B7280';
+    return status ? statusColors[status] || '#64748B' : '#64748B';
   };
 
-  const getCardWidth = () => {
-    if (!isWeb) return CARD_WIDTH;
-    if (isMobileWeb) return '100%';
-    return '30%';
+  const getStatusIcon = (status?: string): string => {
+    const statusIcons: Record<string, string> = {
+      '1': 'chatbubble-outline',
+      '2': 'eye-outline',
+      '3': 'calculator-outline',
+      '4': 'bookmark-outline',
+      '5': 'document-text-outline',
+      '6': 'search-outline',
+      '7': 'arrow-forward-outline',
+      '8': 'checkmark-circle-outline',
+      '9': 'wallet-outline',
+      '10': 'trophy-outline',
+      '11': 'cash-outline',
+    };
+    return status ? statusIcons[status] || 'help-outline' : 'help-outline';
   };
 
-  const renderClientCard = (client: PropertyClient) => {
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const getAvatarColor = (name: string) => {
+    const colors = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#06B6D4', '#3B82F6', '#8B5CF6', '#EC4899'];
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
+  const columns = getColumns();
+  const gap = isMobile ? 12 : 16;
+  const horizontalPadding = isMobile ? 16 : isTablet ? 24 : 48;
+
+  const renderClientCard = (client: PropertyClient, index: number) => {
+    const cardWidth = isMobile 
+      ? '100%' 
+      : `calc(${100 / columns}% - ${(gap * (columns - 1)) / columns}px)`;
+
     return (
-      <Pressable
+      <View
         key={client.id}
         style={[
-          styles.clientCard,
-          {
-            backgroundColor: theme.backgroundRoot,
-            width: getCardWidth(),
-          },
-          !isWeb && !isDark ? Shadows.card : null,
+          styles.cardWrapper,
+          { 
+            width: isWeb ? cardWidth as any : '100%',
+            marginBottom: gap,
+          }
         ]}
       >
-        <View style={styles.clientImageContainer}>
-          <View style={styles.clientAvatar}>
-            <Ionicons name="person-outline" size={60} color="#6B7280" />
+        <Pressable
+          style={[
+            styles.clientCard,
+            {
+              backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
+              borderColor: isDark ? '#374151' : '#E5E7EB',
+            },
+          ]}
+          onPress={() => handleStatusPress(client)}
+        >
+          <View style={styles.cardHeader}>
+            <View style={[styles.avatar, { backgroundColor: getAvatarColor(client.name) }]}>
+              <ThemedText style={styles.avatarText}>{getInitials(client.name)}</ThemedText>
+            </View>
+            <View style={styles.clientInfo}>
+              <ThemedText style={styles.clientName} numberOfLines={1}>
+                {client.name}
+              </ThemedText>
+              <View style={styles.dateRow}>
+                <Ionicons name="calendar-outline" size={14} color={isDark ? '#9CA3AF' : '#6B7280'} />
+                <ThemedText style={[styles.clientDate, { color: isDark ? '#9CA3AF' : '#6B7280' }]}>
+                  {client.date}
+                </ThemedText>
+              </View>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.clientContent}>
-          <ThemedText style={styles.clientName} numberOfLines={2}>
-            {client.name}
-          </ThemedText>
+          <View style={styles.cardDivider} />
 
-          <ThemedText style={[styles.clientDate, { color: theme.textSecondary }]}>
-            Interesado el {client.date}
-          </ThemedText>
-
-          <Pressable
-            style={[styles.clientStatusButton, { backgroundColor: getStatusColor(client.status) }]}
-            onPress={() => handleStatusPress(client)}
-          >
-            <ThemedText style={styles.clientStatusText}>
-              {getStatusText(client.status)}
-            </ThemedText>
-            <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
-          </Pressable>
-        </View>
-      </Pressable>
+          <View style={styles.cardFooter}>
+            <View style={[styles.statusChip, { backgroundColor: `${getStatusColor(client.status)}15` }]}>
+              <View style={[styles.statusDot, { backgroundColor: getStatusColor(client.status) }]} />
+              <ThemedText style={[styles.statusText, { color: getStatusColor(client.status) }]}>
+                {getStatusText(client.status)}
+              </ThemedText>
+            </View>
+            <Pressable
+              style={[styles.viewButton, { backgroundColor: '#bf0a0a' }]}
+              onPress={() => handleStatusPress(client)}
+            >
+              <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
+            </Pressable>
+          </View>
+        </Pressable>
+      </View>
     );
   };
 
+  const renderEmptyState = () => (
+    <View style={styles.emptyState}>
+      <View style={[styles.emptyIconContainer, { backgroundColor: isDark ? '#1F2937' : '#F3F4F6' }]}>
+        <Ionicons name="people-outline" size={48} color={isDark ? '#6B7280' : '#9CA3AF'} />
+      </View>
+      <ThemedText style={styles.emptyTitle}>Sin clientes aun</ThemedText>
+      <ThemedText style={[styles.emptyDescription, { color: isDark ? '#9CA3AF' : '#6B7280' }]}>
+        Cuando alguien muestre interes en esta propiedad, aparecera aqui.
+      </ThemedText>
+    </View>
+  );
+
+  const renderLoadingState = () => (
+    <View style={styles.loadingState}>
+      <ActivityIndicator size="large" color="#bf0a0a" />
+      <ThemedText style={[styles.loadingText, { color: isDark ? '#9CA3AF' : '#6B7280' }]}>
+        Cargando clientes...
+      </ThemedText>
+    </View>
+  );
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-      {/* Header */}
+    <View style={[styles.container, { backgroundColor: isDark ? '#111827' : '#F9FAFB' }]}>
       <View style={[
         styles.header, 
         { 
-          paddingTop: insets.top + Spacing.md,
-          paddingHorizontal: isMobileWeb ? Spacing.md : (isWeb ? 90 : Spacing.lg),
+          paddingTop: insets.top + 12,
+          paddingHorizontal: horizontalPadding,
+          backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
+          borderBottomColor: isDark ? '#374151' : '#E5E7EB',
         }
       ]}>
         <Pressable onPress={handleBackPress} style={styles.backButton}>
-          <View style={styles.backButtonCircle}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-          </View>
+          <Ionicons name="arrow-back" size={24} color={isDark ? '#FFFFFF' : '#111827'} />
         </Pressable>
-        <View style={styles.headerContent}>
-          <ThemedText style={styles.headerTitle}>Clientes Interesados</ThemedText>
-          <ThemedText style={[styles.headerSubtitle, { color: theme.textSecondary }]} numberOfLines={1}>
+        
+        <View style={styles.headerCenter}>
+          <ThemedText style={styles.headerTitle}>Mis Clientes</ThemedText>
+          <ThemedText style={[styles.headerSubtitle, { color: isDark ? '#9CA3AF' : '#6B7280' }]} numberOfLines={1}>
             {property.title}
           </ThemedText>
         </View>
+
+        <View style={[styles.clientCountBadge, { backgroundColor: '#bf0a0a' }]}>
+          <ThemedText style={styles.clientCountText}>{clients.length}</ThemedText>
+        </View>
       </View>
 
-      {/* Client Detail Modal */}
       <Modal
         visible={isModalVisible}
         animationType="fade"
@@ -245,78 +311,100 @@ export default function ClientListScreen() {
         onRequestClose={handleCloseModal}
       >
         <View style={styles.modalOverlay}>
+          <Pressable style={styles.modalBackdrop} onPress={handleCloseModal} />
           <Animated.View
             style={[
               styles.modalContent,
               {
-                backgroundColor: theme.backgroundRoot,
+                backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
                 transform: [{ scale: modalScale }],
                 opacity: modalOpacity,
+                maxWidth: isMobile ? windowWidth - 32 : 480,
               },
             ]}
           >
-            <View style={styles.modalHeader}>
-              <ThemedText style={styles.modalTitle}>Información de la Venta</ThemedText>
-              <Pressable onPress={handleCloseModal} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color={theme.text} />
+            <View style={[styles.modalHeader, { borderBottomColor: isDark ? '#374151' : '#E5E7EB' }]}>
+              <View style={styles.modalHeaderLeft}>
+                <View style={[styles.modalAvatar, { backgroundColor: getAvatarColor(selectedClient?.name || '') }]}>
+                  <ThemedText style={styles.modalAvatarText}>
+                    {selectedClient?.name ? getInitials(selectedClient.name) : ''}
+                  </ThemedText>
+                </View>
+                <View>
+                  <ThemedText style={styles.modalClientName}>{selectedClient?.name}</ThemedText>
+                  <ThemedText style={[styles.modalClientDate, { color: isDark ? '#9CA3AF' : '#6B7280' }]}>
+                    Interesado el {selectedClient?.date}
+                  </ThemedText>
+                </View>
+              </View>
+              <Pressable onPress={handleCloseModal} style={[styles.closeButton, { backgroundColor: isDark ? '#374151' : '#F3F4F6' }]}>
+                <Ionicons name="close" size={20} color={isDark ? '#FFFFFF' : '#111827'} />
               </Pressable>
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <View style={styles.clientDetailSection}>
-                <ThemedText style={styles.detailLabel}>Nombre:</ThemedText>
-                <ThemedText style={[styles.detailValue, { color: theme.text }]}>
-                  {selectedClient?.name}
-                </ThemedText>
-              </View>
-
-              <View style={styles.clientDetailSection}>
-                <ThemedText style={styles.detailLabel}>Estado:</ThemedText>
-                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(selectedClient?.status) }]}>
-                  <ThemedText style={styles.statusBadgeText}>
+              <View style={styles.currentStatusSection}>
+                <ThemedText style={[styles.sectionLabel, { color: isDark ? '#9CA3AF' : '#6B7280' }]}>Estado actual</ThemedText>
+                <View style={[styles.currentStatusCard, { backgroundColor: `${getStatusColor(selectedClient?.status)}15` }]}>
+                  <Ionicons 
+                    name={getStatusIcon(selectedClient?.status) as any} 
+                    size={24} 
+                    color={getStatusColor(selectedClient?.status)} 
+                  />
+                  <ThemedText style={[styles.currentStatusText, { color: getStatusColor(selectedClient?.status) }]}>
                     {getStatusText(selectedClient?.status)}
                   </ThemedText>
                 </View>
               </View>
 
-              <View style={styles.clientDetailSection}>
-                <ThemedText style={styles.detailLabel}>Fecha de interés:</ThemedText>
-                <ThemedText style={[styles.detailValue, { color: theme.text }]}>
-                  {selectedClient?.date}
-                </ThemedText>
-              </View>
-
-              <View style={styles.statesMapContainer}>
-                <ThemedText style={[styles.statesMapTitle, { color: theme.text }]}>Mapa de Estados</ThemedText>
-                <View style={styles.statesMap}>
+              <View style={styles.timelineSection}>
+                <ThemedText style={[styles.sectionLabel, { color: isDark ? '#9CA3AF' : '#6B7280' }]}>Progreso de venta</ThemedText>
+                <View style={styles.timeline}>
                   {[
-                    { id: '1', name: 'Interacción' },
+                    { id: '1', name: 'Interaccion' },
                     { id: '2', name: 'Visita' },
-                    { id: '3', name: 'Cotización' },
+                    { id: '3', name: 'Cotizacion' },
                     { id: '4', name: 'Reserva' },
                     { id: '5', name: 'Documentos' },
-                    { id: '6', name: 'Pre investigación' },
+                    { id: '6', name: 'Pre investigacion' },
                     { id: '7', name: 'Traslado de documentos' },
-                    { id: '8', name: 'Validación' },
-                    { id: '9', name: 'Traslado a cartera y cobro' },
+                    { id: '8', name: 'Validacion' },
+                    { id: '9', name: 'Cartera y cobro' },
                     { id: '10', name: 'Venta finalizada' },
                     { id: '11', name: 'Pago a aliado' }
                   ].map((status, index, array) => {
-                    const statusOrder = [
-                      '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'
-                    ];
-                    const currentStatusIndex = statusOrder.indexOf(selectedClient?.status || '');
-                    const isCompleted = index <= currentStatusIndex;
-                    const dotColor = isCompleted ? '#EF4444' : '#6B7280';
-                    const textColor = isCompleted ? '#EF4444' : theme.text;
+                    const currentStatusIndex = parseInt(selectedClient?.status || '0') - 1;
+                    const isCompleted = index < currentStatusIndex;
+                    const isCurrent = index === currentStatusIndex;
+                    const isPending = index > currentStatusIndex;
 
                     return (
-                      <View key={status.id} style={styles.stateItem}>
-                        <View style={styles.stateConnector}>
-                          <View style={[styles.stateDot, { backgroundColor: dotColor }]} />
-                          {index < array.length - 1 && <View style={[styles.stateLine, { backgroundColor: dotColor }]} />}
+                      <View key={status.id} style={styles.timelineItem}>
+                        <View style={styles.timelineLeft}>
+                          <View style={[
+                            styles.timelineDot,
+                            isCompleted && styles.timelineDotCompleted,
+                            isCurrent && styles.timelineDotCurrent,
+                            isPending && styles.timelineDotPending,
+                            { borderColor: isDark ? '#374151' : '#E5E7EB' }
+                          ]}>
+                            {isCompleted ? (
+                              <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                            ) : null}
+                          </View>
+                          {index < array.length - 1 ? (
+                            <View style={[
+                              styles.timelineLine,
+                              { backgroundColor: isCompleted ? '#10B981' : (isDark ? '#374151' : '#E5E7EB') }
+                            ]} />
+                          ) : null}
                         </View>
-                        <ThemedText style={[styles.stateText, { color: textColor }]}>
+                        <ThemedText style={[
+                          styles.timelineText,
+                          isCompleted && styles.timelineTextCompleted,
+                          isCurrent && styles.timelineTextCurrent,
+                          isPending && { color: isDark ? '#6B7280' : '#9CA3AF' },
+                        ]}>
                           {status.name}
                         </ThemedText>
                       </View>
@@ -329,27 +417,26 @@ export default function ClientListScreen() {
         </View>
       </Modal>
 
-      {/* Clients List */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: insets.bottom + Spacing.xl }
+          { 
+            paddingHorizontal: horizontalPadding,
+            paddingBottom: insets.bottom + 24,
+          }
         ]}
       >
-        <View style={[
-          styles.clientsGrid,
-          { paddingHorizontal: isMobileWeb ? Spacing.md : (isWeb ? 90 : Spacing.lg) }
-        ]}>
-          {clients?.map((client) => renderClientCard(client)) || (
-            <View style={styles.emptyState}>
-              <Ionicons name="people-outline" size={64} color={theme.textSecondary} />
-              <ThemedText style={[styles.emptyStateText, { color: theme.textSecondary }]}>
-                No hay clientes interesados
-              </ThemedText>
+        {loading ? renderLoadingState() : (
+          clients.length > 0 ? (
+            <View style={[
+              styles.grid,
+              { gap: gap }
+            ]}>
+              {clients.map((client, index) => renderClientCard(client, index))}
             </View>
-          )}
-        </View>
+          ) : renderEmptyState()
+        )}
       </ScrollView>
     </View>
   );
@@ -362,207 +449,289 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingBottom: Spacing.md,
+    paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
   },
   backButton: {
-    marginRight: Spacing.md,
-  },
-  backButtonCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#bf0a0a',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerContent: {
+  headerCenter: {
     flex: 1,
+    marginLeft: 12,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
-    marginBottom: 2,
   },
   headerSubtitle: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  clientCountBadge: {
+    minWidth: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+  },
+  clientCountText: {
+    color: '#FFFFFF',
     fontSize: 14,
+    fontWeight: '700',
   },
   scrollContent: {
-    paddingTop: Spacing.lg,
+    paddingTop: 20,
+    flexGrow: 1,
   },
-  clientsGrid: {
+  grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: Spacing.md,
+  },
+  cardWrapper: {
   },
   clientCard: {
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.sm,
-    overflow: "hidden",
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.1)',
+    padding: 16,
+    ...(isWeb ? {
+      transition: 'all 0.2s ease',
+    } : {}),
   },
-  clientImageContainer: {
-    position: "relative",
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  clientAvatar: {
-    width: isWeb ? "100%" : CARD_WIDTH,
-    height: IMAGE_HEIGHT,
-    aspectRatio: isWeb ? 16 / 10 : undefined,
-    backgroundColor: '#F3F4F6',
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: BorderRadius.md,
   },
-  clientContent: {
-    padding: Spacing.md,
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  clientInfo: {
+    flex: 1,
+    marginLeft: 12,
   },
   clientName: {
-    fontSize: 17,
-    fontWeight: "600",
-    marginBottom: Spacing.xs,
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   clientDate: {
-    fontSize: 14,
-    marginBottom: Spacing.sm,
-  },
-  clientContactButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  clientContactButtonText: {
     fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0.5,
   },
-  clientStatusButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.sm,
-    marginTop: Spacing.sm,
+  cardDivider: {
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    marginVertical: 12,
   },
-  clientStatusText: {
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  statusChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+    gap: 6,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusText: {
     fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    color: "#FFFFFF",
+    fontWeight: '600',
+  },
+  viewButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyState: {
-    alignItems: 'center',
+    flex: 1,
     justifyContent: 'center',
-    paddingVertical: Spacing['2xl'] * 2,
+    alignItems: 'center',
+    paddingVertical: 80,
   },
-  emptyStateText: {
-    fontSize: 16,
-    marginTop: Spacing.md,
+  emptyIconContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  emptyDescription: {
+    fontSize: 14,
+    textAlign: 'center',
+    maxWidth: 280,
+    lineHeight: 20,
+  },
+  loadingState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 80,
+  },
+  loadingText: {
+    fontSize: 14,
+    marginTop: 16,
   },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    borderRadius: BorderRadius.lg,
-    maxWidth: '90%',
-    maxHeight: '80%',
-    width: 400,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    borderRadius: 20,
+    width: '100%',
+    maxHeight: '85%',
+    overflow: 'hidden',
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: Spacing.lg,
+    padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
   },
-  modalTitle: {
-    fontSize: 20,
+  modalHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  modalAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  modalAvatarText: {
+    color: '#FFFFFF',
+    fontSize: 14,
     fontWeight: '700',
+  },
+  modalClientName: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalClientDate: {
+    fontSize: 13,
+    marginTop: 2,
   },
   closeButton: {
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.sm,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalBody: {
-    padding: Spacing.lg,
+    padding: 20,
   },
-  clientDetailSection: {
-    marginBottom: Spacing.lg,
-  },
-  detailLabel: {
-    fontSize: 14,
+  sectionLabel: {
+    fontSize: 12,
     fontWeight: '600',
-    marginBottom: Spacing.xs,
-    color: '#6B7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 12,
   },
-  detailValue: {
+  currentStatusSection: {
+    marginBottom: 24,
+  },
+  currentStatusCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    gap: 12,
+  },
+  currentStatusText: {
     fontSize: 16,
-    lineHeight: 24,
-  },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-  },
-  statusBadgeText: {
-    fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
   },
-  statesMapContainer: {
-    marginTop: Spacing.lg,
+  timelineSection: {
+    marginBottom: 20,
   },
-  statesMapTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: Spacing.md,
+  timeline: {
   },
-  statesMap: {
-    paddingLeft: Spacing.md,
-  },
-  stateItem: {
+  timelineItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: Spacing.sm,
-    minHeight: 40,
   },
-  stateConnector: {
+  timelineLeft: {
     alignItems: 'center',
-    marginRight: Spacing.md,
-    width: 20,
+    marginRight: 12,
   },
-  stateDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginTop: 4,
+  timelineDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
   },
-  stateLine: {
+  timelineDotCompleted: {
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
+  },
+  timelineDotCurrent: {
+    backgroundColor: '#bf0a0a',
+    borderColor: '#bf0a0a',
+  },
+  timelineDotPending: {
+    backgroundColor: 'transparent',
+  },
+  timelineLine: {
     width: 2,
     height: 24,
-    backgroundColor: '#E5E7EB',
-    marginTop: 4,
+    marginVertical: 4,
   },
-  stateText: {
+  timelineText: {
     fontSize: 14,
-    flex: 1,
-    lineHeight: 20,
+    lineHeight: 24,
+    paddingBottom: 12,
+  },
+  timelineTextCompleted: {
+    color: '#10B981',
+    fontWeight: '500',
+  },
+  timelineTextCurrent: {
+    color: '#bf0a0a',
+    fontWeight: '600',
   },
 });
