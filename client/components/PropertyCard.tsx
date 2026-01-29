@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, StyleSheet, Pressable, Image, Dimensions, Share, Platform, Alert, Modal, ScrollView } from "react-native";
+import { View, StyleSheet, Pressable, Image, Dimensions, Share, Platform, Alert, Modal, ScrollView, ActivityIndicator } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -9,6 +9,8 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
+import * as Sharing from "expo-sharing";
+import * as FileSystem from "expo-file-system/legacy";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
@@ -116,6 +118,7 @@ export function PropertyCard({
   
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
+  const [isSharing, setIsSharing] = useState(false);
   
   const propertyMedia = property.imagenes
     ?.filter((img) => ["Imagen", "Video"].includes(img.tipo))
@@ -211,84 +214,74 @@ export function PropertyCard({
     return userId ? `${baseUrl}/blog/${userId}/${property.id}` : baseUrl;
   };
   
-  const shareToWhatsApp = async () => {
+  const shareWithImage = async () => {
+    setIsSharing(true);
     const selectedMedia = propertyMedia[selectedMediaIndex];
-    const text = encodeURIComponent(`${getShareText()}\n\n${getShareUrl()}`);
-    const whatsappUrl = `https://wa.me/?text=${text}`;
+    const shareText = `${getShareText()}\n\n${getShareUrl()}`;
     
-    if (isWeb) {
-      window.open(whatsappUrl, "_blank");
-    } else {
-      await Linking.openURL(whatsappUrl);
-    }
-    setShowShareModal(false);
-    onSharePress?.();
-  };
-  
-  const shareToFacebook = async () => {
-    const url = encodeURIComponent(getShareUrl());
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-    
-    if (isWeb) {
-      window.open(facebookUrl, "_blank");
-    } else {
-      await Linking.openURL(facebookUrl);
-    }
-    setShowShareModal(false);
-    onSharePress?.();
-  };
-  
-  const shareToTwitter = async () => {
-    const text = encodeURIComponent(`${property.title} - Q${property.price.toLocaleString()}\n${property.location}`);
-    const url = encodeURIComponent(getShareUrl());
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
-    
-    if (isWeb) {
-      window.open(twitterUrl, "_blank");
-    } else {
-      await Linking.openURL(twitterUrl);
-    }
-    setShowShareModal(false);
-    onSharePress?.();
-  };
-  
-  const shareToTelegram = async () => {
-    const text = encodeURIComponent(getShareText());
-    const url = encodeURIComponent(getShareUrl());
-    const telegramUrl = `https://t.me/share/url?url=${url}&text=${text}`;
-    
-    if (isWeb) {
-      window.open(telegramUrl, "_blank");
-    } else {
-      await Linking.openURL(telegramUrl);
-    }
-    setShowShareModal(false);
-    onSharePress?.();
-  };
-  
-  const shareNative = async () => {
     try {
-      await Share.share({
-        message: `${getShareText()}\n\n${getShareUrl()}`,
-        title: property.title,
-      });
+      if (isWeb) {
+        const response = await fetch(selectedMedia.url);
+        const blob = await response.blob();
+        const extension = isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "mp4" : "jpg";
+        const mimeType = isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "video/mp4" : "image/jpeg";
+        const file = new File([blob], `propiedad.${extension}`, { type: mimeType });
+        
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: property.title,
+            text: shareText,
+            files: [file],
+          });
+        } else {
+          await Share.share({
+            message: shareText,
+            title: property.title,
+          });
+        }
+      } else {
+        const extension = isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "mp4" : "jpg";
+        const cacheDir = FileSystem.documentDirectory || "";
+        const localUri = `${cacheDir}propiedad_${property.id}.${extension}`;
+        
+        const downloadResult = await FileSystem.downloadAsync(selectedMedia.url, localUri);
+        
+        if (downloadResult.status === 200) {
+          const isSharingAvailable = await Sharing.isAvailableAsync();
+          
+          if (isSharingAvailable) {
+            await Sharing.shareAsync(downloadResult.uri, {
+              mimeType: isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "video/mp4" : "image/jpeg",
+              dialogTitle: property.title,
+            });
+          } else {
+            await Share.share({
+              message: shareText,
+              title: property.title,
+            });
+          }
+        } else {
+          await Share.share({
+            message: shareText,
+            title: property.title,
+          });
+        }
+      }
     } catch (error) {
       console.error("Error sharing:", error);
+      try {
+        await Share.share({
+          message: shareText,
+          title: property.title,
+        });
+      } catch (fallbackError) {
+        Alert.alert("Error", "No se pudo compartir la propiedad.");
+      }
+    } finally {
+      setIsSharing(false);
+      setShowShareModal(false);
+      onSharePress?.();
     }
-    setShowShareModal(false);
-    onSharePress?.();
-  };
-  
-  const copyShareContent = async () => {
-    try {
-      const selectedMedia = propertyMedia[selectedMediaIndex];
-      const content = `${getShareText()}\n\n${getShareUrl()}\n\nImagen/Video: ${selectedMedia.url}`;
-      await Clipboard.setStringAsync(content);
-      Alert.alert("Copiado", "El contenido ha sido copiado al portapapeles.");
-    } catch (error) {
-      console.error("Error copying:", error);
-    }
-    setShowShareModal(false);
   };
 
   const handleCopyLink = async () => {
@@ -580,41 +573,20 @@ export function PropertyCard({
               ))}
             </ScrollView>
             
-            <ThemedText style={styles.shareModalSubtitle}>Compartir en</ThemedText>
-            
-            <View style={styles.socialButtonsGrid}>
-              <Pressable style={[styles.socialButton, { backgroundColor: "#25D366" }]} onPress={shareToWhatsApp}>
-                <Ionicons name="logo-whatsapp" size={28} color="#FFFFFF" />
-                <ThemedText style={styles.socialButtonText}>WhatsApp</ThemedText>
-              </Pressable>
-              
-              <Pressable style={[styles.socialButton, { backgroundColor: "#1877F2" }]} onPress={shareToFacebook}>
-                <Ionicons name="logo-facebook" size={28} color="#FFFFFF" />
-                <ThemedText style={styles.socialButtonText}>Facebook</ThemedText>
-              </Pressable>
-              
-              <Pressable style={[styles.socialButton, { backgroundColor: "#1DA1F2" }]} onPress={shareToTwitter}>
-                <Ionicons name="logo-twitter" size={28} color="#FFFFFF" />
-                <ThemedText style={styles.socialButtonText}>Twitter</ThemedText>
-              </Pressable>
-              
-              <Pressable style={[styles.socialButton, { backgroundColor: "#0088CC" }]} onPress={shareToTelegram}>
-                <Ionicons name="paper-plane" size={28} color="#FFFFFF" />
-                <ThemedText style={styles.socialButtonText}>Telegram</ThemedText>
-              </Pressable>
-              
-              <Pressable style={[styles.socialButton, { backgroundColor: "#6B7280" }]} onPress={copyShareContent}>
-                <Ionicons name="copy-outline" size={28} color="#FFFFFF" />
-                <ThemedText style={styles.socialButtonText}>Copiar</ThemedText>
-              </Pressable>
-              
-              {!isWeb && (
-                <Pressable style={[styles.socialButton, { backgroundColor: "#FF5A5F" }]} onPress={shareNative}>
-                  <Ionicons name="share-outline" size={28} color="#FFFFFF" />
-                  <ThemedText style={styles.socialButtonText}>Más</ThemedText>
-                </Pressable>
+            <Pressable 
+              style={[styles.shareMainButton, isSharing && styles.shareMainButtonDisabled]} 
+              onPress={shareWithImage}
+              disabled={isSharing}
+            >
+              {isSharing ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Ionicons name="share-outline" size={22} color="#FFFFFF" />
               )}
-            </View>
+              <ThemedText style={styles.shareMainButtonText}>
+                {isSharing ? "Preparando..." : "Compartir"}
+              </ThemedText>
+            </Pressable>
           </View>
         </View>
       </Modal>
@@ -824,5 +796,24 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 12,
     fontWeight: "600",
+  },
+  shareMainButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FF5A5F",
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  shareMainButtonDisabled: {
+    backgroundColor: "#CCCCCC",
+  },
+  shareMainButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });
