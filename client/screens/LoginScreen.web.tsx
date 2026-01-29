@@ -84,6 +84,27 @@ export default function LoginScreenWeb() {
     clearOldData();
   }, []);
 
+  // Check for signup data from landing page
+  useEffect(() => {
+    try {
+      const signupDataStr = localStorage.getItem('signupData');
+      if (signupDataStr) {
+        const signupData = JSON.parse(signupDataStr);
+        if (signupData.email) setEmail(signupData.email);
+        if (signupData.password) setPassword(signupData.password);
+        if (signupData.fullName) setUsername(signupData.fullName);
+        if (signupData.phoneNumber) {
+          const phoneClean = signupData.phoneNumber.replace(/\D/g, '').slice(-8);
+          setPhone(phoneClean);
+        }
+        setMode('register');
+        localStorage.removeItem('signupData');
+      }
+    } catch (error) {
+      console.error('Error reading signup data:', error);
+    }
+  }, []);
+
   useEffect(() => {
     if (user && hasAttemptedLogin) {
       navigation.replace('Main');

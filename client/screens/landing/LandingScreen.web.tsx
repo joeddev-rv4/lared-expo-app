@@ -1388,25 +1388,65 @@ const ContactFormSection = () => {
     confirmPassword: "",
     acceptTerms: false,
   });
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const validateForm = (): boolean => {
+    const newErrors: {[key: string]: string} = {};
+    
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'El nombre es obligatorio';
+    }
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'El correo es obligatorio';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Ingresa un correo valido';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'La contrasena es obligatoria';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'La contrasena debe tener al menos 8 caracteres';
+    }
+    
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Confirma tu contrasena';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Las contrasenas no coinciden';
+    }
+    
+    if (!formData.acceptTerms) {
+      newErrors.acceptTerms = 'Debes aceptar los terminos y condiciones';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsSubmitting(true);
-    setTimeout(() => {
+    
+    try {
+      localStorage.setItem('signupData', JSON.stringify({
+        fullName: formData.fullName,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        password: formData.password,
+      }));
+      
+      navigation.navigate('Login', { openSignup: true } as any);
+    } catch (error) {
+      console.error('Error saving signup data:', error);
+    } finally {
       setIsSubmitting(false);
-      alert(
-        "Gracias por tu interes! Nos pondremos en contacto contigo pronto.",
-      );
-      setFormData({
-        fullName: "",
-        email: "",
-        phoneNumber: "",
-        password: "",
-        confirmPassword: "",
-        acceptTerms: false,
-      });
-    }, 1500);
+    }
   };
 
   return (
@@ -1443,33 +1483,41 @@ const ContactFormSection = () => {
         >
           <form onSubmit={handleSubmit}>
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Nombre completo</label>
+              <label style={styles.formLabel}>Nombre completo *</label>
               <input
                 type="text"
                 value={formData.fullName}
-                onChange={(e) =>
-                  setFormData({ ...formData, fullName: e.target.value })
-                }
-                style={styles.formInput}
+                onChange={(e) => {
+                  setFormData({ ...formData, fullName: e.target.value });
+                  if (errors.fullName) setErrors({...errors, fullName: ''});
+                }}
+                style={{
+                  ...styles.formInput,
+                  borderColor: errors.fullName ? '#FF5A5F' : undefined,
+                }}
                 placeholder="Ingresa tu nombre completo"
-                required
               />
+              {errors.fullName ? <span style={{ color: '#FF5A5F', fontSize: 12, marginTop: 4 }}>{errors.fullName}</span> : null}
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Correo electronico</label>
+              <label style={styles.formLabel}>Correo electronico *</label>
               <input
                 type="email"
                 value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                style={styles.formInput}
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  if (errors.email) setErrors({...errors, email: ''});
+                }}
+                style={{
+                  ...styles.formInput,
+                  borderColor: errors.email ? '#FF5A5F' : undefined,
+                }}
                 placeholder="tucorreo@ejemplo.com"
-                required
               />
+              {errors.email ? <span style={{ color: '#FF5A5F', fontSize: 12, marginTop: 4 }}>{errors.email}</span> : null}
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Numero de telefono</label>
+              <label style={styles.formLabel}>Numero de telefono (opcional)</label>
               <input
                 type="tel"
                 value={formData.phoneNumber}
@@ -1478,48 +1526,56 @@ const ContactFormSection = () => {
                 }
                 style={styles.formInput}
                 placeholder="+502 1234-5678"
-                required
               />
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Contrasena</label>
+              <label style={styles.formLabel}>Contrasena *</label>
               <input
                 type="password"
                 value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                style={styles.formInput}
+                onChange={(e) => {
+                  setFormData({ ...formData, password: e.target.value });
+                  if (errors.password) setErrors({...errors, password: ''});
+                }}
+                style={{
+                  ...styles.formInput,
+                  borderColor: errors.password ? '#FF5A5F' : undefined,
+                }}
                 placeholder="Minimo 8 caracteres"
-                required
               />
+              {errors.password ? <span style={{ color: '#FF5A5F', fontSize: 12, marginTop: 4 }}>{errors.password}</span> : null}
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Confirmar contrasena</label>
+              <label style={styles.formLabel}>Confirmar contrasena *</label>
               <input
                 type="password"
                 value={formData.confirmPassword}
-                onChange={(e) =>
-                  setFormData({ ...formData, confirmPassword: e.target.value })
-                }
-                style={styles.formInput}
+                onChange={(e) => {
+                  setFormData({ ...formData, confirmPassword: e.target.value });
+                  if (errors.confirmPassword) setErrors({...errors, confirmPassword: ''});
+                }}
+                style={{
+                  ...styles.formInput,
+                  borderColor: errors.confirmPassword ? '#FF5A5F' : undefined,
+                }}
                 placeholder="Confirma tu contrasena"
-                required
               />
+              {errors.confirmPassword ? <span style={{ color: '#FF5A5F', fontSize: 12, marginTop: 4 }}>{errors.confirmPassword}</span> : null}
             </div>
             <div style={styles.checkboxGroup}>
               <input
                 type="checkbox"
                 checked={formData.acceptTerms}
-                onChange={(e) =>
-                  setFormData({ ...formData, acceptTerms: e.target.checked })
-                }
-                required
+                onChange={(e) => {
+                  setFormData({ ...formData, acceptTerms: e.target.checked });
+                  if (errors.acceptTerms) setErrors({...errors, acceptTerms: ''});
+                }}
               />
               <span style={styles.checkboxLabel}>
-                Acepto los Terminos y Condiciones y Politica de Privacidad
+                Acepto los Terminos y Condiciones y Politica de Privacidad *
               </span>
             </div>
+            {errors.acceptTerms ? <span style={{ color: '#FF5A5F', fontSize: 12, marginBottom: 8 }}>{errors.acceptTerms}</span> : null}
             <button
               type="submit"
               style={styles.submitButton}
