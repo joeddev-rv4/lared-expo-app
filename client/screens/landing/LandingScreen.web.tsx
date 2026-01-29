@@ -913,7 +913,7 @@ const TopAlliesSection = () => {
         <div
           style={
             isMobile
-              ? { ...styles.alliesGrid, gridTemplateColumns: "1fr", gap: 16 }
+              ? { ...styles.alliesGrid, gap: 16 }
               : styles.alliesGrid
           }
         >
@@ -2081,15 +2081,22 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: 48,
   },
   alliesGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
+    display: "flex",
+    overflowX: "auto",
     gap: 24,
+    paddingBottom: 16,
+    scrollSnapType: "x mandatory",
+    WebkitOverflowScrolling: "touch",
   },
   allyCard: {
     background: "radial-gradient(circle at 50% 50%, #044BB8, #000)",
     borderRadius: 16,
     padding: 24,
     boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+    minWidth: 300,
+    maxWidth: 320,
+    flexShrink: 0,
+    scrollSnapAlign: "start",
   },
   allyHeader: {
     display: "flex",
