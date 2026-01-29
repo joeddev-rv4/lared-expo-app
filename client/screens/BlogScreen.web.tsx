@@ -192,18 +192,6 @@ export default function BlogScreenWeb() {
 
             <ThemedText style={styles.sectionTitle}>Características</ThemedText>
             <View style={styles.featuresGrid}>
-              <View style={styles.featureItem}>
-                <Ionicons name="bed-outline" size={20} color="#555" />
-                <ThemedText style={styles.featureText}>{property.bedrooms} Habitaciones</ThemedText>
-              </View>
-              <View style={styles.featureItem}>
-                <Ionicons name="water-outline" size={20} color="#555" />
-                <ThemedText style={styles.featureText}>{property.bathrooms} Baños</ThemedText>
-              </View>
-              <View style={styles.featureItem}>
-                <Ionicons name="expand-outline" size={20} color="#555" />
-                <ThemedText style={styles.featureText}>{property.area} m²</ThemedText>
-              </View>
               {property.caracteristicas?.map((feature, index) => (
                 <View key={index} style={styles.featureItem}>
                   <Ionicons name="checkmark-circle-outline" size={20} color={Colors.light.primary} />
