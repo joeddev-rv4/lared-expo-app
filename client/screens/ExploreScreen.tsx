@@ -158,40 +158,45 @@ export default function ExploreScreen() {
 
   const handleFavoriteToggle = async (propertyId: string) => {
     const isCurrentlyFavorite = favorites.includes(propertyId);
-    const previousFavorites = [...favorites];
 
     // Obtener userId del contexto o directamente de Firebase Auth como fallback
     const userId = user?.id || auth.currentUser?.uid;
 
-    console.log("handleFavoriteToggle - propertyId:", propertyId);
-    console.log("handleFavoriteToggle - isCurrentlyFavorite:", isCurrentlyFavorite);
-    console.log("handleFavoriteToggle - userId from context:", user?.id);
-    console.log("handleFavoriteToggle - userId from Firebase Auth:", auth.currentUser?.uid);
-    console.log("handleFavoriteToggle - using userId:", userId);
-
-    // Actualización optimista del estado local
-    const newFavorites = await toggleFavorite(propertyId);
-    setFavorites(newFavorites);
+    // Actualización optimista del estado UI
+    if (isCurrentlyFavorite) {
+      setFavorites(prev => prev.filter(id => id !== propertyId));
+    } else {
+      setFavorites(prev => [...prev, propertyId]);
+    }
 
     // Sincronizar con Firebase si el usuario está autenticado
     if (userId) {
       try {
         const success = await togglePropertyInPortfolio(propertyId, isCurrentlyFavorite, userId);
         if (!success) {
-          // Revertir si Firebase falla
-          await toggleFavorite(propertyId);
-          setFavorites(previousFavorites);
+          // Revertir UI si Firebase falla
+          if (isCurrentlyFavorite) {
+            setFavorites(prev => [...prev, propertyId]);
+          } else {
+            setFavorites(prev => prev.filter(id => id !== propertyId));
+          }
           Alert.alert(
             "Error",
             "No se pudo guardar en tu portafolio. Intenta de nuevo.",
             [{ text: "OK" }]
           );
+        } else {
+          // También actualizar AsyncStorage para mantenerlo sincronizado
+          await toggleFavorite(propertyId);
         }
       } catch (error) {
         console.error("Error syncing favorite with Firebase:", error);
-        // Revertir el estado local
-        await toggleFavorite(propertyId);
-        setFavorites(previousFavorites);
+        // Revertir el estado UI
+        if (isCurrentlyFavorite) {
+          setFavorites(prev => [...prev, propertyId]);
+        } else {
+          setFavorites(prev => prev.filter(id => id !== propertyId));
+        }
         Alert.alert(
           "Error",
           "Error de conexión. No se pudo guardar en tu portafolio.",
@@ -199,8 +204,8 @@ export default function ExploreScreen() {
         );
       }
     } else {
-      console.log("No user authenticated, saving locally only");
-      // Usuario no autenticado - mostrar mensaje informativo
+      // Usuario no autenticado - guardar solo localmente
+      await toggleFavorite(propertyId);
       if (!isCurrentlyFavorite) {
         Alert.alert(
           "Favorito guardado localmente",
@@ -210,11 +215,10 @@ export default function ExploreScreen() {
       }
     }
 
-    // Trigger Popup and Toast on Web when adding
+    // Show only toast on Web when adding (no popup to avoid confusion)
     if (isWeb && !isCurrentlyFavorite) {
       setToastMessage("Propiedad agregada a favoritos");
       setToastVisible(true);
-      setFavoritesPopupVisible(true);
     }
   };
 
