@@ -1120,25 +1120,15 @@ const styles = StyleSheet.create({
     maxWidth: "100%",
   },
   bookingCardMobile: {
-    position: "fixed" as any,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    top: "auto",
+    position: "relative" as any,
     width: "100%",
-    zIndex: 100,
-    backgroundColor: "#FFFFFF",
-    borderTopWidth: 1,
-    borderTopColor: "#DDDDDD",
-    paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.lg,
+    marginTop: Spacing.lg,
   },
   headerMobile: {
     paddingHorizontal: Spacing.md,
   },
   scrollContentMobile: {
-    paddingBottom: 280,
+    paddingBottom: Spacing.xl,
     paddingTop: 60 + Spacing.md,
   },
 });
