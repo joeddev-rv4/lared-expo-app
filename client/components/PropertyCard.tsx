@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Pressable, Image, Dimensions, Share, Platform, Alert } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, StyleSheet, Pressable, Image, Dimensions, Share, Platform, Alert, Modal, ScrollView } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -113,6 +113,17 @@ export function PropertyCard({
   const shareScale = useSharedValue(1);
   const copyScale = useSharedValue(1);
   const tiktokScale = useSharedValue(1);
+  
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
+  
+  const propertyMedia = property.imagenes
+    ?.filter((img) => ["Imagen", "Video"].includes(img.tipo))
+    ?.map((img) => ({ url: img.url, tipo: img.tipo })) || [{ url: property.imageUrl, tipo: "Imagen" }];
+  
+  const isVideoMedia = (url: string, tipo?: string) => {
+    return tipo === "Video" || url.includes(".mp4") || url.includes("video");
+  };
 
   useEffect(() => {
     if (isWeb) {
@@ -173,26 +184,111 @@ export function PropertyCard({
     onFavoritePress();
   };
 
-  const handleSharePress = async () => {
+  const handleSharePress = () => {
     shareScale.value = withSpring(1.3, { damping: 10 });
     setTimeout(() => {
       shareScale.value = withSpring(1, { damping: 10 });
     }, 100);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowShareModal(true);
+  };
+  
+  const getShareText = () => {
+    const priceFormatted = `Q${property.price.toLocaleString()}`;
+    return `${property.title}\n\n${property.location}\n${priceFormatted}\n${property.area} m²\n\n${property.description || ""}\n\nLa Red Inmobiliaria - Hecha por vendedores, para vendedores`;
+  };
+  
+  const getShareUrl = () => {
+    let baseUrl = "";
+    if (isWeb && typeof window !== "undefined" && window.location) {
+      baseUrl = window.location.origin;
+    } else {
+      const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
+      baseUrl = domain ? `https://${domain.replace(':5000', '')}` : "";
+    }
+    return userId ? `${baseUrl}/blog/${userId}/${property.id}` : baseUrl;
+  };
+  
+  const shareToWhatsApp = async () => {
+    const selectedMedia = propertyMedia[selectedMediaIndex];
+    const text = encodeURIComponent(`${getShareText()}\n\n${getShareUrl()}`);
+    const whatsappUrl = `https://wa.me/?text=${text}`;
+    
+    if (isWeb) {
+      window.open(whatsappUrl, "_blank");
+    } else {
+      await Linking.openURL(whatsappUrl);
+    }
+    setShowShareModal(false);
+    onSharePress?.();
+  };
+  
+  const shareToFacebook = async () => {
+    const url = encodeURIComponent(getShareUrl());
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+    
+    if (isWeb) {
+      window.open(facebookUrl, "_blank");
+    } else {
+      await Linking.openURL(facebookUrl);
+    }
+    setShowShareModal(false);
+    onSharePress?.();
+  };
+  
+  const shareToTwitter = async () => {
+    const text = encodeURIComponent(`${property.title} - Q${property.price.toLocaleString()}\n${property.location}`);
+    const url = encodeURIComponent(getShareUrl());
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+    
+    if (isWeb) {
+      window.open(twitterUrl, "_blank");
+    } else {
+      await Linking.openURL(twitterUrl);
+    }
+    setShowShareModal(false);
+    onSharePress?.();
+  };
+  
+  const shareToTelegram = async () => {
+    const text = encodeURIComponent(getShareText());
+    const url = encodeURIComponent(getShareUrl());
+    const telegramUrl = `https://t.me/share/url?url=${url}&text=${text}`;
+    
+    if (isWeb) {
+      window.open(telegramUrl, "_blank");
+    } else {
+      await Linking.openURL(telegramUrl);
+    }
+    setShowShareModal(false);
+    onSharePress?.();
+  };
+  
+  const shareNative = async () => {
     try {
-      const priceFormatted = `Q${property.price.toLocaleString()}`;
-      const message = `${property.title}\n\n${property.location}\n${priceFormatted}\n${property.area} m²\n\n${property.description}\n\nLa Red Inmobiliaria - Hecha por vendedores, para vendedores`;
-
       await Share.share({
-        message,
+        message: `${getShareText()}\n\n${getShareUrl()}`,
         title: property.title,
       });
     } catch (error) {
       console.error("Error sharing:", error);
     }
-
+    setShowShareModal(false);
     onSharePress?.();
+  };
+  
+  const copyShareContent = async () => {
+    try {
+      const selectedMedia = propertyMedia[selectedMediaIndex];
+      const content = `${getShareText()}\n\n${getShareUrl()}\n\nImagen/Video: ${selectedMedia.url}`;
+      await Clipboard.setStringAsync(content);
+      Alert.alert("Copiado", "El contenido ha sido copiado al portapapeles.");
+    } catch (error) {
+      console.error("Error copying:", error);
+    }
+    setShowShareModal(false);
   };
 
   const handleCopyLink = async () => {
@@ -436,6 +532,92 @@ export function PropertyCard({
           ) : null}
         </View>
       </View>
+      
+      <Modal
+        visible={showShareModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowShareModal(false)}
+      >
+        <View style={styles.shareModalOverlay}>
+          <View style={styles.shareModalContent}>
+            <View style={styles.shareModalHeader}>
+              <ThemedText style={styles.shareModalTitle}>Compartir Propiedad</ThemedText>
+              <Pressable onPress={() => setShowShareModal(false)} style={styles.shareModalClose}>
+                <Ionicons name="close" size={24} color="#333" />
+              </Pressable>
+            </View>
+            
+            <ThemedText style={styles.shareModalSubtitle}>Selecciona una imagen o video</ThemedText>
+            
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.mediaScrollView}
+              contentContainerStyle={styles.mediaScrollContent}
+            >
+              {propertyMedia.map((media, index) => (
+                <Pressable
+                  key={index}
+                  style={[
+                    styles.mediaThumbnail,
+                    selectedMediaIndex === index && styles.mediaThumbnailSelected
+                  ]}
+                  onPress={() => setSelectedMediaIndex(index)}
+                >
+                  <Image source={{ uri: media.url }} style={styles.mediaThumbnailImage} />
+                  {isVideoMedia(media.url, media.tipo) && (
+                    <View style={styles.videoIndicator}>
+                      <Ionicons name="play-circle" size={32} color="rgba(255,255,255,0.9)" />
+                    </View>
+                  )}
+                  {selectedMediaIndex === index && (
+                    <View style={styles.selectedIndicator}>
+                      <Ionicons name="checkmark-circle" size={28} color="#FF5A5F" />
+                    </View>
+                  )}
+                </Pressable>
+              ))}
+            </ScrollView>
+            
+            <ThemedText style={styles.shareModalSubtitle}>Compartir en</ThemedText>
+            
+            <View style={styles.socialButtonsGrid}>
+              <Pressable style={[styles.socialButton, { backgroundColor: "#25D366" }]} onPress={shareToWhatsApp}>
+                <Ionicons name="logo-whatsapp" size={28} color="#FFFFFF" />
+                <ThemedText style={styles.socialButtonText}>WhatsApp</ThemedText>
+              </Pressable>
+              
+              <Pressable style={[styles.socialButton, { backgroundColor: "#1877F2" }]} onPress={shareToFacebook}>
+                <Ionicons name="logo-facebook" size={28} color="#FFFFFF" />
+                <ThemedText style={styles.socialButtonText}>Facebook</ThemedText>
+              </Pressable>
+              
+              <Pressable style={[styles.socialButton, { backgroundColor: "#1DA1F2" }]} onPress={shareToTwitter}>
+                <Ionicons name="logo-twitter" size={28} color="#FFFFFF" />
+                <ThemedText style={styles.socialButtonText}>Twitter</ThemedText>
+              </Pressable>
+              
+              <Pressable style={[styles.socialButton, { backgroundColor: "#0088CC" }]} onPress={shareToTelegram}>
+                <Ionicons name="paper-plane" size={28} color="#FFFFFF" />
+                <ThemedText style={styles.socialButtonText}>Telegram</ThemedText>
+              </Pressable>
+              
+              <Pressable style={[styles.socialButton, { backgroundColor: "#6B7280" }]} onPress={copyShareContent}>
+                <Ionicons name="copy-outline" size={28} color="#FFFFFF" />
+                <ThemedText style={styles.socialButtonText}>Copiar</ThemedText>
+              </Pressable>
+              
+              {!isWeb && (
+                <Pressable style={[styles.socialButton, { backgroundColor: "#FF5A5F" }]} onPress={shareNative}>
+                  <Ionicons name="share-outline" size={28} color="#FFFFFF" />
+                  <ThemedText style={styles.socialButtonText}>Más</ThemedText>
+                </Pressable>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </AnimatedPressable>
   );
 }
@@ -549,6 +731,98 @@ const styles = StyleSheet.create({
   copyLinkText: {
     color: "#FFFFFF",
     fontSize: 14,
+    fontWeight: "600",
+  },
+  shareModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  shareModalContent: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: Spacing.lg,
+    paddingBottom: 40,
+    maxHeight: "85%",
+  },
+  shareModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.md,
+  },
+  shareModalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#222",
+  },
+  shareModalClose: {
+    padding: 8,
+  },
+  shareModalSubtitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  mediaScrollView: {
+    maxHeight: 120,
+  },
+  mediaScrollContent: {
+    gap: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  mediaThumbnail: {
+    width: 100,
+    height: 100,
+    borderRadius: BorderRadius.md,
+    overflow: "hidden",
+    borderWidth: 3,
+    borderColor: "transparent",
+  },
+  mediaThumbnailSelected: {
+    borderColor: "#FF5A5F",
+  },
+  mediaThumbnailImage: {
+    width: "100%",
+    height: "100%",
+  },
+  videoIndicator: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.3)",
+  },
+  selectedIndicator: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+  },
+  socialButtonsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  socialButton: {
+    width: "30%",
+    aspectRatio: 1,
+    borderRadius: BorderRadius.md,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 6,
+  },
+  socialButtonText: {
+    color: "#FFFFFF",
+    fontSize: 12,
     fontWeight: "600",
   },
 });
