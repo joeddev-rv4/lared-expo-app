@@ -3,6 +3,7 @@ import { ActivityIndicator, View, Platform } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import DrawerNavigator from "@/navigation/DrawerNavigator";
+import MainTabNavigator from "@/navigation/MainTabNavigator";
 import OnboardingScreen from "@/screens/OnboardingScreen";
 import OnboardingScreenWeb from "@/screens/OnboardingScreen.web";
 import LoginScreen from "@/screens/LoginScreen";
@@ -117,7 +118,7 @@ export default function RootStackNavigator() {
       />
       <Stack.Screen
         name="Main"
-        component={DrawerNavigator}
+        component={isWeb ? MainTabNavigator : DrawerNavigator}
         options={{ headerShown: false }}
       />
       <Stack.Screen
