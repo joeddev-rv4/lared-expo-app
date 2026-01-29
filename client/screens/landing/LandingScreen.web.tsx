@@ -279,11 +279,11 @@ const StepsSection = () => {
   const isMobile = useIsMobile();
   const [currentStep, setCurrentStep] = useState(0);
   const steps = [
-    { title: "Descarga la App", description: "Descarga nuestra aplicacion desde App Store o Google Play para comenzar tu camino como aliado.", showDownloadButtons: true, image: null },
-    { title: "Crea tu Cuenta", description: "Registrate con tus datos y completa tu perfil para acceder a todas las herramientas.", image: phoneImg },
-    { title: "Agrega Propiedades", description: "Sube las propiedades que deseas promocionar con fotos, descripcion y detalles.", image: portfolioImg },
-    { title: "Publica en Redes Sociales", description: "Comparte las propiedades en tus redes sociales para llegar a mas clientes potenciales.", image: rrssImg },
-    { title: "Gana Comisiones", description: "Recibe comisiones por cada venta o alquiler que concretes a traves de la plataforma.", image: hombreFelizImg },
+    { title: "Descarga la App", showDownloadButtons: true, image: null },
+    { title: "Crea tu Cuenta", image: phoneImg },
+    { title: "Agrega Propiedades", image: portfolioImg },
+    { title: "Publica en Redes Sociales", image: rrssImg },
+    { title: "Gana Comisiones", image: hombreFelizImg },
   ];
 
   const sectionStyle: React.CSSProperties = {
@@ -327,8 +327,7 @@ const StepsSection = () => {
                 maxWidth: step.image ? 400 : 600,
               }}>
                 <div style={{...styles.stepNumber, margin: isMobile || !step.image ? "0 auto 16px" : "0 0 16px"}}>{index + 1}</div>
-                <h3 style={{...styles.stepCardTitle, color: "#fff"}}>{step.title}</h3>
-                <p style={styles.stepDescription}>{step.description}</p>
+                <h3 style={{...styles.stepCardTitle, color: "#fff", marginBottom: step.showDownloadButtons ? 24 : 0}}>{step.title}</h3>
                 {step.showDownloadButtons && (
                   <div style={{...styles.downloadButtons, justifyContent: isMobile ? "center" : "flex-start"}}>
                     <a href="https://apps.apple.com/gt/app/la-red-inmobiliaria/id6748619383" target="_blank" rel="noopener noreferrer">
