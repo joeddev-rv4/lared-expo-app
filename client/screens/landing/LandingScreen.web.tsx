@@ -1219,23 +1219,30 @@ const TestimonialsSection = () => {
   const testimonials = [
     {
       id: 1,
-      name: "Juan Perez",
-      text: "La mejor plataforma para aliados. He triplicado mis ventas en 6 meses.",
-      rating: 5,
+      reelId: 'DQpboffFTx0',
+      url: 'https://www.instagram.com/reel/DQpboffFTx0/',
+      title: 'Testimonial 1',
+      overlayText: 'La mejor plataforma para aliados inmobiliarios',
     },
     {
       id: 2,
-      name: "Laura Martinez",
-      text: "Conexiones que transforman negocios. Recomendado 100%.",
-      rating: 5,
+      reelId: 'DO_V5M-lT-u',
+      url: 'https://www.instagram.com/reel/DO_V5M-lT-u/',
+      title: 'Testimonial 2',
+      overlayText: 'Conexiones que transforman negocios',
     },
     {
       id: 3,
-      name: "Roberto Sanchez",
-      text: "Crecimiento garantizado con herramientas profesionales.",
-      rating: 5,
+      reelId: 'DRPXFi9ig_R',
+      url: 'https://www.instagram.com/reel/DRPXFi9ig_R/',
+      title: 'Testimonial 3',
+      overlayText: 'Crecimiento garantizado',
     },
   ];
+
+  const handleReelClick = (url: string) => {
+    window.open(url, '_blank');
+  };
 
   return (
     <section
@@ -1261,24 +1268,107 @@ const TestimonialsSection = () => {
         >
           Calificados por nuestros aliados
         </h2>
-        <div style={styles.playStoreRating}>
-          <span style={styles.starsContainer}>{"*".repeat(5)}</span>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          marginBottom: 32,
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <linearGradient id="instagram-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#FFDC80" />
+              <stop offset="25%" stopColor="#F77737" />
+              <stop offset="50%" stopColor="#E1306C" />
+              <stop offset="75%" stopColor="#C13584" />
+              <stop offset="100%" stopColor="#833AB4" />
+            </linearGradient>
+            <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#instagram-gradient)" strokeWidth="2" fill="none"/>
+            <circle cx="12" cy="12" r="4" stroke="url(#instagram-gradient)" strokeWidth="2" fill="none"/>
+            <circle cx="18" cy="6" r="1.5" fill="url(#instagram-gradient)"/>
+          </svg>
+          <span style={{ color: '#666', fontSize: 14 }}>Testimonios en Instagram</span>
         </div>
         <div
           style={
             isMobile
               ? {
-                  ...styles.testimonialsGrid,
-                  gridTemplateColumns: "1fr",
-                  gap: 16,
+                  display: 'flex',
+                  flexDirection: 'column' as const,
+                  gap: 24,
+                  alignItems: 'center',
                 }
-              : styles.testimonialsGrid
+              : {
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: 24,
+                  flexWrap: 'wrap' as const,
+                }
           }
         >
           {testimonials.map((t) => (
-            <div key={t.id} style={styles.testimonialCard}>
-              <p style={styles.testimonialText}>"{t.text}"</p>
-              <p style={styles.testimonialName}>- {t.name}</p>
+            <div 
+              key={t.id} 
+              style={{
+                position: 'relative' as const,
+                width: isMobile ? '100%' : 320,
+                maxWidth: 320,
+                aspectRatio: '9/16',
+                borderRadius: 16,
+                overflow: 'hidden',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                cursor: 'pointer',
+                background: 'linear-gradient(135deg, #833AB4, #E1306C, #F77737)',
+              }}
+              onClick={() => handleReelClick(t.url)}
+            >
+              <iframe
+                src={`https://www.instagram.com/reel/${t.reelId}/embed`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                  pointerEvents: 'none',
+                }}
+                title={t.title}
+                allowFullScreen
+              />
+              <div style={{
+                position: 'absolute' as const,
+                bottom: 0,
+                left: 0,
+                right: 0,
+                background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
+                padding: 20,
+                paddingTop: 40,
+              }}>
+                <p style={{
+                  color: '#fff',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  margin: 0,
+                  textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                }}>{t.overlayText}</p>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  marginTop: 8,
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                    <polygon points="5,3 19,12 5,21" />
+                  </svg>
+                  <span style={{ color: '#fff', fontSize: 12 }}>Ver en Instagram</span>
+                </div>
+              </div>
+              <div style={{
+                position: 'absolute' as const,
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                cursor: 'pointer',
+              }} onClick={() => handleReelClick(t.url)} />
             </div>
           ))}
         </div>
