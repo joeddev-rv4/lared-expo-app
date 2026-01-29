@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 import { Sparkline } from './Sparkline';
@@ -20,6 +20,8 @@ interface DashboardMetricCardProps {
     noBackground?: boolean;
     sparklineData?: number[];
     sparklineType?: 'line' | 'bar' | 'area' | 'curved' | 'gauge' | 'arc' | 'donut';
+    rightIcon?: keyof typeof Ionicons.glyphMap;
+    style?: ViewStyle;
 }
 
 export const DashboardMetricCard = ({
@@ -31,7 +33,9 @@ export const DashboardMetricCard = ({
     delay = 0,
     noBackground = false,
     sparklineData,
-    sparklineType = 'line'
+    sparklineType = 'line',
+    rightIcon,
+    style
 }: DashboardMetricCardProps) => {
     const { theme, isDark } = useTheme();
 
@@ -48,39 +52,18 @@ export const DashboardMetricCard = ({
                     shadowOpacity: Shadows.card.shadowOpacity,
                     shadowRadius: Shadows.card.shadowRadius,
                     elevation: Shadows.card.elevation,
-                }
+                },
+                { position: 'relative' as const },
+                style
             ]}
         >
-            <View style={styles.header}>
-                <View style={[styles.iconContainer, { backgroundColor: color + '20' }]}>
-                    <Ionicons name={icon} size={20} color={color} />
-                </View>
-                {trend && (
-                    <View style={[
-                        styles.trendBadge,
-                        { backgroundColor: trend.positive ? '#10B98120' : '#EF444420' }
-                    ]}>
-                        <Ionicons
-                            name={trend.positive ? "arrow-up" : "arrow-down"}
-                            size={12}
-                            color={trend.positive ? '#10B981' : '#EF4444'}
-                        />
-                        <ThemedText style={[
-                            styles.trendText,
-                            { color: trend.positive ? '#10B981' : '#EF4444' }
-                        ]}>
-                            {trend.value}%
-                        </ThemedText>
-                    </View>
-                )}
-            </View>
-
             <View style={styles.mainContent}>
-                <View style={styles.content}>
-                    <ThemedText style={[styles.value, { color: theme.text }]}>
+                <View style={[styles.content, { alignItems: 'center' }]}>
+                    <Ionicons name={icon} size={28} color={color} />
+                    <ThemedText style={[styles.value, { color: theme.text, textAlign: 'center' }]}>
                         {value}
                     </ThemedText>
-                    <ThemedText style={[styles.title, { color: theme.textSecondary }]}>
+                    <ThemedText style={[styles.title, { color: theme.textSecondary, textAlign: 'center' }]}>
                         {title}
                     </ThemedText>
                 </View>
@@ -96,7 +79,7 @@ export const DashboardMetricCard = ({
 
 const styles = StyleSheet.create({
     container: {
-        padding: Spacing.md,
+        padding: Spacing.xl,
         borderRadius: BorderRadius.lg,
         flex: 1,
         minWidth: 140,
@@ -135,15 +118,22 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     content: {
-        gap: 2,
-        flex: 1,
+        gap: 8,
     },
     value: {
-        fontSize: 24,
+        fontSize: 40,
         fontWeight: '700',
     },
+    valueIcon: {
+        marginTop: 2,
+    },
+    rightIcon: {
+        position: 'absolute',
+        top: 50,
+        right: Spacing.md,
+    },
     title: {
-        fontSize: 12,
+        fontSize: 16,
         fontWeight: '500',
     },
 });

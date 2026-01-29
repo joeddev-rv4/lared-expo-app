@@ -23,10 +23,29 @@ const METRICS = {
 
 const BRAND_BLUE = '#044bb8';
 
+const TIPS_DE_VENTA = [
+    "Enfócate en el beneficio principal: No hables solo de lo que es tu producto, sino de cómo mejora la vida del cliente o le resuelve un problema concreto.",
+    "Usa un llamado a la acción directo y visible: Frases como 'Compra ahora', 'Cotiza hoy' o 'Contáctanos' guían al cliente y aumentan la conversión.",
+    "Mantén el mensaje claro y fácil de entender: El usuario debe captar la idea principal en pocos segundos, sin leer demasiado.",
+    "Aprovecha el poder de la urgencia: Mensajes como 'Por tiempo limitado' o 'Últimas unidades disponibles' motivan a decidir más rápido.",
+    "Resalta promociones u ofertas especiales: Descuentos, combos o beneficios exclusivos llaman la atención y aumentan el interés inmediato.",
+    "Usa números para generar impacto: Porcentajes, precios o cantidades concretas hacen el mensaje más creíble y atractivo.",
+    "Incluye confianza o prueba social: Frases como 'Clientes satisfechos' o 'Más de 1,000 ventas' ayudan a reducir dudas.",
+    "Utiliza colores estratégicos: El texto y los botones deben contrastar con el fondo para dirigir la vista hacia lo más importante.",
+    "Adapta el mensaje a tu público objetivo: No es lo mismo vender a jóvenes, empresas o familias; el lenguaje debe conectar con quien lo ve.",
+    "Destaca qué te hace diferente: Muestra en una frase por qué tu producto o servicio es mejor que la competencia."
+];
+
 const MESSAGES = [
-    { id: '1', text: "¡Estás a solo 250 XP del siguiente nivel!", icon: "trending-up" as const, color: Colors.light.primary },
-    { id: '2', text: "Has conseguido 3 nuevos clientes esta semana.", icon: "people" as const, color: "#10B981" },
-    { id: '3', text: "Tu propiedad en Centro Histórico tiene +20 visitas.", icon: "eye" as const, color: "#8B5CF6" },
+    { id: '1', text: "¡Sigue así! Tu esfuerzo está dando frutos.", icon: "thumbs-up" as const, color: Colors.light.primary },
+    { id: '2', text: "No pares de compartir y ganar", icon: "share" as const, color: "#10B981" },
+    { id: '3', text: "Gana Q750 por cada referido", icon: "cash" as const, color: "#8B5CF6" },
+];
+
+const OTHER_MESSAGES = [
+    { id: '4', text: "Estás a solo un click de ganar Q750", icon: "finger-print" as const, color: "#F59E0B" },
+    { id: '5', text: "Consigue clientes desde tu teléfono", icon: "phone-portrait" as const, color: "#EF4444" },
+    { id: '6', text: "Comparte en tus redes sociales y gana", icon: "ellipsis-horizontal" as const, color: "#8B5CF6" },
 ];
 
 export default function AchievementsScreenWeb() {
@@ -37,6 +56,7 @@ export default function AchievementsScreenWeb() {
     const [timeRange, setTimeRange] = useState<"Month" | "Week">("Month");
     const [metrics, setMetrics] = useState({
         ganancias: { value: 0, spark: [0, 0, 0, 0, 0, 0, 0] },
+        gananciasTotales: { value: 0, spark: [0, 0, 0, 0, 0, 0, 0] },
         propiedades: { value: 0, spark: [0, 0, 0, 0, 0, 0, 0] },
         clientes: { value: 0, spark: [0, 0, 0, 0, 0, 0, 0] },
     });
@@ -44,6 +64,13 @@ export default function AchievementsScreenWeb() {
         Month: [] as { label: string; values: number[] }[],
         Week: [] as { label: string; values: number[] }[],
     });
+
+    const today = new Date().getDate();
+    const tipIndex = today % TIPS_DE_VENTA.length;
+    const selectedTip = TIPS_DE_VENTA[tipIndex];
+    const TIPS_MESSAGES = [
+        { id: 'tip', text: selectedTip, icon: "bulb" as const, color: "#F59E0B" }
+    ];
 
     // Calculate chart data based on metrics
     // Moved to useEffect
@@ -71,6 +98,14 @@ export default function AchievementsScreenWeb() {
                 const leads = await leadsResponse.json();
                 const totalLeads = Array.isArray(leads) ? leads.length : 0;
 
+                // Fetch count status 11
+                const status11Response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/count-status-11/${user.id}`, {
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true',
+                    },
+                });
+                const countStatus11 = await status11Response.json();
+
                 // Fetch favorites from Firebase
                 const portfolioPropertyIds = await getPortfolioProperties(user.id);
                 const totalFavorites = portfolioPropertyIds.length;
@@ -95,16 +130,19 @@ export default function AchievementsScreenWeb() {
 
                 // Calculate metrics
                 const gananciasValue = totalLeads * 750;
+                const gananciasTotalesValue = countStatus11 * 750;
                 const propiedadesValue = totalFavorites;
                 const clientesValue = totalLeads;
 
                 // Mock sparkline data (you can make this dynamic if needed)
                 const sparkGanancias = [gananciasValue * 0.7, gananciasValue * 0.8, gananciasValue * 0.75, gananciasValue * 0.9, gananciasValue * 0.85, gananciasValue * 0.95, gananciasValue];
+                const sparkGananciasTotales = [gananciasTotalesValue * 0.7, gananciasTotalesValue * 0.8, gananciasTotalesValue * 0.75, gananciasTotalesValue * 0.9, gananciasTotalesValue * 0.85, gananciasTotalesValue * 0.95, gananciasTotalesValue];
                 const sparkPropiedades = [propiedadesValue * 0.6, propiedadesValue * 0.7, propiedadesValue * 0.65, propiedadesValue * 0.8, propiedadesValue * 0.75, propiedadesValue * 0.9, propiedadesValue];
                 const sparkClientes = [clientesValue * 0.5, clientesValue * 0.6, clientesValue * 0.55, clientesValue * 0.7, clientesValue * 0.65, clientesValue * 0.8, clientesValue];
 
                 setMetrics({
                     ganancias: { value: gananciasValue, spark: sparkGanancias },
+                    gananciasTotales: { value: gananciasTotalesValue, spark: sparkGananciasTotales },
                     propiedades: { value: propiedadesValue, spark: sparkPropiedades },
                     clientes: { value: clientesValue, spark: sparkClientes },
                 });
@@ -157,8 +195,8 @@ export default function AchievementsScreenWeb() {
                     <View style={[styles.gridRow, styles.headerRow, isMobileWeb && styles.gridRowMobile]}>
                         {/* Left: Title */}
                         <View style={[styles.leftColumn, !isMobileWeb && { width: columnLeftWidth }, isMobileWeb && styles.leftColumnMobile]}>
-                            <ThemedText style={styles.pageTitle}>Mis Logros</ThemedText>
-                            <ThemedText style={[styles.pageDescription, { color: theme.textSecondary }]}>
+                            <ThemedText style={[styles.pageTitle, { textAlign: 'center' }]}>Mis Logros</ThemedText>
+                            <ThemedText style={[styles.pageDescription, { color: theme.textSecondary, textAlign: 'center' }]}>
                                 Aquí podrás ver tus avances en la Red Inmobiliaria.
                             </ThemedText>
                         </View>
@@ -177,9 +215,6 @@ export default function AchievementsScreenWeb() {
                                         <ThemedText style={[styles.toggleText, timeRange === "Week" && styles.activeToggleText]}>Esta semana</ThemedText>
                                     </Pressable>
                                 </View>
-                                <Pressable style={styles.exportButton}>
-                                    <ThemedText style={styles.exportButtonText}>Exportar</ThemedText>
-                                </Pressable>
                             </View>
                         </View>
                     </View>
@@ -189,50 +224,43 @@ export default function AchievementsScreenWeb() {
                     {/* Section 2: Performance */}
                     <View style={[styles.gridRow, isMobileWeb && styles.gridRowMobile]}>
                         {/* Left: Metrics Stack */}
-                        <View style={[styles.leftColumn, !isMobileWeb && { width: columnLeftWidth }, isMobileWeb && styles.leftColumnMobile]}>
-                            <ThemedText style={styles.sectionTitle}>Resumen</ThemedText>
-                            <View style={styles.metricsStack}>
+                        <View style={[styles.leftColumn, { width: '100%', alignItems: 'center' }, isMobileWeb && styles.leftColumnMobile]}>
+                            <ThemedText style={[styles.sectionTitle, { textAlign: 'center' }]}>Resumen</ThemedText>
+                            <View style={[styles.metricsStack, { flexDirection: 'row', gap: 0, alignItems: 'center', height: 120 }]}>
                                 <DashboardMetricCard
                                     title="Ganancias Estimadas"
                                     value={metrics.ganancias.value}
                                     icon="cash-outline"
                                     color={BRAND_BLUE}
                                     noBackground
+                                    style={{ marginHorizontal: 10 }}
                                 />
-                                <View style={[styles.innerDivider, { backgroundColor: theme.border }]} />
+                                <View style={[styles.separator, { marginHorizontal: 5 }]} />
                                 <DashboardMetricCard
                                     title="Propiedades Asignadas"
                                     value={metrics.propiedades.value}
-                                    icon="cash-outline"
+                                    icon="home-outline"
                                     color={BRAND_BLUE}
                                     noBackground
+                                    style={{ marginHorizontal: 10 }}
                                 />
-                                <View style={[styles.innerDivider, { backgroundColor: theme.border }]} />
+                                <View style={styles.separator} />
                                 <DashboardMetricCard
                                     title="Clientes Obtenidos"
                                     value={metrics.clientes.value}
+                                    icon="person-outline"
+                                    color={BRAND_BLUE}
+                                    noBackground
+                                    style={{ marginHorizontal: 10 }}
+                                />
+                                <View style={styles.separator} />
+                                <DashboardMetricCard
+                                    title="Ganancias Totales"
+                                    value={metrics.gananciasTotales.value}
                                     icon="cash-outline"
                                     color={BRAND_BLUE}
                                     noBackground
-                                />
-                            </View>
-                        </View>
-
-                        {/* Vertical Divider - hidden on mobile */}
-                        {!isMobileWeb ? <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} /> : null}
-
-                        {/* Right: Chart Area */}
-                        <View style={[styles.rightColumn, !isMobileWeb && { width: columnRightWidth }, isMobileWeb && styles.rightColumnMobile]}>
-                            <ThemedText style={styles.sectionTitle}>Gráfica de Actividad</ThemedText>
-                            <View style={styles.chartWrapper}>
-                                <ThemedText style={[styles.subSectionTitle, { color: theme.textSecondary }]}>Actividad Diaria - Enero 2026</ThemedText>
-                                <WebChart
-                                    max={Math.max(...chartData[timeRange].map(d => d.values[0]), 10)}
-                                    data={chartData[timeRange]}
-                                    colors={['#10B981']}
-                                    height={250}
-                                    legends={[]}
-                                    xLabels={Array.from({ length: 31 }, (_, i) => (i + 1).toString())}
+                                    style={{ marginHorizontal: 10 }}
                                 />
                             </View>
                         </View>
@@ -240,8 +268,16 @@ export default function AchievementsScreenWeb() {
 
                     <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-                    {/* Section 3: Gamification */}
+                    {/* Section: Mensajes Motivacionales */}
                     <View style={[styles.gridRow, isMobileWeb && styles.gridRowMobile]}>
+                        <View style={[styles.leftColumn, { width: '100%', alignItems: 'center' }, isMobileWeb && styles.leftColumnMobile]}>
+                            <ThemedText style={[styles.sectionTitle, { textAlign: 'center' }]}>Tips De Venta</ThemedText>
+                            <View style={{ flexDirection: 'row', gap: Spacing.md, justifyContent: 'center' }}>
+                                <DashboardBanner messages={TIPS_MESSAGES} interval={3000} />
+                            </View>
+                        </View>
+                    </View>
+                    <View style={[{ display: 'none' }, styles.gridRow, isMobileWeb && styles.gridRowMobile]}>
                         {/* Left: Metas (Percentage bars) */}
                         <View style={[styles.leftColumn, { width: columnLeftWidth }]}>
                             <ThemedText style={styles.sectionTitle}>Metas</ThemedText>
@@ -274,7 +310,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         width: '100%',
-        paddingHorizontal: 90, // Match ExploreScreen web padding
+        paddingHorizontal: 0,
     },
     dashboardGrid: {
         overflow: 'hidden',
@@ -303,13 +339,13 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     pageTitle: {
-        fontSize: 22,
+        fontSize: 30,
         fontWeight: '700',
         marginBottom: Spacing.xs,
     },
     pageDescription: {
-        fontSize: 14,
-        lineHeight: 20,
+        fontSize: 16,
+        lineHeight: 22,
     },
     controls: {
         flexDirection: 'row',
@@ -353,7 +389,7 @@ const styles = StyleSheet.create({
         fontSize: 13,
     },
     sectionTitle: {
-        fontSize: 18,
+        fontSize: 28,
         fontWeight: '600',
         marginBottom: Spacing.xl,
     },
@@ -368,6 +404,12 @@ const styles = StyleSheet.create({
     },
     metricsStack: {
         gap: 0, // No gap, using dividers instead
+    },
+    separator: {
+        height: 120,
+        width: 2,
+        backgroundColor: '#000',
+        marginHorizontal: Spacing.md,
     },
     innerDivider: {
         height: 1,

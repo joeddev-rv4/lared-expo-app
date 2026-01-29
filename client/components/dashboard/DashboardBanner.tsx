@@ -15,40 +15,44 @@ interface Message {
 interface DashboardBannerProps {
     messages: Message[];
     interval?: number;
+    title?: string;
 }
 
-export const DashboardBanner = ({ messages, interval = 2000 }: DashboardBannerProps) => {
+export const DashboardBanner = ({ messages, interval = 2000, title }: DashboardBannerProps) => {
     const { theme } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [fadeAnim] = useState(new Animated.Value(1));
 
     useEffect(() => {
-        const timer = setInterval(() => {
-            Animated.sequence([
-                Animated.timing(fadeAnim, {
-                    toValue: 0,
-                    duration: 300,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(fadeAnim, {
-                    toValue: 1,
-                    duration: 300,
-                    useNativeDriver: true,
-                }),
-            ]).start();
+        if (messages.length > 1) {
+            const timer = setInterval(() => {
+                Animated.sequence([
+                    Animated.timing(fadeAnim, {
+                        toValue: 0,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(fadeAnim, {
+                        toValue: 1,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                ]).start();
 
-            setTimeout(() => {
-                setCurrentIndex((prev) => (prev + 1) % messages.length);
-            }, 300);
-        }, interval);
+                setTimeout(() => {
+                    setCurrentIndex((prev) => (prev + 1) % messages.length);
+                }, 300);
+            }, interval);
 
-        return () => clearInterval(timer);
+            return () => clearInterval(timer);
+        }
     }, [messages.length, interval, fadeAnim]);
 
     const currentMessage = messages[currentIndex];
 
     return (
         <View style={[styles.container, { backgroundColor: theme.backgroundDefault }]}>
+            {title && <ThemedText style={styles.title}>{title}</ThemedText>}
             <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
                 <View style={[styles.iconContainer, { backgroundColor: currentMessage.color + '20' }]}>
                     <Ionicons name={currentMessage.icon} size={24} color={currentMessage.color} />
@@ -66,6 +70,12 @@ const styles = StyleSheet.create({
         height: 100,
         justifyContent: 'center',
         overflow: 'hidden',
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: '700',
+        textAlign: 'center',
+        marginBottom: Spacing.sm,
     },
     content: {
         flexDirection: 'row',
