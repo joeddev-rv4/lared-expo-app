@@ -1898,150 +1898,336 @@ const ContactFormSection = () => {
   );
 };
 
+type LegalPopupType = 'privacy' | 'terms' | null;
+
+const privacyContentData = {
+  en: {
+    title: "Privacy Policy",
+    sections: [
+      { title: "1. Introduction", content: "At La Red Inmobiliaria, we respect and protect the privacy of our users. This policy describes how we collect, use, and protect personal and non-personal information from individuals who interact with our services, in accordance with international best practices and aligned with current Guatemalan legislation, including Decree 57-2008 \"Law on Access to Public Information\"." },
+      { title: "2. Information We Collect", content: "Personal Information: name, email address, phone number, address, and other details voluntarily provided by the user.\n\nNon-Personal Information: technical data such as IP address, browser type, operating system, visited pages, and usage statistics." },
+      { title: "3. How We Use Information", content: "• Provide and customize our services.\n• Improve user experience.\n• Communicate updates, promotions, or relevant information.\n• Comply with legal or regulatory requirements.\n• Ensure the security of our platforms." },
+      { title: "4. Legal Basis", content: "Processing is based on: voluntary consent, contractual obligations, legitimate interests, and guidelines inspired by Decree 57-2008 of Guatemala." },
+      { title: "5. Information Protection", content: "We implement technical, administrative, and physical security measures to protect information from loss, theft, unauthorized access, disclosure, copying, use, or modification." },
+      { title: "6. Sharing Information", content: "We do not sell or rent personal information. We may share only with service providers, when required by law, or to protect our rights." },
+      { title: "7. User Rights", content: "Users may: access, correct, request deletion of their data, or object to processing. Contact: hola@laredgt.com" },
+      { title: "8. Contact", content: "For questions: hola@laredgt.com" }
+    ]
+  },
+  es: {
+    title: "Politica de Privacidad",
+    sections: [
+      { title: "1. Introduccion", content: "En La Red Inmobiliaria, respetamos y protegemos la privacidad de nuestros usuarios. Esta politica describe como recopilamos, utilizamos y protegemos la informacion personal y no personal, en cumplimiento de las mejores practicas internacionales y de forma alineada con la legislacion vigente en Guatemala, incluyendo el Decreto 57-2008." },
+      { title: "2. Informacion que recopilamos", content: "Informacion personal: nombre, correo electronico, telefono, direccion y otros datos proporcionados voluntariamente.\n\nInformacion no personal: datos tecnicos como IP, navegador, sistema operativo, paginas visitadas y estadisticas de uso." },
+      { title: "3. Uso de la informacion", content: "• Proporcionar y personalizar nuestros servicios.\n• Mejorar la experiencia del usuario.\n• Comunicarnos sobre actualizaciones y promociones.\n• Cumplir con requisitos legales.\n• Garantizar la seguridad de nuestras plataformas." },
+      { title: "4. Base legal", content: "El tratamiento se realiza con base en: consentimiento voluntario, obligaciones contractuales, intereses legitimos y lineamientos del Decreto 57-2008." },
+      { title: "5. Proteccion", content: "Implementamos medidas de seguridad tecnicas, administrativas y fisicas para proteger la informacion contra perdida, robo y acceso no autorizado." },
+      { title: "6. Comparticion", content: "No vendemos ni alquilamos informacion personal. Podremos compartirla con proveedores de servicios, cuando sea requerido por ley o para proteger nuestros derechos." },
+      { title: "7. Derechos del usuario", content: "El usuario puede: acceder, rectificar, solicitar eliminacion de sus datos u oponerse al tratamiento. Contacto: hola@laredgt.com" },
+      { title: "8. Contacto", content: "Para preguntas: hola@laredgt.com" }
+    ]
+  }
+};
+
+const termsContentData = {
+  en: {
+    title: "Terms of Use",
+    sections: [
+      { title: "Welcome", content: "Welcome to La Red Inmobiliaria (\"the App\"), owned by La Red Inmobiliaria Guatemala. By using the App, you agree to these Terms. If you do not agree, please do not use the App." },
+      { title: "1. Use of the App", content: "• Platform for promoting real estate properties and generating leads.\n• Users may be eligible for fees for successful lead generation, handled outside the App.\n• No payments are conducted within the App." },
+      { title: "2. Eligibility", content: "You must be at least 18 years old to use the App." },
+      { title: "3. User Responsibilities", content: "You agree to: provide accurate property information, not use the App for illegal purposes, not harm the App's functionality." },
+      { title: "4. Intellectual Property", content: "All content (branding, design, logos, text) is owned by La Red Inmobiliaria and protected under copyright and trademark laws." },
+      { title: "5. Limitation of Liability", content: "The App is provided \"as is\" without warranties. We are not liable for damages from your use of the App." },
+      { title: "6. Termination", content: "We reserve the right to terminate or suspend your access if you violate these Terms." },
+      { title: "7. Account Security", content: "Users are responsible for maintaining confidentiality of login credentials. Activity through your account is your responsibility." },
+      { title: "8. Governing Law", content: "These Terms are governed by the laws of Guatemala. Disputes are subject to Guatemalan courts." },
+      { title: "9. Changes to Terms", content: "We may update these Terms at any time. Continued use constitutes acceptance." },
+      { title: "10. Contact", content: "Questions? Contact us at: hola@laredgt.com" }
+    ]
+  },
+  es: {
+    title: "Terminos de Uso",
+    sections: [
+      { title: "Bienvenida", content: "Bienvenido a La Red Inmobiliaria (\"la App\"), propiedad de La Red Inmobiliaria Guatemala. Al utilizar la App, aceptas estos Terminos. Si no estas de acuerdo, no utilices la App." },
+      { title: "1. Uso de la App", content: "• Plataforma para promocionar propiedades inmobiliarias y generar prospectos.\n• Los usuarios pueden ser elegibles para comisiones, gestionadas fuera de la App.\n• No se realizan pagos dentro de la App." },
+      { title: "2. Elegibilidad", content: "Debes tener al menos 18 anos de edad para utilizar la App." },
+      { title: "3. Responsabilidades", content: "Te comprometes a: proporcionar informacion precisa, no utilizar la App para fines ilegales, no danar la funcionalidad de la App." },
+      { title: "4. Propiedad Intelectual", content: "Todo el contenido (marca, diseno, logotipos, texto) es propiedad de La Red Inmobiliaria y esta protegido por leyes de derechos de autor." },
+      { title: "5. Limitacion de Responsabilidad", content: "La App se proporciona \"tal cual\" sin garantias. No somos responsables por danos del uso de la App." },
+      { title: "6. Terminacion", content: "Nos reservamos el derecho de terminar o suspender tu acceso si violas estos Terminos." },
+      { title: "7. Cuenta y Seguridad", content: "Los usuarios son responsables de mantener la confidencialidad de sus credenciales. Toda actividad desde tu cuenta es tu responsabilidad." },
+      { title: "8. Legislacion", content: "Estos Terminos se rigen por las leyes de Guatemala. Las disputas estan sujetas a tribunales guatemaltecos." },
+      { title: "9. Cambios", content: "Podemos actualizar estos Terminos en cualquier momento. El uso continuo constituye aceptacion." },
+      { title: "10. Contacto", content: "Preguntas? Contactanos en: hola@laredgt.com" }
+    ]
+  }
+};
+
+const LegalPopupComponent = ({ 
+  type, 
+  onClose, 
+  language, 
+  onLanguageChange 
+}: { 
+  type: LegalPopupType; 
+  onClose: () => void; 
+  language: 'es' | 'en';
+  onLanguageChange: (lang: 'es' | 'en') => void;
+}) => {
+  if (!type) return null;
+  
+  const content = type === 'privacy' ? privacyContentData[language] : termsContentData[language];
+  
+  const popupStyles: { [key: string]: React.CSSProperties } = {
+    overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: 20 },
+    modal: { backgroundColor: '#fff', borderRadius: 16, maxWidth: 700, width: '100%', maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)' },
+    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #eee', flexShrink: 0 },
+    headerRight: { display: 'flex', alignItems: 'center', gap: 16 },
+    title: { fontSize: 22, fontWeight: 700, color: '#1a1a2e', margin: 0, fontFamily: "'Nunito', sans-serif" },
+    languageSwitch: { display: 'flex', backgroundColor: '#f0f0f0', borderRadius: 8, padding: 4 },
+    langButton: { padding: '6px 12px', border: 'none', background: 'transparent', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#666', transition: 'all 0.2s', fontFamily: "'Nunito', sans-serif" },
+    langButtonActive: { backgroundColor: '#044BB8', color: '#fff' },
+    closeButton: { background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' },
+    contentArea: { padding: 24, overflowY: 'auto', flex: 1 },
+    section: { marginBottom: 24 },
+    sectionTitle: { fontSize: 16, fontWeight: 700, color: '#1a1a2e', marginBottom: 8, fontFamily: "'Nunito', sans-serif" },
+    sectionContent: { fontSize: 14, color: '#555', lineHeight: 1.7, whiteSpace: 'pre-line', fontFamily: "'Nunito', sans-serif", margin: 0 },
+    footerArea: { marginTop: 32, paddingTop: 16, borderTop: '1px solid #eee', textAlign: 'center' },
+    copyrightText: { fontSize: 13, color: '#999', fontFamily: "'Nunito', sans-serif" },
+  };
+  
+  return (
+    <div style={popupStyles.overlay} onClick={onClose}>
+      <div style={popupStyles.modal} onClick={(e) => e.stopPropagation()}>
+        <div style={popupStyles.header}>
+          <h2 style={popupStyles.title}>{content.title}</h2>
+          <div style={popupStyles.headerRight}>
+            <div style={popupStyles.languageSwitch}>
+              <button 
+                style={{ ...popupStyles.langButton, ...(language === 'es' ? popupStyles.langButtonActive : {}) }}
+                onClick={() => onLanguageChange('es')}
+              >
+                ES
+              </button>
+              <button 
+                style={{ ...popupStyles.langButton, ...(language === 'en' ? popupStyles.langButtonActive : {}) }}
+                onClick={() => onLanguageChange('en')}
+              >
+                EN
+              </button>
+            </div>
+            <button style={popupStyles.closeButton} onClick={onClose}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div style={popupStyles.contentArea}>
+          {content.sections.map((section, index) => (
+            <div key={index} style={popupStyles.section}>
+              <h3 style={popupStyles.sectionTitle}>{section.title}</h3>
+              <p style={popupStyles.sectionContent}>{section.content}</p>
+            </div>
+          ))}
+          <div style={popupStyles.footerArea}>
+            <p style={popupStyles.copyrightText}>© 2025 La Red Inmobiliaria, Inc.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Footer = () => {
   const isMobile = useIsMobile();
+  const [legalPopupType, setLegalPopupType] = useState<LegalPopupType>(null);
+  const [legalLanguage, setLegalLanguage] = useState<'es' | 'en'>('es');
+  
   return (
-    <footer
-      style={
-        isMobile ? { ...styles.footer, padding: "48px 0 24px" } : styles.footer
-      }
-    >
-      <div
+    <>
+      <footer
         style={
-          isMobile
-            ? { ...styles.footerContainer, padding: "0 16px" }
-            : styles.footerContainer
+          isMobile ? { ...styles.footer, padding: "48px 0 24px" } : styles.footer
         }
       >
         <div
           style={
             isMobile
-              ? {
-                  ...styles.footerGrid,
-                  gridTemplateColumns: "1fr",
-                  gap: 32,
-                  textAlign: "center",
-                }
-              : styles.footerGrid
+              ? { ...styles.footerContainer, padding: "0 16px" }
+              : styles.footerContainer
           }
         >
-          <div style={styles.footerColumn}>
-            <img src={logoSvg} alt="La Red" style={styles.footerLogo} />
+          <div
+            style={
+              isMobile
+                ? {
+                    ...styles.footerGrid,
+                    gridTemplateColumns: "1fr",
+                    gap: 32,
+                    textAlign: "center",
+                  }
+                : styles.footerGrid
+            }
+          >
+            <div style={styles.footerColumn}>
+              <img src={logoSvg} alt="La Red" style={styles.footerLogo} />
+              <p
+                style={
+                  isMobile
+                    ? { ...styles.footerDescription, fontSize: 14 }
+                    : styles.footerDescription
+                }
+              >
+                La plataforma lider en Guatemala para aliados inmobiliarios.
+              </p>
+            </div>
+            <div style={styles.footerColumn}>
+              <h3
+                style={
+                  isMobile
+                    ? { ...styles.footerTitle, fontSize: 16 }
+                    : styles.footerTitle
+                }
+              >
+                Enlaces Rapidos
+              </h3>
+              <ul style={styles.footerLinks}>
+                <li>
+                  <a href="#" style={styles.footerLink}>
+                    Inicio
+                  </a>
+                </li>
+                <li>
+                  <a href="#propiedades" style={styles.footerLink}>
+                    Propiedades
+                  </a>
+                </li>
+                <li>
+                  <a href="#formulario" style={styles.footerLink}>
+                    Únete Ahora
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div style={styles.footerColumn}>
+              <h3
+                style={
+                  isMobile
+                    ? { ...styles.footerTitle, fontSize: 16 }
+                    : styles.footerTitle
+                }
+              >
+                Legal
+              </h3>
+              <ul style={styles.footerLinks}>
+                <li>
+                  <a 
+                    href="#" 
+                    style={styles.footerLink}
+                    onClick={(e) => { e.preventDefault(); setLegalPopupType('privacy'); }}
+                  >
+                    Privacidad y condiciones
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#" 
+                    style={styles.footerLink}
+                    onClick={(e) => { e.preventDefault(); setLegalPopupType('terms'); }}
+                  >
+                    Terminos
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div style={styles.footerColumn}>
+              <h3
+                style={
+                  isMobile
+                    ? { ...styles.footerTitle, fontSize: 16 }
+                    : styles.footerTitle
+                }
+              >
+                Contactanos
+              </h3>
+              <p style={styles.footerContact}>hola@laredgt.com</p>
+              <p style={styles.footerContact}>+502 5413-9214</p>
+              <p style={styles.footerContact}>Ciudad de Guatemala</p>
+            </div>
+            <div style={styles.footerColumn}>
+              <h3
+                style={
+                  isMobile
+                    ? { ...styles.footerTitle, fontSize: 16 }
+                    : styles.footerTitle
+                }
+              >
+                Siguenos
+              </h3>
+              <div
+                style={
+                  isMobile
+                    ? { ...styles.socialLinks, justifyContent: "center" }
+                    : styles.socialLinks
+                }
+              >
+                <a
+                  href="https://www.facebook.com/laredinmogt"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={styles.socialLink}
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                  </svg>
+                </a>
+                <a
+                  href="https://www.instagram.com/laredinmogt/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={styles.socialLink}
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div style={styles.footerBottom}>
             <p
               style={
                 isMobile
-                  ? { ...styles.footerDescription, fontSize: 14 }
-                  : styles.footerDescription
+                  ? { ...styles.copyright, fontSize: 12 }
+                  : styles.copyright
               }
             >
-              La plataforma lider en Guatemala para aliados inmobiliarios.
+              © 2025 La Red Inmobiliaria. Todos los derechos reservados.
             </p>
           </div>
-          <div style={styles.footerColumn}>
-            <h3
-              style={
-                isMobile
-                  ? { ...styles.footerTitle, fontSize: 16 }
-                  : styles.footerTitle
-              }
-            >
-              Enlaces Rapidos
-            </h3>
-            <ul style={styles.footerLinks}>
-              <li>
-                <a href="#" style={styles.footerLink}>
-                  Inicio
-                </a>
-              </li>
-              <li>
-                <a href="#propiedades" style={styles.footerLink}>
-                  Propiedades
-                </a>
-              </li>
-              <li>
-                <a href="#formulario" style={styles.footerLink}>
-                  Únete Ahora
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div style={styles.footerColumn}>
-            <h3
-              style={
-                isMobile
-                  ? { ...styles.footerTitle, fontSize: 16 }
-                  : styles.footerTitle
-              }
-            >
-              Contactanos
-            </h3>
-            <p style={styles.footerContact}>info@lared.gt</p>
-            <p style={styles.footerContact}>+502 5413-9214</p>
-            <p style={styles.footerContact}>Ciudad de Guatemala</p>
-          </div>
-          <div style={styles.footerColumn}>
-            <h3
-              style={
-                isMobile
-                  ? { ...styles.footerTitle, fontSize: 16 }
-                  : styles.footerTitle
-              }
-            >
-              Siguenos
-            </h3>
-            <div
-              style={
-                isMobile
-                  ? { ...styles.socialLinks, justifyContent: "center" }
-                  : styles.socialLinks
-              }
-            >
-              <a
-                href="https://www.facebook.com/laredinmogt"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={styles.socialLink}
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                </svg>
-              </a>
-              <a
-                href="https://www.instagram.com/laredinmogt/"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={styles.socialLink}
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
-                </svg>
-              </a>
-            </div>
-          </div>
         </div>
-        <div style={styles.footerBottom}>
-          <p
-            style={
-              isMobile
-                ? { ...styles.copyright, fontSize: 12 }
-                : styles.copyright
-            }
-          >
-            © 2025 La Red Inmobiliaria. Todos los derechos reservados.
-          </p>
-        </div>
-      </div>
-    </footer>
+      </footer>
+      
+      <LegalPopupComponent 
+        type={legalPopupType} 
+        onClose={() => setLegalPopupType(null)} 
+        language={legalLanguage}
+        onLanguageChange={setLegalLanguage}
+      />
+    </>
   );
 };
 
@@ -2947,7 +3133,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   footerGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(4, 1fr)",
+    gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
     gap: 32,
     marginBottom: 32,
   },
