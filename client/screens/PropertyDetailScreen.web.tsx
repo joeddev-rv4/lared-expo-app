@@ -1140,6 +1140,7 @@ const styles = StyleSheet.create({
   },
   descriptionBelowImagesMobile: {
     marginTop: Spacing.sm,
+    paddingHorizontal: Spacing.md,
   },
   contentContainerMobile: {
     flexDirection: "column",
