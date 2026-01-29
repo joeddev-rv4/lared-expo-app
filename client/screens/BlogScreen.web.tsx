@@ -123,11 +123,21 @@ export default function BlogScreenWeb() {
       {/* 1. Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Image
-            source={require("../../assets/images/icon.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <View style={styles.headerLeft}>
+            <Image
+              source={require("../../assets/images/icon.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            {property && (
+              <>
+                <View style={styles.headerDivider} />
+                <ThemedText style={styles.headerPropertyName} numberOfLines={1}>
+                  {property.title}
+                </ThemedText>
+              </>
+            )}
+          </View>
         </View>
       </View>
 
@@ -391,6 +401,23 @@ const styles = StyleSheet.create({
     width: 120,
     height: 40,
   },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    gap: Spacing.md,
+  },
+  headerDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: "#E0E0E0",
+  },
+  headerPropertyName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#222",
+    flex: 1,
+  },
   headerRight: {
     flexDirection: "row",
     gap: Spacing.md,
@@ -473,6 +500,8 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#222",
     marginBottom: Spacing.xs,
+    letterSpacing: 0.5,
+    lineHeight: 42,
   },
   propertyPrice: {
     fontSize: 24,

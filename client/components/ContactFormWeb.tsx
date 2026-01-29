@@ -84,7 +84,7 @@ export default function ContactFormWeb({
                         ¡Gracias! Tu solicitud ha sido enviada.
                     </ThemedText>
                     <ThemedText style={styles.successSubtext}>
-                        El agente se pondrá en contacto contigo pronto.
+                        Un vendedor se pondrá en contacto contigo pronto.
                     </ThemedText>
                 </View>
             ) : (
