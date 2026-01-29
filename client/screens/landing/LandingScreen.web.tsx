@@ -1028,43 +1028,94 @@ const TopAlliesSection = () => {
   );
 };
 
+interface FeaturedProperty {
+  id: number;
+  title: string;
+  description: string;
+  image: string;
+  userId: string;
+  userName: string;
+}
+
 const FeaturedPropertiesSection = () => {
   const isMobile = useIsMobile();
-  const properties = [
-    {
-      id: 1,
-      title: "Casa Moderna en Zona 14",
-      location: "Guatemala City",
-      price: "$450,000",
-      beds: 4,
-      baths: 3,
-      area: 350,
-      image:
-        "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400",
-    },
-    {
-      id: 2,
-      title: "Apartamento de Lujo",
-      location: "Zona 10",
-      price: "$280,000",
-      beds: 3,
-      baths: 2,
-      area: 180,
-      image:
-        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-    },
-    {
-      id: 3,
-      title: "Villa con Vista al Lago",
-      location: "Atitlan",
-      price: "$650,000",
-      beds: 5,
-      baths: 4,
-      area: 500,
-      image:
-        "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400",
-    },
-  ];
+  const [properties, setProperties] = useState<FeaturedProperty[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeaturedProperties = async () => {
+      try {
+        const API_URL = process.env.EXPO_PUBLIC_API_URL;
+        const response = await fetch(`${API_URL}/properties/getTopUsersWithProperties`, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const usersArray = data.users || data || [];
+          
+          const featuredProps: FeaturedProperty[] = [];
+          const usedPropertyIds = new Set<number>();
+          
+          for (const user of usersArray) {
+            const validProperties = (user.properties || []).filter((p: any) => p !== null && p.id);
+            
+            const availableProps = validProperties.filter((p: any) => !usedPropertyIds.has(p.id));
+            
+            if (availableProps.length > 0) {
+              const randomIndex = Math.floor(Math.random() * availableProps.length);
+              const selectedProp = availableProps[randomIndex];
+              
+              const images = (selectedProp.imagenes || []).filter((img: any) => img.tipo === 'Imagen');
+              const imageUrl = images.length > 0 ? images[0].url : null;
+              
+              if (imageUrl) {
+                usedPropertyIds.add(selectedProp.id);
+                featuredProps.push({
+                  id: selectedProp.id,
+                  title: selectedProp.titulo || 'Propiedad',
+                  description: selectedProp.descripcion || '',
+                  image: imageUrl,
+                  userId: user.userId || user.id,
+                  userName: user.userName || user.name || 'Aliado',
+                });
+              }
+            }
+          }
+          
+          setProperties(featuredProps.slice(0, 6));
+        }
+      } catch (error) {
+        console.error('Error fetching featured properties:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedProperties();
+  }, []);
+
+  const handlePropertyClick = (userId: string, propertyId: number) => {
+    const baseUrl = window.location.origin;
+    window.open(`${baseUrl}/blog/${userId}/${propertyId}`, '_blank');
+  };
+
+  if (loading) {
+    return (
+      <section id="propiedades" style={isMobile ? { ...styles.propertiesSection, padding: "48px 0" } : styles.propertiesSection}>
+        <div style={isMobile ? { ...styles.propertiesContainer, padding: "0 16px" } : styles.propertiesContainer}>
+          <h2 style={isMobile ? { ...styles.propertiesTitle, fontSize: 24 } : styles.propertiesTitle}>Propiedades Destacadas</h2>
+          <p style={{ textAlign: 'center', color: '#666' }}>Cargando propiedades...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (properties.length === 0) {
+    return null;
+  }
 
   return (
     <section
@@ -1098,7 +1149,7 @@ const FeaturedPropertiesSection = () => {
               : styles.propertiesSubtitle
           }
         >
-          Descubre las mejores oportunidades inmobiliarias en Guatemala
+          Descubre las mejores oportunidades de nuestros Top Aliados
         </p>
         <div
           style={
@@ -1112,7 +1163,11 @@ const FeaturedPropertiesSection = () => {
           }
         >
           {properties.map((property) => (
-            <div key={property.id} style={styles.propertyCard}>
+            <div 
+              key={property.id} 
+              style={{...styles.propertyCard, cursor: 'pointer'}}
+              onClick={() => handlePropertyClick(property.userId, property.id)}
+            >
               <img
                 src={property.image}
                 alt={property.title}
@@ -1120,12 +1175,35 @@ const FeaturedPropertiesSection = () => {
               />
               <div style={styles.propertyContent}>
                 <h3 style={styles.propertyTitle}>{property.title}</h3>
-                <p style={styles.propertyLocation}>{property.location}</p>
-                <p style={styles.propertyPrice}>{property.price}</p>
-                <div style={styles.propertyFeatures}>
-                  <span>{property.beds} hab</span>
-                  <span>{property.baths} banos</span>
-                  <span>{property.area}m2</span>
+                <p style={{
+                  ...styles.propertyLocation,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical' as const,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}>{property.description}</p>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginTop: 12,
+                  paddingTop: 12,
+                  borderTop: '1px solid #eee',
+                }}>
+                  <div style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #FF5A5F, #C73E42)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: '#fff',
+                  }}>{property.userName[0]}</div>
+                  <span style={{ fontSize: 13, color: '#666' }}>{property.userName}</span>
                 </div>
               </div>
             </div>
