@@ -135,7 +135,7 @@ const LandingNavbar = ({
                 onClick={() => handleScrollTo("caracteristicas")}
                 style={styles.mobileMenuItem}
               >
-                Caracteristicas
+                Características
               </button>
               <button
                 onClick={() => handleScrollTo("pasos-aliado")}
@@ -153,11 +153,11 @@ const LandingNavbar = ({
                 onClick={() => handleScrollTo("formulario")}
                 style={styles.mobileMenuItem}
               >
-                Unete Ahora
+                Únete Ahora
               </button>
               <div style={styles.mobileMenuDivider} />
               <button onClick={handleLogin} style={styles.mobileMenuItem}>
-                Iniciar sesion
+                Iniciar sesión
               </button>
               <button
                 onClick={() => handleScrollTo("formulario")}
@@ -189,7 +189,7 @@ const LandingNavbar = ({
               onClick={() => handleScrollTo("caracteristicas")}
               style={styles.navLink}
             >
-              Caracteristicas
+              Características
             </button>
             <button
               onClick={() => handleScrollTo("pasos-aliado")}
@@ -207,7 +207,7 @@ const LandingNavbar = ({
               onClick={() => handleScrollTo("formulario")}
               style={styles.navLink}
             >
-              Unete Ahora
+              Únete Ahora
             </button>
           </div>
           <div style={styles.navActions}>
@@ -215,7 +215,7 @@ const LandingNavbar = ({
               onClick={() => navigation.navigate("Login")}
               style={styles.loginButton}
             >
-              Iniciar sesion
+              Iniciar sesión
             </button>
             <button
               onClick={() => handleScrollTo("formulario")}
@@ -407,7 +407,7 @@ const MetricsBar = () => {
               : styles.metricsTitle
           }
         >
-          Numeros que Hablan por Nosotros
+          Números que Hablan por Nosotros
         </h2>
         <p
           style={
@@ -567,7 +567,7 @@ const AdvantagesSection = () => {
               : styles.advantagesSubtitle
           }
         >
-          Descubre por que miles de aliados confian en nosotros para potenciar
+          Descubre por qué miles de aliados confian en nosotros para potenciar
           su negocio
         </p>
         <div
@@ -816,44 +816,60 @@ const TopAlliesSection = () => {
       try {
         const API_URL = process.env.EXPO_PUBLIC_API_URL;
         const url = `${API_URL}/properties/getTopUsersWithProperties`;
-        console.log('🔍 Fetching top allies from:', url);
-        
+        console.log("🔍 Fetching top allies from:", url);
+
         const response = await fetch(url, {
           headers: {
-            'ngrok-skip-browser-warning': 'true',
+            "ngrok-skip-browser-warning": "true",
           },
         });
-        
-        console.log('📥 Top allies response status:', response.status, response.ok);
-        
+
+        console.log(
+          "📥 Top allies response status:",
+          response.status,
+          response.ok,
+        );
+
         if (response.ok) {
           const rawText = await response.text();
-          console.log('📄 Top allies raw response (first 500 chars):', rawText.substring(0, 500));
-          
+          console.log(
+            "📄 Top allies raw response (first 500 chars):",
+            rawText.substring(0, 500),
+          );
+
           const data = JSON.parse(rawText);
-          console.log('✅ Top allies parsed data:', data);
-          
+          console.log("✅ Top allies parsed data:", data);
+
           const usersArray = data.users || data || [];
-          const mappedAllies: TopAlly[] = usersArray.slice(0, 6).map((user: any, index: number) => {
-            const validProperties = (user.properties || []).filter((p: any) => p !== null);
-            const firstPropertyImage = validProperties.length > 0 && validProperties[0].imagenes?.length > 0
-              ? validProperties[0].imagenes.find((img: any) => img.tipo === 'Imagen')?.url
-              : null;
-            
-            return {
-              id: user.userId || user.id || `ally-${index}`,
-              name: user.userName || user.name || 'Aliado',
-              company: user.company || user.empresa || 'La Red Inmobiliaria',
-              properties: user.totalProperties || validProperties.length || 0,
-              sales: user.sales || user.ventas || 0,
-              clients: user.clients || user.clientes || 0,
-              photoUrl: user.photoUrl || user.photo || firstPropertyImage || null,
-            };
-          });
+          const mappedAllies: TopAlly[] = usersArray
+            .slice(0, 6)
+            .map((user: any, index: number) => {
+              const validProperties = (user.properties || []).filter(
+                (p: any) => p !== null,
+              );
+              const firstPropertyImage =
+                validProperties.length > 0 &&
+                validProperties[0].imagenes?.length > 0
+                  ? validProperties[0].imagenes.find(
+                      (img: any) => img.tipo === "Imagen",
+                    )?.url
+                  : null;
+
+              return {
+                id: user.userId || user.id || `ally-${index}`,
+                name: user.userName || user.name || "Aliado",
+                company: user.company || user.empresa || "La Red Inmobiliaria",
+                properties: user.totalProperties || validProperties.length || 0,
+                sales: user.sales || user.ventas || 0,
+                clients: user.clients || user.clientes || 0,
+                photoUrl:
+                  user.photoUrl || user.photo || firstPropertyImage || null,
+              };
+            });
           setAllies(mappedAllies);
         }
       } catch (error) {
-        console.error('Error fetching top allies:', error);
+        console.error("Error fetching top allies:", error);
       } finally {
         setLoading(false);
       }
@@ -864,10 +880,30 @@ const TopAlliesSection = () => {
 
   if (loading) {
     return (
-      <section style={isMobile ? { ...styles.alliesSection, padding: "48px 0" } : styles.alliesSection}>
-        <div style={isMobile ? { ...styles.alliesContainer, padding: "0 16px" } : styles.alliesContainer}>
-          <h2 style={isMobile ? { ...styles.alliesTitle, fontSize: 24 } : styles.alliesTitle}>Top Aliados</h2>
-          <p style={{ textAlign: 'center', color: '#666' }}>Cargando...</p>
+      <section
+        style={
+          isMobile
+            ? { ...styles.alliesSection, padding: "48px 0" }
+            : styles.alliesSection
+        }
+      >
+        <div
+          style={
+            isMobile
+              ? { ...styles.alliesContainer, padding: "0 16px" }
+              : styles.alliesContainer
+          }
+        >
+          <h2
+            style={
+              isMobile
+                ? { ...styles.alliesTitle, fontSize: 24 }
+                : styles.alliesTitle
+            }
+          >
+            Top Aliados
+          </h2>
+          <p style={{ textAlign: "center", color: "#666" }}>Cargando...</p>
         </div>
       </section>
     );
@@ -912,110 +948,154 @@ const TopAlliesSection = () => {
         </p>
         <div
           style={
-            isMobile
-              ? { ...styles.alliesGrid, gap: 16 }
-              : styles.alliesGrid
+            isMobile ? { ...styles.alliesGrid, gap: 16 } : styles.alliesGrid
           }
         >
           {allies.map((ally, index) => (
             <div key={ally.id} style={styles.allyCard}>
-              <div style={{
-                position: 'absolute' as const,
-                top: 12,
-                right: 12,
-                background: 'linear-gradient(135deg, #FFD700, #FFA500)',
-                color: '#000',
-                fontWeight: 700,
-                fontSize: 12,
-                padding: '4px 10px',
-                borderRadius: 12,
-              }}>
+              <div
+                style={{
+                  position: "absolute" as const,
+                  top: 12,
+                  right: 12,
+                  background: "linear-gradient(135deg, #FFD700, #FFA500)",
+                  color: "#000",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  padding: "4px 10px",
+                  borderRadius: 12,
+                }}
+              >
                 #{index + 1}
               </div>
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column' as const,
-                alignItems: 'center',
-                textAlign: 'center' as const,
-                marginBottom: 20,
-              }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column" as const,
+                  alignItems: "center",
+                  textAlign: "center" as const,
+                  marginBottom: 20,
+                }}
+              >
                 {ally.photoUrl ? (
-                  <img 
-                    src={ally.photoUrl} 
+                  <img
+                    src={ally.photoUrl}
                     alt={ally.name}
                     style={{
                       width: 80,
                       height: 80,
-                      borderRadius: '50%',
-                      objectFit: 'cover' as const,
-                      border: '3px solid rgba(255,255,255,0.3)',
+                      borderRadius: "50%",
+                      objectFit: "cover" as const,
+                      border: "3px solid rgba(255,255,255,0.3)",
                       marginBottom: 12,
                     }}
                   />
                 ) : (
-                  <div style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #FF5A5F, #C73E42)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '3px solid rgba(255,255,255,0.3)',
-                    marginBottom: 12,
-                  }}>
-                    <span style={{ color: '#fff', fontSize: 32, fontWeight: 700 }}>{ally.name[0]}</span>
+                  <div
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, #FF5A5F, #C73E42)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: "3px solid rgba(255,255,255,0.3)",
+                      marginBottom: 12,
+                    }}
+                  >
+                    <span
+                      style={{ color: "#fff", fontSize: 32, fontWeight: 700 }}
+                    >
+                      {ally.name[0]}
+                    </span>
                   </div>
                 )}
-                <h3 style={{
-                  color: '#fff',
-                  fontSize: 18,
-                  fontWeight: 700,
-                  margin: 0,
-                  marginBottom: 4,
-                }}>{ally.name}</h3>
-                <p style={{
-                  color: 'rgba(255,255,255,0.7)',
-                  fontSize: 13,
-                  margin: 0,
-                }}>{ally.company}</p>
+                <h3
+                  style={{
+                    color: "#fff",
+                    fontSize: 18,
+                    fontWeight: 700,
+                    margin: 0,
+                    marginBottom: 4,
+                  }}
+                >
+                  {ally.name}
+                </h3>
+                <p
+                  style={{
+                    color: "rgba(255,255,255,0.7)",
+                    fontSize: 13,
+                    margin: 0,
+                  }}
+                >
+                  {ally.company}
+                </p>
               </div>
-              <div style={{
-                background: 'rgba(255,255,255,0.1)',
-                borderRadius: 12,
-                padding: 16,
-                textAlign: 'center' as const,
-              }}>
-                <div style={{
-                  fontSize: 36,
-                  fontWeight: 800,
-                  color: '#FFD700',
-                  lineHeight: 1,
-                }}>{ally.properties}</div>
-                <div style={{
-                  fontSize: 14,
-                  color: 'rgba(255,255,255,0.8)',
-                  marginTop: 4,
-                  fontWeight: 500,
-                }}>Propiedades Publicadas</div>
+              <div
+                style={{
+                  background: "rgba(255,255,255,0.1)",
+                  borderRadius: 12,
+                  padding: 16,
+                  textAlign: "center" as const,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 36,
+                    fontWeight: 800,
+                    color: "#FFD700",
+                    lineHeight: 1,
+                  }}
+                >
+                  {ally.properties}
+                </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    color: "rgba(255,255,255,0.8)",
+                    marginTop: 4,
+                    fontWeight: 500,
+                  }}
+                >
+                  Propiedades Publicadas
+                </div>
               </div>
-              {(ally.sales > 0 || ally.clients > 0) ? (
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  gap: 24,
-                  marginTop: 16,
-                }}>
+              {ally.sales > 0 || ally.clients > 0 ? (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 24,
+                    marginTop: 16,
+                  }}
+                >
                   {ally.sales > 0 ? (
-                    <div style={{ textAlign: 'center' as const }}>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>{ally.sales}</div>
-                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Ventas</div>
+                    <div style={{ textAlign: "center" as const }}>
+                      <div
+                        style={{ fontSize: 20, fontWeight: 700, color: "#fff" }}
+                      >
+                        {ally.sales}
+                      </div>
+                      <div
+                        style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}
+                      >
+                        Ventas
+                      </div>
                     </div>
                   ) : null}
                   {ally.clients > 0 ? (
-                    <div style={{ textAlign: 'center' as const }}>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>{ally.clients}</div>
-                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Clientes</div>
+                    <div style={{ textAlign: "center" as const }}>
+                      <div
+                        style={{ fontSize: 20, fontWeight: 700, color: "#fff" }}
+                      >
+                        {ally.clients}
+                      </div>
+                      <div
+                        style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}
+                      >
+                        Clientes
+                      </div>
                     </div>
                   ) : null}
                 </div>
@@ -1046,49 +1126,60 @@ const FeaturedPropertiesSection = () => {
     const fetchFeaturedProperties = async () => {
       try {
         const API_URL = process.env.EXPO_PUBLIC_API_URL;
-        const response = await fetch(`${API_URL}/properties/getTopUsersWithProperties`, {
-          headers: {
-            'ngrok-skip-browser-warning': 'true',
+        const response = await fetch(
+          `${API_URL}/properties/getTopUsersWithProperties`,
+          {
+            headers: {
+              "ngrok-skip-browser-warning": "true",
+            },
           },
-        });
-        
+        );
+
         if (response.ok) {
           const data = await response.json();
           const usersArray = data.users || data || [];
-          
+
           const featuredProps: FeaturedProperty[] = [];
           const usedPropertyIds = new Set<number>();
-          
+
           for (const user of usersArray) {
-            const validProperties = (user.properties || []).filter((p: any) => p !== null && p.id);
-            
-            const availableProps = validProperties.filter((p: any) => !usedPropertyIds.has(p.id));
-            
+            const validProperties = (user.properties || []).filter(
+              (p: any) => p !== null && p.id,
+            );
+
+            const availableProps = validProperties.filter(
+              (p: any) => !usedPropertyIds.has(p.id),
+            );
+
             if (availableProps.length > 0) {
-              const randomIndex = Math.floor(Math.random() * availableProps.length);
+              const randomIndex = Math.floor(
+                Math.random() * availableProps.length,
+              );
               const selectedProp = availableProps[randomIndex];
-              
-              const images = (selectedProp.imagenes || []).filter((img: any) => img.tipo === 'Imagen');
+
+              const images = (selectedProp.imagenes || []).filter(
+                (img: any) => img.tipo === "Imagen",
+              );
               const imageUrl = images.length > 0 ? images[0].url : null;
-              
+
               if (imageUrl) {
                 usedPropertyIds.add(selectedProp.id);
                 featuredProps.push({
                   id: selectedProp.id,
-                  title: selectedProp.titulo || 'Propiedad',
-                  description: selectedProp.descripcion || '',
+                  title: selectedProp.titulo || "Propiedad",
+                  description: selectedProp.descripcion || "",
                   image: imageUrl,
                   userId: user.userId || user.id,
-                  userName: user.userName || user.name || 'Aliado',
+                  userName: user.userName || user.name || "Aliado",
                 });
               }
             }
           }
-          
+
           setProperties(featuredProps.slice(0, 6));
         }
       } catch (error) {
-        console.error('Error fetching featured properties:', error);
+        console.error("Error fetching featured properties:", error);
       } finally {
         setLoading(false);
       }
@@ -1099,15 +1190,38 @@ const FeaturedPropertiesSection = () => {
 
   const handlePropertyClick = (userId: string, propertyId: number) => {
     const baseUrl = window.location.origin;
-    window.open(`${baseUrl}/blog/${userId}/${propertyId}`, '_blank');
+    window.open(`${baseUrl}/blog/${userId}/${propertyId}`, "_blank");
   };
 
   if (loading) {
     return (
-      <section id="propiedades" style={isMobile ? { ...styles.propertiesSection, padding: "48px 0" } : styles.propertiesSection}>
-        <div style={isMobile ? { ...styles.propertiesContainer, padding: "0 16px" } : styles.propertiesContainer}>
-          <h2 style={isMobile ? { ...styles.propertiesTitle, fontSize: 24 } : styles.propertiesTitle}>Propiedades Destacadas</h2>
-          <p style={{ textAlign: 'center', color: '#666' }}>Cargando propiedades...</p>
+      <section
+        id="propiedades"
+        style={
+          isMobile
+            ? { ...styles.propertiesSection, padding: "48px 0" }
+            : styles.propertiesSection
+        }
+      >
+        <div
+          style={
+            isMobile
+              ? { ...styles.propertiesContainer, padding: "0 16px" }
+              : styles.propertiesContainer
+          }
+        >
+          <h2
+            style={
+              isMobile
+                ? { ...styles.propertiesTitle, fontSize: 24 }
+                : styles.propertiesTitle
+            }
+          >
+            Propiedades Destacadas
+          </h2>
+          <p style={{ textAlign: "center", color: "#666" }}>
+            Cargando propiedades...
+          </p>
         </div>
       </section>
     );
@@ -1163,9 +1277,9 @@ const FeaturedPropertiesSection = () => {
           }
         >
           {properties.map((property) => (
-            <div 
-              key={property.id} 
-              style={{...styles.propertyCard, cursor: 'pointer'}}
+            <div
+              key={property.id}
+              style={{ ...styles.propertyCard, cursor: "pointer" }}
               onClick={() => handlePropertyClick(property.userId, property.id)}
             >
               <img
@@ -1175,35 +1289,47 @@ const FeaturedPropertiesSection = () => {
               />
               <div style={styles.propertyContent}>
                 <h3 style={styles.propertyTitle}>{property.title}</h3>
-                <p style={{
-                  ...styles.propertyLocation,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical' as const,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}>{property.description}</p>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginTop: 12,
-                  paddingTop: 12,
-                  borderTop: '1px solid #eee',
-                }}>
-                  <div style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #FF5A5F, #C73E42)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: '#fff',
-                  }}>{property.userName[0]}</div>
-                  <span style={{ fontSize: 13, color: '#666' }}>{property.userName}</span>
+                <p
+                  style={{
+                    ...styles.propertyLocation,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical" as const,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {property.description}
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginTop: 12,
+                    paddingTop: 12,
+                    borderTop: "1px solid #eee",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, #FF5A5F, #C73E42)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: "#fff",
+                    }}
+                  >
+                    {property.userName[0]}
+                  </div>
+                  <span style={{ fontSize: 13, color: "#666" }}>
+                    {property.userName}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1219,29 +1345,29 @@ const TestimonialsSection = () => {
   const testimonials = [
     {
       id: 1,
-      reelId: 'DQpboffFTx0',
-      url: 'https://www.instagram.com/reel/DQpboffFTx0/',
-      title: 'Testimonial 1',
-      overlayText: 'La mejor plataforma para aliados inmobiliarios',
+      reelId: "DQpboffFTx0",
+      url: "https://www.instagram.com/reel/DQpboffFTx0/",
+      title: "Testimonial 1",
+      overlayText: "La mejor plataforma para aliados inmobiliarios",
     },
     {
       id: 2,
-      reelId: 'DO_V5M-lT-u',
-      url: 'https://www.instagram.com/reel/DO_V5M-lT-u/',
-      title: 'Testimonial 2',
-      overlayText: 'Conexiones que transforman negocios',
+      reelId: "DO_V5M-lT-u",
+      url: "https://www.instagram.com/reel/DO_V5M-lT-u/",
+      title: "Testimonial 2",
+      overlayText: "Conexiones que transforman negocios",
     },
     {
       id: 3,
-      reelId: 'DRPXFi9ig_R',
-      url: 'https://www.instagram.com/reel/DRPXFi9ig_R/',
-      title: 'Testimonial 3',
-      overlayText: 'Crecimiento garantizado',
+      reelId: "DRPXFi9ig_R",
+      url: "https://www.instagram.com/reel/DRPXFi9ig_R/",
+      title: "Testimonial 3",
+      overlayText: "Crecimiento garantizado",
     },
   ];
 
   const handleReelClick = (url: string) => {
-    window.open(url, '_blank');
+    window.open(url, "_blank");
   };
 
   return (
@@ -1268,107 +1394,148 @@ const TestimonialsSection = () => {
         >
           Calificados por nuestros aliados
         </h2>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          marginBottom: 32,
-        }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            marginBottom: 32,
+          }}
+        >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <linearGradient id="instagram-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+            <linearGradient
+              id="instagram-gradient"
+              x1="0%"
+              y1="100%"
+              x2="100%"
+              y2="0%"
+            >
               <stop offset="0%" stopColor="#FFDC80" />
               <stop offset="25%" stopColor="#F77737" />
               <stop offset="50%" stopColor="#E1306C" />
               <stop offset="75%" stopColor="#C13584" />
               <stop offset="100%" stopColor="#833AB4" />
             </linearGradient>
-            <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#instagram-gradient)" strokeWidth="2" fill="none"/>
-            <circle cx="12" cy="12" r="4" stroke="url(#instagram-gradient)" strokeWidth="2" fill="none"/>
-            <circle cx="18" cy="6" r="1.5" fill="url(#instagram-gradient)"/>
+            <rect
+              x="2"
+              y="2"
+              width="20"
+              height="20"
+              rx="5"
+              stroke="url(#instagram-gradient)"
+              strokeWidth="2"
+              fill="none"
+            />
+            <circle
+              cx="12"
+              cy="12"
+              r="4"
+              stroke="url(#instagram-gradient)"
+              strokeWidth="2"
+              fill="none"
+            />
+            <circle cx="18" cy="6" r="1.5" fill="url(#instagram-gradient)" />
           </svg>
-          <span style={{ color: '#666', fontSize: 14 }}>Testimonios en Instagram</span>
+          <span style={{ color: "#666", fontSize: 14 }}>
+            Testimonios en Instagram
+          </span>
         </div>
         <div
           style={
             isMobile
               ? {
-                  display: 'flex',
-                  flexDirection: 'column' as const,
+                  display: "flex",
+                  flexDirection: "column" as const,
                   gap: 24,
-                  alignItems: 'center',
+                  alignItems: "center",
                 }
               : {
-                  display: 'flex',
-                  justifyContent: 'center',
+                  display: "flex",
+                  justifyContent: "center",
                   gap: 24,
-                  flexWrap: 'wrap' as const,
+                  flexWrap: "wrap" as const,
                 }
           }
         >
           {testimonials.map((t) => (
-            <div 
-              key={t.id} 
+            <div
+              key={t.id}
               style={{
-                position: 'relative' as const,
-                width: isMobile ? '100%' : 320,
+                position: "relative" as const,
+                width: isMobile ? "100%" : 320,
                 maxWidth: 320,
-                aspectRatio: '9/16',
+                aspectRatio: "9/16",
                 borderRadius: 16,
-                overflow: 'hidden',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
-                cursor: 'pointer',
-                background: 'linear-gradient(135deg, #833AB4, #E1306C, #F77737)',
+                overflow: "hidden",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+                cursor: "pointer",
+                background:
+                  "linear-gradient(135deg, #833AB4, #E1306C, #F77737)",
               }}
               onClick={() => handleReelClick(t.url)}
             >
               <iframe
                 src={`https://www.instagram.com/reel/${t.reelId}/embed`}
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  border: 'none',
-                  pointerEvents: 'none',
+                  width: "100%",
+                  height: "100%",
+                  border: "none",
+                  pointerEvents: "none",
                 }}
                 title={t.title}
                 allowFullScreen
               />
-              <div style={{
-                position: 'absolute' as const,
-                bottom: 0,
-                left: 0,
-                right: 0,
-                background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
-                padding: 20,
-                paddingTop: 40,
-              }}>
-                <p style={{
-                  color: '#fff',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  margin: 0,
-                  textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                }}>{t.overlayText}</p>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  marginTop: 8,
-                }}>
+              <div
+                style={{
+                  position: "absolute" as const,
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  background:
+                    "linear-gradient(to top, rgba(0,0,0,0.8), transparent)",
+                  padding: 20,
+                  paddingTop: 40,
+                }}
+              >
+                <p
+                  style={{
+                    color: "#fff",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    margin: 0,
+                    textShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                  }}
+                >
+                  {t.overlayText}
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    marginTop: 8,
+                  }}
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
                     <polygon points="5,3 19,12 5,21" />
                   </svg>
-                  <span style={{ color: '#fff', fontSize: 12 }}>Ver en Instagram</span>
+                  <span style={{ color: "#fff", fontSize: 12 }}>
+                    Ver en Instagram
+                  </span>
                 </div>
               </div>
-              <div style={{
-                position: 'absolute' as const,
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                cursor: 'pointer',
-              }} onClick={() => handleReelClick(t.url)} />
+              <div
+                style={{
+                  position: "absolute" as const,
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  cursor: "pointer",
+                }}
+                onClick={() => handleReelClick(t.url)}
+              />
             </div>
           ))}
         </div>
@@ -1377,9 +1544,23 @@ const TestimonialsSection = () => {
   );
 };
 
+const countryCodes = [
+  { code: "+502", country: "Guatemala", flag: "🇬🇹" },
+  { code: "+1", country: "USA/Canada", flag: "🇺🇸" },
+  { code: "+52", country: "Mexico", flag: "🇲🇽" },
+  { code: "+503", country: "El Salvador", flag: "🇸🇻" },
+  { code: "+504", country: "Honduras", flag: "🇭🇳" },
+  { code: "+505", country: "Nicaragua", flag: "🇳🇮" },
+  { code: "+506", country: "Costa Rica", flag: "🇨🇷" },
+  { code: "+507", country: "Panama", flag: "🇵🇦" },
+  { code: "+57", country: "Colombia", flag: "🇨🇴" },
+  { code: "+34", country: "Espana", flag: "🇪🇸" },
+];
+
 const ContactFormSection = () => {
   const isMobile = useIsMobile();
   const navigation = useNavigation<NavigationProp>();
+  const [countryCode, setCountryCode] = useState("+502");
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -1388,62 +1569,65 @@ const ContactFormSection = () => {
     confirmPassword: "",
     acceptTerms: false,
   });
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = (): boolean => {
-    const newErrors: {[key: string]: string} = {};
-    
+    const newErrors: { [key: string]: string } = {};
+
     if (!formData.fullName.trim()) {
-      newErrors.fullName = 'El nombre es obligatorio';
+      newErrors.fullName = "El nombre es obligatorio";
     }
-    
+
     if (!formData.email.trim()) {
-      newErrors.email = 'El correo es obligatorio';
+      newErrors.email = "El correo es obligatorio";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Ingresa un correo valido';
+      newErrors.email = "Ingresa un correo valido";
     }
-    
+
     if (!formData.password) {
-      newErrors.password = 'La contrasena es obligatoria';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'La contrasena debe tener al menos 8 caracteres';
+      newErrors.password = "La contrasena es obligatoria";
+    } else if (formData.password.length !== 8) {
+      newErrors.password = "La contrasena debe tener exactamente 8 caracteres";
     }
-    
+
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Confirma tu contrasena';
+      newErrors.confirmPassword = "Confirma tu contrasena";
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Las contrasenas no coinciden';
+      newErrors.confirmPassword = "Las contrasenas no coinciden";
     }
-    
+
     if (!formData.acceptTerms) {
-      newErrors.acceptTerms = 'Debes aceptar los terminos y condiciones';
+      newErrors.acceptTerms = "Debes aceptar los terminos y condiciones";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
-      localStorage.setItem('signupData', JSON.stringify({
-        fullName: formData.fullName,
-        email: formData.email,
-        phoneNumber: formData.phoneNumber,
-        password: formData.password,
-      }));
-      
-      navigation.navigate('Login', { openSignup: true } as any);
+      localStorage.setItem(
+        "signupData",
+        JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          phoneNumber: formData.phoneNumber ? `${countryCode} ${formData.phoneNumber}` : "",
+          password: formData.password,
+        }),
+      );
+
+      navigation.navigate("Login", { openSignup: true } as any);
     } catch (error) {
-      console.error('Error saving signup data:', error);
+      console.error("Error saving signup data:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -1472,7 +1656,7 @@ const ContactFormSection = () => {
               : styles.contactTitle
           }
         >
-          Unete a La Red Inmobiliaria
+          Únete a La Red Inmobiliaria
         </h2>
         <div
           style={
@@ -1489,15 +1673,19 @@ const ContactFormSection = () => {
                 value={formData.fullName}
                 onChange={(e) => {
                   setFormData({ ...formData, fullName: e.target.value });
-                  if (errors.fullName) setErrors({...errors, fullName: ''});
+                  if (errors.fullName) setErrors({ ...errors, fullName: "" });
                 }}
                 style={{
                   ...styles.formInput,
-                  borderColor: errors.fullName ? '#FF5A5F' : undefined,
+                  borderColor: errors.fullName ? "#FF5A5F" : undefined,
                 }}
                 placeholder="Ingresa tu nombre completo"
               />
-              {errors.fullName ? <span style={{ color: '#FF5A5F', fontSize: 12, marginTop: 4 }}>{errors.fullName}</span> : null}
+              {errors.fullName ? (
+                <span style={{ color: "#FF5A5F", fontSize: 12, marginTop: 4 }}>
+                  {errors.fullName}
+                </span>
+              ) : null}
             </div>
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Correo electronico *</label>
@@ -1506,27 +1694,51 @@ const ContactFormSection = () => {
                 value={formData.email}
                 onChange={(e) => {
                   setFormData({ ...formData, email: e.target.value });
-                  if (errors.email) setErrors({...errors, email: ''});
+                  if (errors.email) setErrors({ ...errors, email: "" });
                 }}
                 style={{
                   ...styles.formInput,
-                  borderColor: errors.email ? '#FF5A5F' : undefined,
+                  borderColor: errors.email ? "#FF5A5F" : undefined,
                 }}
                 placeholder="tucorreo@ejemplo.com"
               />
-              {errors.email ? <span style={{ color: '#FF5A5F', fontSize: 12, marginTop: 4 }}>{errors.email}</span> : null}
+              {errors.email ? (
+                <span style={{ color: "#FF5A5F", fontSize: 12, marginTop: 4 }}>
+                  {errors.email}
+                </span>
+              ) : null}
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Numero de telefono (opcional)</label>
-              <input
-                type="tel"
-                value={formData.phoneNumber}
-                onChange={(e) =>
-                  setFormData({ ...formData, phoneNumber: e.target.value })
-                }
-                style={styles.formInput}
-                placeholder="+502 1234-5678"
-              />
+              <label style={styles.formLabel}>
+                Numero de telefono (opcional)
+              </label>
+              <div style={{ display: "flex", gap: 8 }}>
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  style={{
+                    ...styles.formInput,
+                    width: "auto",
+                    minWidth: 100,
+                    cursor: "pointer",
+                  }}
+                >
+                  {countryCodes.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.code}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="tel"
+                  value={formData.phoneNumber}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phoneNumber: e.target.value })
+                  }
+                  style={{ ...styles.formInput, flex: 1 }}
+                  placeholder="1234-5678"
+                />
+              </div>
             </div>
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Contrasena *</label>
@@ -1535,15 +1747,19 @@ const ContactFormSection = () => {
                 value={formData.password}
                 onChange={(e) => {
                   setFormData({ ...formData, password: e.target.value });
-                  if (errors.password) setErrors({...errors, password: ''});
+                  if (errors.password) setErrors({ ...errors, password: "" });
                 }}
                 style={{
                   ...styles.formInput,
-                  borderColor: errors.password ? '#FF5A5F' : undefined,
+                  borderColor: errors.password ? "#FF5A5F" : undefined,
                 }}
-                placeholder="Minimo 8 caracteres"
+                placeholder="Exactamente 8 caracteres"
               />
-              {errors.password ? <span style={{ color: '#FF5A5F', fontSize: 12, marginTop: 4 }}>{errors.password}</span> : null}
+              {errors.password ? (
+                <span style={{ color: "#FF5A5F", fontSize: 12, marginTop: 4 }}>
+                  {errors.password}
+                </span>
+              ) : null}
             </div>
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>Confirmar contrasena *</label>
@@ -1552,15 +1768,20 @@ const ContactFormSection = () => {
                 value={formData.confirmPassword}
                 onChange={(e) => {
                   setFormData({ ...formData, confirmPassword: e.target.value });
-                  if (errors.confirmPassword) setErrors({...errors, confirmPassword: ''});
+                  if (errors.confirmPassword)
+                    setErrors({ ...errors, confirmPassword: "" });
                 }}
                 style={{
                   ...styles.formInput,
-                  borderColor: errors.confirmPassword ? '#FF5A5F' : undefined,
+                  borderColor: errors.confirmPassword ? "#FF5A5F" : undefined,
                 }}
                 placeholder="Confirma tu contrasena"
               />
-              {errors.confirmPassword ? <span style={{ color: '#FF5A5F', fontSize: 12, marginTop: 4 }}>{errors.confirmPassword}</span> : null}
+              {errors.confirmPassword ? (
+                <span style={{ color: "#FF5A5F", fontSize: 12, marginTop: 4 }}>
+                  {errors.confirmPassword}
+                </span>
+              ) : null}
             </div>
             <div style={styles.checkboxGroup}>
               <input
@@ -1568,14 +1789,19 @@ const ContactFormSection = () => {
                 checked={formData.acceptTerms}
                 onChange={(e) => {
                   setFormData({ ...formData, acceptTerms: e.target.checked });
-                  if (errors.acceptTerms) setErrors({...errors, acceptTerms: ''});
+                  if (errors.acceptTerms)
+                    setErrors({ ...errors, acceptTerms: "" });
                 }}
               />
               <span style={styles.checkboxLabel}>
                 Acepto los Terminos y Condiciones y Politica de Privacidad *
               </span>
             </div>
-            {errors.acceptTerms ? <span style={{ color: '#FF5A5F', fontSize: 12, marginBottom: 8 }}>{errors.acceptTerms}</span> : null}
+            {errors.acceptTerms ? (
+              <span style={{ color: "#FF5A5F", fontSize: 12, marginBottom: 8 }}>
+                {errors.acceptTerms}
+              </span>
+            ) : null}
             <button
               type="submit"
               style={styles.submitButton}
@@ -1661,7 +1887,7 @@ const Footer = () => {
               </li>
               <li>
                 <a href="#formulario" style={styles.footerLink}>
-                  Unete Ahora
+                  Únete Ahora
                 </a>
               </li>
             </ul>
@@ -2558,9 +2784,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   contactSection: {
     position: "relative",
-    padding: "80px 0",
+    padding: "60px 0",
     background: "radial-gradient(circle at 50% 50%, #044BB8, #000)",
-    minHeight: "100vh",
     display: "flex",
     alignItems: "center",
   },
