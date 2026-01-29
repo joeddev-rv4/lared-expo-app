@@ -241,12 +241,19 @@ export default function BlogScreenWeb() {
 
         {/* 5. Amenities Section */}
         {property.proyectoCaracteristicas && property.proyectoCaracteristicas.length > 0 && (
-          <View style={[styles.sectionContainer, { backgroundColor: '#F7F7F7' }, isMobile && styles.sectionContainerMobile]}>
-            <ThemedText style={styles.sectionHeaderTitle}>Amenidades del Proyecto</ThemedText>
+          <View style={[styles.sectionContainer, { backgroundColor: '#FAFAFA' }, isMobile && styles.sectionContainerMobile]}>
+            <View style={styles.amenitiesHeader}>
+              <ThemedText style={styles.amenitiesTitle}>Amenidades del Proyecto</ThemedText>
+              <ThemedText style={styles.amenitiesSubtitle}>
+                Disfruta de todas las comodidades que este proyecto tiene para ti
+              </ThemedText>
+            </View>
             <View style={styles.amenitiesGrid}>
               {property.proyectoCaracteristicas.map((amenity, index) => (
                 <View key={index} style={styles.amenityCard}>
-                  <Ionicons name="star" size={24} color="#FFB800" />
+                  <View style={styles.amenityIconContainer}>
+                    <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+                  </View>
                   <ThemedText style={styles.amenityText}>{amenity}</ThemedText>
                 </View>
               ))}
@@ -616,29 +623,54 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
+  amenitiesHeader: {
+    alignItems: "center",
+    marginBottom: Spacing.xl * 1.5,
+  },
+  amenitiesTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#222",
+    marginBottom: Spacing.sm,
+    textAlign: "center",
+  },
+  amenitiesSubtitle: {
+    fontSize: 16,
+    color: "#717171",
+    textAlign: "center",
+    maxWidth: 500,
+  },
   amenitiesGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    gap: Spacing.lg,
+    gap: Spacing.md,
+    maxWidth: 900,
+    alignSelf: "center",
   },
   amenityCard: {
-    width: 150,
-    padding: Spacing.lg,
-    backgroundColor: "#FFFFFF",
-    borderRadius: BorderRadius.lg,
+    flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.md,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    backgroundColor: "#FFFFFF",
+    borderRadius: BorderRadius.full,
+    gap: Spacing.sm,
+    borderWidth: 1,
+    borderColor: "#E8E8E8",
+  },
+  amenityIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.light.primary,
+    alignItems: "center",
+    justifyContent: "center",
   },
   amenityText: {
     fontSize: 14,
-    textAlign: "center",
-    color: "#444",
+    fontWeight: "500",
+    color: "#333",
   },
   footer: {
     backgroundColor: "#1A1A1A",
