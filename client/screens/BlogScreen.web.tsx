@@ -124,7 +124,7 @@ export default function BlogScreenWeb() {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <Image
-            source={require("../../assets/images/la_red_blanco_negro3.png")}
+            source={require("../../assets/images/icon.png")}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -281,7 +281,7 @@ export default function BlogScreenWeb() {
           <View style={styles.footerContent}>
             <View style={styles.footerColumn}>
               <Image
-                source={require("../../assets/images/la_red_blanco_negro3.png")}
+                source={require("../../assets/images/icon.png")}
                 style={styles.footerLogo}
                 resizeMode="contain"
               />
