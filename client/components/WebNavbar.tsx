@@ -18,7 +18,6 @@ import { ThemedText } from "@/components/ThemedText";
 import { Avatar } from "@/components/Avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
-import { getApiUrl } from "@/lib/query-client";
 
 interface NavItem {
   key: string;
@@ -164,8 +163,12 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
       if (!user?.id) return;
 
       try {
-        const apiUrl = getApiUrl();
-        const response = await fetch(`${apiUrl}api/notifications/user/${user.id}`);
+        const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+        if (!apiUrl) {
+          console.warn('EXPO_PUBLIC_API_URL no está configurado');
+          return;
+        }
+        const response = await fetch(`${apiUrl}/notifications/${user.id}`);
         if (response.ok) {
           const data = await response.json();
           // Verificar que data sea un array
@@ -180,15 +183,14 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
             }));
             setNotifications(mappedNotifications);
           } else {
-            // Si no hay notificaciones o la respuesta no es un array, usar lista vacía
             setNotifications([]);
           }
         } else {
-          // Silently fail - notifications are not critical
+          // No mostrar error en consola para respuestas no exitosas
           setNotifications([]);
         }
       } catch (error) {
-        // Silently fail - notifications are not critical
+        // No mostrar error en consola
         setNotifications([]);
       }
     };
