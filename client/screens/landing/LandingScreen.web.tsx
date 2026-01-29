@@ -917,46 +917,109 @@ const TopAlliesSection = () => {
               : styles.alliesGrid
           }
         >
-          {allies.map((ally) => (
+          {allies.map((ally, index) => (
             <div key={ally.id} style={styles.allyCard}>
-              <div style={styles.allyHeader}>
+              <div style={{
+                position: 'absolute' as const,
+                top: 12,
+                right: 12,
+                background: 'linear-gradient(135deg, #FFD700, #FFA500)',
+                color: '#000',
+                fontWeight: 700,
+                fontSize: 12,
+                padding: '4px 10px',
+                borderRadius: 12,
+              }}>
+                #{index + 1}
+              </div>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column' as const,
+                alignItems: 'center',
+                textAlign: 'center' as const,
+                marginBottom: 20,
+              }}>
                 {ally.photoUrl ? (
                   <img 
                     src={ally.photoUrl} 
                     alt={ally.name}
                     style={{
-                      ...styles.allyAvatar,
+                      width: 80,
+                      height: 80,
+                      borderRadius: '50%',
                       objectFit: 'cover' as const,
+                      border: '3px solid rgba(255,255,255,0.3)',
+                      marginBottom: 12,
                     }}
                   />
                 ) : (
-                  <div style={styles.allyAvatar}>
-                    <span style={styles.allyAvatarText}>{ally.name[0]}</span>
+                  <div style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #FF5A5F, #C73E42)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '3px solid rgba(255,255,255,0.3)',
+                    marginBottom: 12,
+                  }}>
+                    <span style={{ color: '#fff', fontSize: 32, fontWeight: 700 }}>{ally.name[0]}</span>
                   </div>
                 )}
-                <div style={styles.allyInfo}>
-                  <h3 style={styles.allyName}>{ally.name}</h3>
-                  <p style={styles.allyCompany}>{ally.company}</p>
-                </div>
+                <h3 style={{
+                  color: '#fff',
+                  fontSize: 18,
+                  fontWeight: 700,
+                  margin: 0,
+                  marginBottom: 4,
+                }}>{ally.name}</h3>
+                <p style={{
+                  color: 'rgba(255,255,255,0.7)',
+                  fontSize: 13,
+                  margin: 0,
+                }}>{ally.company}</p>
               </div>
-              <div style={styles.allyStats}>
-                <div style={styles.allyStat}>
-                  <div style={styles.allyStatValue}>{ally.properties}</div>
-                  <div style={styles.allyStatLabel}>Propiedades</div>
-                </div>
-                {ally.sales > 0 ? (
-                  <div style={styles.allyStat}>
-                    <div style={styles.allyStatValue}>{ally.sales}</div>
-                    <div style={styles.allyStatLabel}>Ventas</div>
-                  </div>
-                ) : null}
-                {ally.clients > 0 ? (
-                  <div style={styles.allyStat}>
-                    <div style={styles.allyStatValue}>{ally.clients}</div>
-                    <div style={styles.allyStatLabel}>Clientes</div>
-                  </div>
-                ) : null}
+              <div style={{
+                background: 'rgba(255,255,255,0.1)',
+                borderRadius: 12,
+                padding: 16,
+                textAlign: 'center' as const,
+              }}>
+                <div style={{
+                  fontSize: 36,
+                  fontWeight: 800,
+                  color: '#FFD700',
+                  lineHeight: 1,
+                }}>{ally.properties}</div>
+                <div style={{
+                  fontSize: 14,
+                  color: 'rgba(255,255,255,0.8)',
+                  marginTop: 4,
+                  fontWeight: 500,
+                }}>Propiedades Publicadas</div>
               </div>
+              {(ally.sales > 0 || ally.clients > 0) ? (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: 24,
+                  marginTop: 16,
+                }}>
+                  {ally.sales > 0 ? (
+                    <div style={{ textAlign: 'center' as const }}>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>{ally.sales}</div>
+                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Ventas</div>
+                    </div>
+                  ) : null}
+                  {ally.clients > 0 ? (
+                    <div style={{ textAlign: 'center' as const }}>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>{ally.clients}</div>
+                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Clientes</div>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           ))}
         </div>
@@ -2093,12 +2156,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     WebkitOverflowScrolling: "touch",
   },
   allyCard: {
+    position: "relative" as const,
     background: "radial-gradient(circle at 50% 50%, #044BB8, #000)",
     borderRadius: 16,
     padding: 24,
     boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-    minWidth: 300,
-    maxWidth: 320,
+    minWidth: 280,
+    maxWidth: 300,
     flexShrink: 0,
     scrollSnapAlign: "start",
   },
