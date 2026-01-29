@@ -94,9 +94,14 @@ export default function BlogScreenWeb() {
     }).format(price);
   };
 
-  const galleryImages = property?.imagenes
+  const galleryMedia = property?.imagenes
     ?.filter((img) => ["Imagen", "Video"].includes(img.tipo))
-    ?.map((img) => img.url) || [property?.imageUrl || ""];
+    ?.map((img) => ({ url: img.url, tipo: img.tipo })) || [{ url: property?.imageUrl || "", tipo: "Imagen" }];
+  const galleryImages = galleryMedia.map(m => m.url);
+  
+  const isVideo = (url: string, tipo?: string) => {
+    return tipo === "Video" || url.includes(".mp4") || url.includes("video");
+  };
 
   const masterplanImage = property?.imagenes?.find((img) => img.tipo === "masterplan")?.url;
 
@@ -204,7 +209,7 @@ export default function BlogScreenWeb() {
           {/* Right Side: Carousel/Gallery */}
           <View style={styles.carouselColumn}>
             <View style={styles.galleryGrid}>
-              {galleryImages.slice(0, 4).map((img, index) => (
+              {galleryMedia.slice(0, 4).map((media, index) => (
                 <Pressable
                   key={index}
                   style={styles.galleryGridItem}
@@ -213,10 +218,15 @@ export default function BlogScreenWeb() {
                     setShowGallery(true);
                   }}
                 >
-                  <Image source={{ uri: img }} style={styles.galleryGridImage} resizeMode="cover" />
-                  {index === 3 && galleryImages.length > 4 && (
+                  <Image source={{ uri: media.url }} style={styles.galleryGridImage} resizeMode="cover" />
+                  {isVideo(media.url, media.tipo) && (
+                    <View style={styles.videoPlayOverlay}>
+                      <Ionicons name="play-circle" size={48} color="rgba(255,255,255,0.9)" />
+                    </View>
+                  )}
+                  {index === 3 && galleryMedia.length > 4 && (
                     <View style={styles.moreImagesOverlay}>
-                      <ThemedText style={styles.moreImagesText}>+{galleryImages.length - 4}</ThemedText>
+                      <ThemedText style={styles.moreImagesText}>+{galleryMedia.length - 4}</ThemedText>
                     </View>
                   )}
                 </Pressable>
@@ -325,11 +335,21 @@ export default function BlogScreenWeb() {
           <Pressable onPress={() => setShowGallery(false)} style={styles.closeButton}>
             <Ionicons name="close" size={32} color="#fff" />
           </Pressable>
-          <Image
-            source={{ uri: galleryImages[currentImageIndex] }}
-            style={styles.modalImage}
-            resizeMode="contain"
-          />
+          {isVideo(galleryMedia[currentImageIndex]?.url, galleryMedia[currentImageIndex]?.tipo) ? (
+            <video
+              src={galleryMedia[currentImageIndex]?.url}
+              style={{ width: "90%", maxHeight: "80%", objectFit: "contain" }}
+              controls
+              autoPlay
+              playsInline
+            />
+          ) : (
+            <Image
+              source={{ uri: galleryImages[currentImageIndex] }}
+              style={styles.modalImage}
+              resizeMode="contain"
+            />
+          )}
           <View style={styles.modalControls}>
             <Pressable
               onPress={() => setCurrentImageIndex(Math.max(0, currentImageIndex - 1))}
@@ -337,12 +357,12 @@ export default function BlogScreenWeb() {
             >
               <Ionicons name="chevron-back" size={48} color={currentImageIndex > 0 ? "#fff" : "#555"} />
             </Pressable>
-            <ThemedText style={{ color: '#fff' }}>{currentImageIndex + 1} / {galleryImages.length}</ThemedText>
+            <ThemedText style={{ color: '#fff' }}>{currentImageIndex + 1} / {galleryMedia.length}</ThemedText>
             <Pressable
-              onPress={() => setCurrentImageIndex(Math.min(galleryImages.length - 1, currentImageIndex + 1))}
-              disabled={currentImageIndex === galleryImages.length - 1}
+              onPress={() => setCurrentImageIndex(Math.min(galleryMedia.length - 1, currentImageIndex + 1))}
+              disabled={currentImageIndex === galleryMedia.length - 1}
             >
-              <Ionicons name="chevron-forward" size={48} color={currentImageIndex < galleryImages.length - 1 ? "#fff" : "#555"} />
+              <Ionicons name="chevron-forward" size={48} color={currentImageIndex < galleryMedia.length - 1 ? "#fff" : "#555"} />
             </Pressable>
           </View>
         </View>
@@ -570,6 +590,12 @@ const styles = StyleSheet.create({
   moreImagesOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  videoPlayOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.3)",
     justifyContent: "center",
     alignItems: "center",
   },

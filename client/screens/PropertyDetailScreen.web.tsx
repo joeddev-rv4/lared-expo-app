@@ -204,10 +204,15 @@ export default function PropertyDetailScreenWeb() {
     }
   };
 
-  const filteredImages = property?.imagenes
+  const filteredMedia = property?.imagenes
     ?.filter(img => ["Imagen", "Video", "masterplan"].includes(img.tipo))
-    ?.map(img => img.url) || [];
-  const galleryImages = filteredImages.length > 0 ? filteredImages : [property?.imageUrl || ""];
+    ?.map(img => ({ url: img.url, tipo: img.tipo })) || [];
+  const galleryMedia = filteredMedia.length > 0 ? filteredMedia : [{ url: property?.imageUrl || "", tipo: "Imagen" }];
+  const galleryImages = galleryMedia.map(m => m.url);
+  
+  const isVideo = (url: string, tipo?: string) => {
+    return tipo === "Video" || url.includes(".mp4") || url.includes("video");
+  };
 
   if (!property) {
     return (
@@ -495,17 +500,26 @@ export default function PropertyDetailScreenWeb() {
             contentContainerStyle={styles.galleryContent}
             showsVerticalScrollIndicator={false}
           >
-            {galleryImages.map((imageUrl, index) => (
+            {galleryMedia.map((media, index) => (
               <View key={index} style={styles.galleryImageContainer}>
                 <View style={styles.galleryImageWrapper}>
-                  <Image
-                    source={{ uri: imageUrl }}
-                    style={styles.galleryImage}
-                    resizeMode="cover"
-                  />
+                  {isVideo(media.url, media.tipo) ? (
+                    <video
+                      src={media.url}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 12 }}
+                      controls
+                      playsInline
+                    />
+                  ) : (
+                    <Image
+                      source={{ uri: media.url }}
+                      style={styles.galleryImage}
+                      resizeMode="cover"
+                    />
+                  )}
                   <Pressable
                     style={styles.imageDownloadButton}
-                    onPress={() => downloadSingleImage(imageUrl, index)}
+                    onPress={() => downloadSingleImage(media.url, index)}
                     disabled={downloadingIndex === index}
                   >
                     {downloadingIndex === index ? (
@@ -516,7 +530,7 @@ export default function PropertyDetailScreenWeb() {
                   </Pressable>
                 </View>
                 <ThemedText style={styles.galleryImageNumber}>
-                  {index + 1} / {galleryImages.length}
+                  {index + 1} / {galleryMedia.length}
                 </ThemedText>
               </View>
             ))}
