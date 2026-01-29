@@ -265,13 +265,45 @@ export function PropertyCard({
         }
         
         if (navigator.share) {
-          await navigator.share({
-            title: property.title,
-            text: shareText,
-            url: getShareUrl(),
-          });
+          try {
+            await navigator.share({
+              title: property.title,
+              text: shareText,
+              url: getShareUrl(),
+            });
+          } catch (shareError: any) {
+            if (shareError.name !== 'AbortError') {
+              if (navigator.clipboard) {
+                await navigator.clipboard.writeText(shareText);
+              } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = shareText;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand("copy");
+                document.body.removeChild(textArea);
+              }
+              Alert.alert(
+                "Contenido copiado",
+                "El texto ha sido copiado al portapapeles. Puedes pegarlo donde desees compartirlo."
+              );
+            }
+          }
         } else {
-          await Clipboard.setStringAsync(shareText);
+          if (navigator.clipboard) {
+            await navigator.clipboard.writeText(shareText);
+          } else {
+            const textArea = document.createElement("textarea");
+            textArea.value = shareText;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+          }
           Alert.alert(
             "Contenido copiado",
             "El texto ha sido copiado al portapapeles. Puedes pegarlo donde desees compartirlo."
@@ -317,13 +349,41 @@ export function PropertyCard({
       }
     } catch (error) {
       console.error("Error sharing:", error);
-      try {
-        await Share.share({
-          message: shareText,
-          title: property.title,
-        });
-      } catch (fallbackError) {
-        Alert.alert("Error", "No se pudo compartir la propiedad.");
+      if (isWeb) {
+        try {
+          if (typeof navigator !== "undefined" && navigator.clipboard) {
+            await navigator.clipboard.writeText(shareText);
+            Alert.alert(
+              "Contenido copiado",
+              "El texto ha sido copiado al portapapeles. Puedes pegarlo donde desees compartirlo."
+            );
+          } else {
+            const textArea = document.createElement("textarea");
+            textArea.value = shareText;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            Alert.alert(
+              "Contenido copiado",
+              "El texto ha sido copiado al portapapeles. Puedes pegarlo donde desees compartirlo."
+            );
+          }
+        } catch (clipboardError) {
+          console.error("Clipboard error:", clipboardError);
+          Alert.alert("Error", "No se pudo compartir la propiedad.");
+        }
+      } else {
+        try {
+          await Share.share({
+            message: shareText,
+            title: property.title,
+          });
+        } catch (fallbackError) {
+          Alert.alert("Error", "No se pudo compartir la propiedad.");
+        }
       }
     } finally {
       setIsSharing(false);
@@ -370,11 +430,33 @@ export function PropertyCard({
     const blogUrl = `${baseUrl}/blog/${userId}/${property.id}`;
 
     try {
-      await Clipboard.setStringAsync(blogUrl);
-      Alert.alert("Enlace copiado", "El enlace ha sido copiado al portapapeles.");
+      if (isWeb && typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(blogUrl);
+        Alert.alert("Enlace copiado", "El enlace ha sido copiado al portapapeles.");
+      } else {
+        await Clipboard.setStringAsync(blogUrl);
+        Alert.alert("Enlace copiado", "El enlace ha sido copiado al portapapeles.");
+      }
     } catch (error) {
       console.error("Error copying to clipboard:", error);
-      Alert.alert("Error", "No se pudo copiar el enlace.");
+      if (isWeb && typeof window !== "undefined") {
+        try {
+          const textArea = document.createElement("textarea");
+          textArea.value = blogUrl;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textArea);
+          Alert.alert("Enlace copiado", "El enlace ha sido copiado al portapapeles.");
+        } catch (fallbackError) {
+          console.error("Fallback copy failed:", fallbackError);
+          Alert.alert("Error", "No se pudo copiar el enlace. Por favor, copia manualmente: " + blogUrl);
+        }
+      } else {
+        Alert.alert("Error", "No se pudo copiar el enlace.");
+      }
     }
   };
 
