@@ -64,7 +64,11 @@ export default function AchievementsScreenWeb() {
 
             try {
                 // Fetch leads
-                const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${user.id}`);
+                const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${user.id}`, {
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true',
+                    },
+                });
                 const leads = await leadsResponse.json();
                 const totalLeads = Array.isArray(leads) ? leads.length : 0;
 

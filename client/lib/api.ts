@@ -226,7 +226,11 @@ export async function getUserFavoritePropertiesWithClients(userId: string): Prom
   try {
     // Obtener leads del usuario desde nuestro servidor proxy (evita CORS)
     // El puerto 5000 es el del servidor Express local (ahora usando variable de entorno)
-    const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`);
+    const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`, {
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+      },
+    });
 
     if (!leadsResponse.ok) {
       console.error('Error obteniendo leads:', leadsResponse.status);
@@ -281,7 +285,11 @@ export async function getUserFavoritePropertiesWithClients(userId: string): Prom
 export async function getPropertyClients(propertyId: string, userId: string): Promise<PropertyClient[]> {
   try {
     // Obtener todos los leads del usuario desde nuestro servidor proxy (evita CORS)
-    const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`);
+    const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`, {
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+      },
+    });
 
     if (!leadsResponse.ok) {
       console.error('Error obteniendo leads:', leadsResponse.status);

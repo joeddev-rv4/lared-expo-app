@@ -76,7 +76,11 @@ export default function AchievementsScreen() {
 
       try {
         // Fetch leads
-        const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`);
+        const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+          },
+        });
         const leads = await leadsResponse.json();
         const totalLeads = Array.isArray(leads) ? leads.length : 0;
 

@@ -193,7 +193,11 @@ const MetricsBar = () => {
     const fetchStats = async () => {
       try {
         const apiUrl = process.env.EXPO_PUBLIC_API_URL || "";
-        const response = await fetch(`${apiUrl}/powerbi/getDashboardStats`);
+        const response = await fetch(`${apiUrl}/powerbi/getDashboardStats`, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+          },
+        });
         const data = await response.json();
         if (data.data && Array.isArray(data.data)) {
           const newMetrics = data.data.map((stat: { title: string; data: number }) => ({
@@ -239,7 +243,11 @@ const AdvantagesSection = () => {
     const fetchSecciones = async () => {
       try {
         const apiUrl = process.env.EXPO_PUBLIC_API_URL || "";
-        const response = await fetch(`${apiUrl}/powerbi/getSecciones`);
+        const response = await fetch(`${apiUrl}/powerbi/getSecciones`, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+          },
+        });
         const data = await response.json();
         if (data.secciones && Array.isArray(data.secciones)) {
           const newAdvantages = data.secciones.map((seccion: { titulo: string; descripcion: string }) => ({

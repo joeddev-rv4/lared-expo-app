@@ -168,7 +168,11 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
           console.warn('EXPO_PUBLIC_API_URL no está configurado');
           return;
         }
-        const response = await fetch(`${apiUrl}/notifications/${user.id}`);
+        const response = await fetch(`${apiUrl}/notifications/${user.id}`, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+          },
+        });
         if (response.ok) {
           const data = await response.json();
           // Verificar que data sea un array
@@ -312,6 +316,7 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
         },
       });
 
