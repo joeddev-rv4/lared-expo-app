@@ -783,7 +783,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: 16,
     right: 16,
     display: "flex",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     alignItems: "center",
     zIndex: 1000,
     pointerEvents: "none",
