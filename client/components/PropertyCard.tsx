@@ -91,6 +91,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH - Spacing.lg * 2;
 const IMAGE_HEIGHT = 200;
 const isWeb = Platform.OS === "web";
+const isMobileWeb = isWeb && SCREEN_WIDTH < 768;
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -353,7 +354,7 @@ export function PropertyCard({
       <View style={styles.imageContainer}>
         <Image
           source={{ uri: property.imageUrl }}
-          style={styles.image}
+          style={[styles.image, isMobileWeb && styles.imageMobileWeb]}
           resizeMode="cover"
         />
         <View style={styles.actionButtons}>
@@ -405,8 +406,8 @@ export function PropertyCard({
         </View>
       </View>
 
-      <View style={styles.content}>
-        <ThemedText style={styles.title} numberOfLines={2}>
+      <View style={[styles.content, isMobileWeb && styles.contentMobileWeb]}>
+        <ThemedText style={[styles.title, isMobileWeb && styles.titleMobileWeb]} numberOfLines={2}>
           {property.title}
         </ThemedText>
 
@@ -414,21 +415,23 @@ export function PropertyCard({
           Cuota desde Q{bankQuota.toLocaleString()}/mes
         </ThemedText>
 
-        <Pressable onPress={handleSharePress} style={styles.shareButton}>
-          <ThemedText style={[styles.shareButtonText, { color: "#bf0a0a" }]}>
-            COMPARTE Y GANA
-          </ThemedText>
-          <Ionicons name="chevron-forward" size={16} color="#bf0a0a" />
-        </Pressable>
+        <View style={[styles.actionsRow, isMobileWeb && styles.actionsRowMobileWeb]}>
+          <Pressable onPress={handleSharePress} style={styles.shareButton}>
+            <ThemedText style={[styles.shareButtonText, { color: "#bf0a0a" }]}>
+              COMPARTE Y GANA
+            </ThemedText>
+            <Ionicons name="chevron-forward" size={16} color="#bf0a0a" />
+          </Pressable>
 
-        {showCopyLink ? (
-          <Animated.View style={copyAnimatedStyle}>
-            <Pressable onPress={handleCopyLink} style={styles.copyLinkButton}>
-              <Ionicons name="link-outline" size={16} color="#FFFFFF" />
-              <ThemedText style={styles.copyLinkText}>Copiar Link</ThemedText>
-            </Pressable>
-          </Animated.View>
-        ) : null}
+          {showCopyLink ? (
+            <Animated.View style={copyAnimatedStyle}>
+              <Pressable onPress={handleCopyLink} style={[styles.copyLinkButton, isMobileWeb && styles.copyLinkButtonMobileWeb]}>
+                <Ionicons name="link-outline" size={16} color="#FFFFFF" />
+                <ThemedText style={styles.copyLinkText}>Copiar Link</ThemedText>
+              </Pressable>
+            </Animated.View>
+          ) : null}
+        </View>
       </View>
     </AnimatedPressable>
   );
@@ -447,6 +450,10 @@ const styles = StyleSheet.create({
     width: isWeb ? "100%" : CARD_WIDTH,
     height: IMAGE_HEIGHT,
     aspectRatio: isWeb ? 16 / 10 : undefined,
+  },
+  imageMobileWeb: {
+    height: 180,
+    aspectRatio: 16 / 9,
   },
   actionButtons: {
     position: "absolute",
@@ -486,15 +493,31 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: Spacing.md,
+    backgroundColor: "#FFFFFF",
+  },
+  contentMobileWeb: {
+    padding: Spacing.sm,
+    paddingTop: Spacing.md,
   },
   title: {
     fontSize: 17,
     fontWeight: "600",
     marginBottom: Spacing.xs,
   },
+  titleMobileWeb: {
+    fontSize: 15,
+  },
   bankQuota: {
     fontSize: 14,
     marginBottom: Spacing.sm,
+  },
+  actionsRow: {
+    flexDirection: "column",
+    gap: Spacing.sm,
+  },
+  actionsRowMobileWeb: {
+    flexDirection: "column",
+    gap: Spacing.xs,
   },
   shareButton: {
     flexDirection: "row",
@@ -514,8 +537,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,
-    marginTop: Spacing.sm,
     gap: 8,
+  },
+  copyLinkButtonMobileWeb: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   copyLinkText: {
     color: "#FFFFFF",
