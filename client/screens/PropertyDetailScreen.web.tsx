@@ -279,26 +279,52 @@ export default function PropertyDetailScreenWeb() {
                 <Image source={{ uri: galleryImages[4] || galleryImages[0] || property.imageUrl }} style={[styles.gridImage, styles.gridImageBottomRight]} />
               </View>
             ) : null}
-            <Pressable style={[styles.showAllPhotosButton, isMobile && styles.showAllPhotosButtonMobile]} onPress={() => setShowGallery(true)}>
-              <Ionicons name="grid-outline" size={14} color="#222222" />
-              <ThemedText style={styles.showAllPhotosText}>Mostrar todas las fotos ({galleryImages.length})</ThemedText>
-            </Pressable>
-            <Pressable
-              style={[styles.kitPromoButton, isMobile && styles.kitPromoButtonMobile]}
-              onPress={downloadAllMedia}
-              disabled={downloadingAll}
-            >
-              {downloadingAll ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Ionicons name="download-outline" size={16} color="#FFFFFF" />
-              )}
-              <ThemedText style={styles.kitPromoText}>
-                {downloadingAll ? "Descargando..." : "Kit Promocional"}
-              </ThemedText>
-            </Pressable>
+            {!isMobile ? (
+              <>
+                <Pressable style={styles.showAllPhotosButton} onPress={() => setShowGallery(true)}>
+                  <Ionicons name="grid-outline" size={14} color="#222222" />
+                  <ThemedText style={styles.showAllPhotosText}>Mostrar todas las fotos ({galleryImages.length})</ThemedText>
+                </Pressable>
+                <Pressable
+                  style={styles.kitPromoButton}
+                  onPress={downloadAllMedia}
+                  disabled={downloadingAll}
+                >
+                  {downloadingAll ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Ionicons name="download-outline" size={16} color="#FFFFFF" />
+                  )}
+                  <ThemedText style={styles.kitPromoText}>
+                    {downloadingAll ? "Descargando..." : "Kit Promocional"}
+                  </ThemedText>
+                </Pressable>
+              </>
+            ) : null}
           </View>
-          <ThemedText style={styles.descriptionBelowImages}>{property.descripcionCorta || property.description}</ThemedText>
+          {isMobile ? (
+            <View style={styles.mobileButtonsRow}>
+              <Pressable style={styles.showAllPhotosButtonMobile} onPress={() => setShowGallery(true)}>
+                <Ionicons name="grid-outline" size={14} color="#222222" />
+                <ThemedText style={styles.showAllPhotosText}>Ver fotos ({galleryImages.length})</ThemedText>
+              </Pressable>
+              <Pressable
+                style={styles.kitPromoButtonMobile}
+                onPress={downloadAllMedia}
+                disabled={downloadingAll}
+              >
+                {downloadingAll ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Ionicons name="download-outline" size={16} color="#FFFFFF" />
+                )}
+                <ThemedText style={styles.kitPromoText}>
+                  {downloadingAll ? "Descargando..." : "Kit Promocional"}
+                </ThemedText>
+              </Pressable>
+            </View>
+          ) : null}
+          <ThemedText style={[styles.descriptionBelowImages, isMobile && styles.descriptionBelowImagesMobile]}>{property.descripcionCorta || property.description}</ThemedText>
         </View>
 
         <View style={[styles.contentContainer, isMobile && styles.contentContainerMobile]}>
@@ -1036,11 +1062,13 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
   },
   kitPromoButtonMobile: {
-    position: "relative",
-    bottom: 0,
-    left: 0,
-    marginTop: Spacing.md,
-    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+    backgroundColor: "#bf0a0a",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
   },
   kitPromoText: {
     fontSize: 14,
@@ -1062,11 +1090,26 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
   },
   showAllPhotosButtonMobile: {
-    position: "relative",
-    bottom: 0,
-    right: 0,
-    marginTop: Spacing.md,
-    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: "#DDDDDD",
+  },
+  mobileButtonsRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: Spacing.md,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
+  },
+  descriptionBelowImagesMobile: {
+    marginTop: Spacing.sm,
   },
   contentContainerMobile: {
     flexDirection: "column",
