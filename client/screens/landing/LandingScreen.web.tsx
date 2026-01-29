@@ -59,12 +59,6 @@ const LandingNavbar = ({ onNavigate }: { onNavigate: (section: string) => void }
     return (
       <>
         <div style={styles.floatingNavContainer}>
-          <button onClick={handleLogin} style={styles.floatingUserButton}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </button>
           <button onClick={() => setMenuOpen(!menuOpen)} style={styles.floatingMenuButton}>
             <div style={{...styles.hamburgerLine, transform: menuOpen ? "rotate(45deg) translate(5px, 5px)" : "none"}} />
             <div style={{...styles.hamburgerLine, opacity: menuOpen ? 0 : 1}} />
