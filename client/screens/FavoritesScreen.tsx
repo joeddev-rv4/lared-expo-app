@@ -20,7 +20,6 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { EmptyState } from "@/components/EmptyState";
 import { ThemedText } from "@/components/ThemedText";
 import { FavoritesScreenSkeleton } from "@/components/SkeletonLoader";
-import { WebFooter } from "@/components/WebFooter";
 import { useTheme } from "@/hooks/useTheme";
 import { Property, mapAPIPropertyToProperty } from "@/data/properties";
 import { toggleFavorite } from "@/lib/storage";
@@ -285,7 +284,6 @@ export default function FavoritesScreen() {
           </ThemedText>
         )}
         {renderContent()}
-        {isWeb ? <WebFooter /> : null}
       </ScrollView>
     </View>
   );

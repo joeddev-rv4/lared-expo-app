@@ -12,7 +12,6 @@ import { getPortfolioProperties } from "@/lib/portfolioService";
 import { DashboardProgressBar } from "@/components/dashboard/DashboardProgressBar";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
-import { WebFooter } from "@/components/WebFooter";
 import { Spacing, BorderRadius, Colors, Shadows } from "@/constants/theme";
 
 // Mock Data
@@ -264,7 +263,6 @@ export default function AchievementsScreenWeb() {
                     </View>
 
                 </View>
-                <WebFooter />
             </ScrollView>
         </View>
     );

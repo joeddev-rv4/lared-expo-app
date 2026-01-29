@@ -63,7 +63,6 @@ const ClientCountButton = ({ clientCount, onPress }: { clientCount: number; onPr
 
 import { FilterChip } from "@/components/FilterChip";
 import { ThemedText } from "@/components/ThemedText";
-import { WebFooter } from "@/components/WebFooter";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Property, mapAPIPropertyToProperty } from "@/data/properties";
@@ -435,7 +434,6 @@ export default function ProfileScreen() {
             </View>
           )}
         </View>
-        {isWeb ? <WebFooter /> : null}
       </ScrollView>
     </View>
   );
