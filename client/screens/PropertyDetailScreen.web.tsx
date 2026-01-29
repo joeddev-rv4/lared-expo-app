@@ -51,13 +51,13 @@ export default function PropertyDetailScreenWeb() {
   const [guests, setGuests] = useState("1");
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(sourceTab === "FavoritesTab");
+  const [isFavorite, setIsFavorite] = useState(sourceTab === "favorites");
   const [downloadingAll, setDownloadingAll] = useState(false);
   const [downloadingIndex, setDownloadingIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const checkFavoriteStatus = async () => {
-      if (!property || sourceTab === "FavoritesTab") return;
+      if (!property || sourceTab === "favorites") return;
       try {
         const stored = await AsyncStorage.getItem("favorites");
         if (stored) {

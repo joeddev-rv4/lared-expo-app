@@ -154,7 +154,7 @@ export default function FavoritesScreen() {
     if (!isWeb) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    navigation.navigate("FavoritesPropertyDetail", { property, sourceTab: "FavoritesTab" });
+    navigation.navigate("FavoritesPropertyDetail", { property, sourceTab: "favorites" });
   };
 
   const handleSharePress = (property: Property) => {

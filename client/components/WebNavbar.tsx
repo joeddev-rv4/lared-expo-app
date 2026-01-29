@@ -31,25 +31,25 @@ const NAV_ITEMS: NavItem[] = [
   {
     key: "explore",
     label: "Explorar",
-    route: "ExploreTab",
+    route: "explore",
     icon: require("../../assets/icons/icon_2.png"),
   },
   {
     key: "favorites",
     label: "Favoritos",
-    route: "FavoritesTab",
+    route: "favorites",
     icon: require("../../assets/icons/icon_4.png"),
   },
   {
     key: "profile",
     label: "Mis Clientes",
-    route: "ProfileTab",
+    route: "profile",
     icon: require("../../assets/icons/icon_1.png"),
   },
   {
     key: "achievements",
     label: "Mis Logros",
-    route: "AchievementsTab",
+    route: "achievements",
     icon: require("../../assets/icons/icon_3.png"),
   },
 ];
@@ -216,9 +216,9 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
     if (drawerRoute?.name === 'MainTabs' && drawerRoute.state) {
       const tabState = drawerRoute.state;
       const activeTab = tabState.routes?.[tabState.index ?? 0];
-      return activeTab?.name || 'ExploreTab';
+      return activeTab?.name || 'explore';
     }
-    return 'ExploreTab';
+    return 'explore';
   });
 
   // Use override if provided, otherwise use detected route
@@ -226,10 +226,10 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
 
   const getIsActive = (itemKey: string, itemRoute: string) => {
     if (activeTabRoute === itemRoute) return true;
-    if (itemKey === "explore" && activeTabRoute === "ExploreTab") return true;
-    if (itemKey === "favorites" && activeTabRoute === "FavoritesTab") return true;
-    if (itemKey === "profile" && activeTabRoute === "ProfileTab") return true;
-    if (itemKey === "achievements" && activeTabRoute === "AchievementsTab") return true;
+    if (itemKey === "explore" && activeTabRoute === "explore") return true;
+    if (itemKey === "favorites" && activeTabRoute === "favorites") return true;
+    if (itemKey === "profile" && activeTabRoute === "profile") return true;
+    if (itemKey === "achievements" && activeTabRoute === "achievements") return true;
     return false;
   };
 
@@ -357,7 +357,7 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
     return (
       <>
         <View style={styles.floatingNavContainer}>
-          <Pressable style={styles.floatingUserButton} onPress={() => handleNavPress("ProfileTab")}>
+          <Pressable style={styles.floatingUserButton} onPress={() => handleNavPress("profile")}>
             <Avatar 
               name={user?.name || "Usuario"} 
               size={40} 
@@ -453,7 +453,7 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
           <View style={styles.innerContainer}>
             <Pressable
               style={styles.logoContainer}
-              onPress={() => handleNavPress("ExploreTab")}
+              onPress={() => handleNavPress("explore")}
             >
               <Image
                 source={require("../../assets/images/icon.png")}

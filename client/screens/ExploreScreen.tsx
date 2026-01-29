@@ -254,7 +254,7 @@ export default function ExploreScreen() {
 
   const handleGoToFavorites = () => {
     setFavoritesPopupVisible(false);
-    navigation.navigate("FavoritesTab" as any);
+    navigation.navigate("favorites" as any);
   };
 
   const currentFavoriteProperties = useMemo(() => {

@@ -20,11 +20,11 @@ const WEB_NAVBAR_HEIGHT = 70;
 const isWeb = Platform.OS === "web";
 
 export type MainTabParamList = {
-  ExploreTab: undefined;
-  FavoritesTab: undefined;
-  AddListingTab: undefined;
-  ProfileTab: undefined;
-  AchievementsTab: undefined;
+  explore: undefined;
+  favorites: undefined;
+  addlisting: undefined;
+  profile: undefined;
+  achievements: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -59,7 +59,7 @@ export default function MainTabNavigator() {
     <View style={styles.webContainer}>
       {isWeb && <WebNavbar />}
       <Tab.Navigator
-        initialRouteName="ExploreTab"
+        initialRouteName="explore"
         screenOptions={{
           tabBarActiveTintColor: "#bf0a0a",
           tabBarInactiveTintColor: theme.tabIconDefault,
@@ -94,7 +94,7 @@ export default function MainTabNavigator() {
         }}
       >
       <Tab.Screen
-        name="ExploreTab"
+        name="explore"
         component={ExploreStackNavigator}
         options={{
           title: "Explorar",
@@ -104,7 +104,7 @@ export default function MainTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="FavoritesTab"
+        name="favorites"
         component={FavoritesStackNavigator}
         options={{
           title: "Favoritos",
@@ -115,7 +115,7 @@ export default function MainTabNavigator() {
       />
       {Platform.OS !== "web" && (
         <Tab.Screen
-          name="AddListingTab"
+          name="addlisting"
           component={AddListingScreen}
           options={({ navigation }) => ({
             title: "",
@@ -135,7 +135,7 @@ export default function MainTabNavigator() {
         />
       )}
       <Tab.Screen
-        name="ProfileTab"
+        name="profile"
         component={ProfileStackNavigator}
         options={{
           title: "Mi Perfil",
@@ -145,7 +145,7 @@ export default function MainTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="AchievementsTab"
+        name="achievements"
         component={AchievementsStackNavigator}
         options={{
           title: "Mis Logros",
