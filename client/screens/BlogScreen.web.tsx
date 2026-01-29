@@ -161,6 +161,7 @@ export default function BlogScreenWeb() {
                 <ContactFormWeb
                   userId={params.userId}
                   propertyId={params.propertyId}
+                  propertyName={property?.title}
                   title="Solicitar información"
                 />
               </View>
@@ -277,6 +278,7 @@ export default function BlogScreenWeb() {
             <ContactFormWeb
               userId={params.userId}
               propertyId={params.propertyId}
+              propertyName={property?.title}
               title="¿Te interesa esta propiedad?"
             />
           </View>

@@ -16,6 +16,7 @@ import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 interface ContactFormProps {
     userId: string;
     propertyId: string;
+    propertyName?: string;
     title?: string;
     style?: any;
 }
@@ -23,6 +24,7 @@ interface ContactFormProps {
 export default function ContactFormWeb({
     userId,
     propertyId,
+    propertyName,
     title,
     style,
 }: ContactFormProps) {
@@ -56,6 +58,28 @@ export default function ContactFormWeb({
             };
 
             await addDoc(collection(db, "requests"), requestData);
+
+            // Send notification to the property owner
+            try {
+                const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+                if (apiUrl && userId) {
+                    const propertyInfo = propertyName ? ` sobre ${propertyName}` : "";
+                    await fetch(`${apiUrl}/notifications/create`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'ngrok-skip-browser-warning': 'true',
+                        },
+                        body: JSON.stringify({
+                            user_id: userId,
+                            titulo: "Nuevo Cliente",
+                            mensaje: `${contactForm.name} solicito informacion${propertyInfo}.`,
+                        }),
+                    });
+                }
+            } catch (notificationError) {
+                console.error("Error sending notification:", notificationError);
+            }
 
             setSubmitSuccess(true);
             setContactForm({ name: "", email: "", phone: "", message: "" });
