@@ -117,7 +117,7 @@ export function PropertyCard({
   const tiktokScale = useSharedValue(1);
   
   const [showShareModal, setShowShareModal] = useState(false);
-  const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
+  const [selectedMediaIndices, setSelectedMediaIndices] = useState<number[]>([0]);
   const [isSharing, setIsSharing] = useState(false);
   
   const propertyMedia = property.imagenes
@@ -126,6 +126,20 @@ export function PropertyCard({
   
   const isVideoMedia = (url: string, tipo?: string) => {
     return tipo === "Video" || url.includes(".mp4") || url.includes("video");
+  };
+  
+  const toggleMediaSelection = (index: number) => {
+    setSelectedMediaIndices(prev => {
+      if (prev.includes(index)) {
+        if (prev.length === 1) return prev;
+        return prev.filter(i => i !== index);
+      }
+      return [...prev, index];
+    });
+  };
+  
+  const selectAllMedia = () => {
+    setSelectedMediaIndices(propertyMedia.map((_, i) => i));
   };
 
   useEffect(() => {
@@ -216,7 +230,7 @@ export function PropertyCard({
   
   const shareWithImage = async () => {
     setIsSharing(true);
-    const selectedMedia = propertyMedia[selectedMediaIndex];
+    const selectedMediaItems = selectedMediaIndices.map(i => propertyMedia[i]);
     const shareText = `${getShareText()}\n\n${getShareUrl()}`;
     
     try {
@@ -224,23 +238,27 @@ export function PropertyCard({
         try {
           const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
           const baseUrl = domain ? `https://${domain.replace(':5000', '')}:5000` : "";
-          const proxyUrl = `${baseUrl}/api/image-proxy?url=${encodeURIComponent(selectedMedia.url)}`;
           
-          const response = await fetch(proxyUrl);
-          if (response.ok) {
-            const blob = await response.blob();
-            const extension = isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "mp4" : "jpg";
-            const mimeType = isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "video/mp4" : "image/jpeg";
-            const file = new File([blob], `propiedad.${extension}`, { type: mimeType });
-            
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-              await navigator.share({
-                title: property.title,
-                text: shareText,
-                files: [file],
-              });
-              return;
+          const files: File[] = [];
+          for (let i = 0; i < selectedMediaItems.length; i++) {
+            const media = selectedMediaItems[i];
+            const proxyUrl = `${baseUrl}/api/image-proxy?url=${encodeURIComponent(media.url)}`;
+            const response = await fetch(proxyUrl);
+            if (response.ok) {
+              const blob = await response.blob();
+              const extension = isVideoMedia(media.url, media.tipo) ? "mp4" : "jpg";
+              const mimeType = isVideoMedia(media.url, media.tipo) ? "video/mp4" : "image/jpeg";
+              files.push(new File([blob], `propiedad_${i + 1}.${extension}`, { type: mimeType }));
             }
+          }
+          
+          if (files.length > 0 && navigator.share && navigator.canShare && navigator.canShare({ files })) {
+            await navigator.share({
+              title: property.title,
+              text: shareText,
+              files,
+            });
+            return;
           }
         } catch (proxyError) {
           console.log("Proxy error, falling back to text share:", proxyError);
@@ -260,26 +278,36 @@ export function PropertyCard({
           );
         }
       } else {
-        const extension = isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "mp4" : "jpg";
         const cacheDir = FileSystem.documentDirectory || "";
-        const localUri = `${cacheDir}propiedad_${property.id}_${Date.now()}.${extension}`;
+        const downloadedUris: string[] = [];
         
-        try {
-          const downloadResult = await FileSystem.downloadAsync(selectedMedia.url, localUri);
+        for (let i = 0; i < selectedMediaItems.length; i++) {
+          const media = selectedMediaItems[i];
+          const extension = isVideoMedia(media.url, media.tipo) ? "mp4" : "jpg";
+          const localUri = `${cacheDir}propiedad_${property.id}_${i}_${Date.now()}.${extension}`;
           
-          if (downloadResult.status === 200) {
-            const isSharingAvailable = await Sharing.isAvailableAsync();
-            
-            if (isSharingAvailable) {
-              await Sharing.shareAsync(downloadResult.uri, {
-                mimeType: isVideoMedia(selectedMedia.url, selectedMedia.tipo) ? "video/mp4" : "image/jpeg",
+          try {
+            const downloadResult = await FileSystem.downloadAsync(media.url, localUri);
+            if (downloadResult.status === 200) {
+              downloadedUris.push(downloadResult.uri);
+            }
+          } catch (downloadError) {
+            console.error("Download error for item", i, ":", downloadError);
+          }
+        }
+        
+        if (downloadedUris.length > 0) {
+          const isSharingAvailable = await Sharing.isAvailableAsync();
+          
+          if (isSharingAvailable) {
+            for (const uri of downloadedUris) {
+              await Sharing.shareAsync(uri, {
+                mimeType: uri.includes(".mp4") ? "video/mp4" : "image/jpeg",
                 dialogTitle: property.title,
               });
-              return;
             }
+            return;
           }
-        } catch (downloadError) {
-          console.error("Download error:", downloadError);
         }
         
         await Share.share({
@@ -561,7 +589,16 @@ export function PropertyCard({
               </Pressable>
             </View>
             
-            <ThemedText style={styles.shareModalSubtitle}>Selecciona una imagen o video</ThemedText>
+            <View style={styles.shareModalSubtitleRow}>
+              <ThemedText style={styles.shareModalSubtitle}>Selecciona imágenes o videos</ThemedText>
+              <Pressable onPress={selectAllMedia} style={styles.selectAllButton}>
+                <ThemedText style={styles.selectAllText}>Seleccionar todas</ThemedText>
+              </Pressable>
+            </View>
+            
+            <ThemedText style={styles.selectedCountText}>
+              {selectedMediaIndices.length} de {propertyMedia.length} seleccionadas
+            </ThemedText>
             
             <ScrollView 
               horizontal 
@@ -574,9 +611,9 @@ export function PropertyCard({
                   key={index}
                   style={[
                     styles.mediaThumbnail,
-                    selectedMediaIndex === index && styles.mediaThumbnailSelected
+                    selectedMediaIndices.includes(index) && styles.mediaThumbnailSelected
                   ]}
-                  onPress={() => setSelectedMediaIndex(index)}
+                  onPress={() => toggleMediaSelection(index)}
                 >
                   <Image source={{ uri: media.url }} style={styles.mediaThumbnailImage} />
                   {isVideoMedia(media.url, media.tipo) && (
@@ -584,7 +621,7 @@ export function PropertyCard({
                       <Ionicons name="play-circle" size={32} color="rgba(255,255,255,0.9)" />
                     </View>
                   )}
-                  {selectedMediaIndex === index && (
+                  {selectedMediaIndices.includes(index) && (
                     <View style={styles.selectedIndicator}>
                       <Ionicons name="checkmark-circle" size={28} color="#FF5A5F" />
                     </View>
@@ -604,7 +641,7 @@ export function PropertyCard({
                 <Ionicons name="share-outline" size={22} color="#FFFFFF" />
               )}
               <ThemedText style={styles.shareMainButtonText}>
-                {isSharing ? "Preparando..." : "Compartir"}
+                {isSharing ? "Preparando..." : `Compartir (${selectedMediaIndices.length})`}
               </ThemedText>
             </Pressable>
           </View>
@@ -835,5 +872,25 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "700",
+  },
+  shareModalSubtitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: Spacing.md,
+  },
+  selectAllButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  selectAllText: {
+    color: "#FF5A5F",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  selectedCountText: {
+    fontSize: 12,
+    color: "#666",
+    marginBottom: Spacing.sm,
   },
 });
