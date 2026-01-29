@@ -1091,18 +1091,19 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   imageGalleryContainerMobile: {
-    paddingHorizontal: Spacing.md,
+    paddingHorizontal: 0,
   },
   propertyTitleOverlayMobile: {
     fontSize: 22,
+    paddingHorizontal: Spacing.md,
   },
   imageGalleryMobile: {
     flexDirection: "column",
   },
   mainImageMobile: {
     width: "100%",
-    height: 250,
-    borderRadius: BorderRadius.lg,
+    height: 280,
+    borderRadius: 0,
   },
   showAllPhotosButtonMobile: {
     flexDirection: "row",
