@@ -18,6 +18,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Avatar } from "@/components/Avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
+import { getApiUrl } from "@/lib/query-client";
 
 interface NavItem {
   key: string;
@@ -163,23 +164,32 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
       if (!user?.id) return;
 
       try {
-        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/notifications/${user.id}`);
+        const apiUrl = getApiUrl();
+        const response = await fetch(`${apiUrl}api/notifications/user/${user.id}`);
         if (response.ok) {
           const data = await response.json();
-          // Mapear la estructura de la API a la estructura del componente
-          const mappedNotifications = data.map((notification: any) => ({
-            id: notification._id,
-            title: notification.titulo,
-            message: notification.mensaje,
-            date: notification.fecha,
-            read: notification.status, // status: false = no leído, true = leído
-          }));
-          setNotifications(mappedNotifications);
+          // Verificar que data sea un array
+          if (Array.isArray(data)) {
+            // Mapear la estructura de la API a la estructura del componente
+            const mappedNotifications = data.map((notification: any) => ({
+              id: notification._id,
+              title: notification.titulo,
+              message: notification.mensaje,
+              date: notification.fecha,
+              read: notification.status, // status: false = no leído, true = leído
+            }));
+            setNotifications(mappedNotifications);
+          } else {
+            // Si no hay notificaciones o la respuesta no es un array, usar lista vacía
+            setNotifications([]);
+          }
         } else {
-          console.error('Error al cargar notificaciones:', response.status);
+          // Silently fail - notifications are not critical
+          setNotifications([]);
         }
       } catch (error) {
-        console.error('Error al cargar notificaciones:', error);
+        // Silently fail - notifications are not critical
+        setNotifications([]);
       }
     };
 
