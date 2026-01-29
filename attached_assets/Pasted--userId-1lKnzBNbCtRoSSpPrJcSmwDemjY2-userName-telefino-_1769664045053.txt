@@ -1,0 +1,69 @@
+{
+            "userId": "1lKnzBNbCtRoSSpPrJcSmwDemjY2",
+            "userName": "telefino extra 2 prueba",
+            "totalProperties": 2,
+            "properties": [
+                null,
+                null
+            ]
+        },
+        {
+            "userId": "1bKSsUhg2xeglLUcxqcBRMzg7yq2",
+            "userName": "jose prueba",
+            "totalProperties": 1,
+            "properties": [
+                {
+                    "id": 4234,
+                    "titulo": "Lote A62 - Espectacular Urbanización Legado Cobán",
+                    "descripcion": "🏡 Perfecto para construir la casa de tus sueños en un entorno moderno y tranquilo, este lote ofrece una ubicación privilegiada con alta plusvalía, ideal para una vida residencial cerca del corazón de Cobán.",
+                    "caracteristicas": "Calles pavimentadas, Fácil acceso, Sistemas de drenaje, Agua potable, Alta Plusvalía",
+                    "imagenes": [
+                        {
+                            "tipo": "Imagen",
+                            "url": "https://plataforma.controldepropiedades.com/storage/medios/legado-coban/4234/imagens/YeW1RyNt9JKFyFdOzdh3vB0PPshI8p6Xvrpyeo1n.jpg",
+                            "formato": "imagen"
+                        },
+                        {
+                            "tipo": "Imagen",
+                            "url": "https://plataforma.controldepropiedades.com/storage/medios/legado-coban/4234/imagens/g9s7hjQJEz6kBxCduvHw4SgPywkcRkU4R2RrFSoB.jpg",
+                            "formato": "imagen"
+                        },
+                        {
+                            "tipo": "Imagen",
+                            "url": "https://plataforma.controldepropiedades.com/storage/medios/legado-coban/4234/imagens/8KVyTD0E20YBF2i0Y1onanjPMQJoo0xhEdMgASgC.jpg",
+                            "formato": "imagen"
+                        },
+                        {
+                            "tipo": "Imagen",
+                            "url": "https://plataforma.controldepropiedades.com/storage/medios/legado-coban/4234/imagens/YcIX7huzWxpgxECZiR7fIxBbhVHC1D5O3PyCXlrB.jpg",
+                            "formato": "imagen"
+                        },
+                        {
+                            "tipo": "Imagen",
+                            "url": "https://plataforma.controldepropiedades.com/storage/medios/legado-coban/4234/imagens/CeIf267YQNYAbrVm2JZuiZbA6c1KErVbOytIo5ty.jpg",
+                            "formato": "imagen"
+                        },
+                        {
+                            "tipo": "Video",
+                            "url": "https://plataforma.controldepropiedades.com/storage/medios/legado-coban/4234/videos/3iSw6jJOwFtfIyUizjwMscLLWiA2J3tcjv8y8VzG.mp4",
+                            "formato": "video"
+                        },
+                        {
+                            "tipo": "Video",
+                            "url": "https://plataforma.controldepropiedades.com/storage/medios/legado-coban/4234/videos/vTItdpva8XVlJ3GAKtg6ZAlDibtDt1Vd8BRfI0ox.mp4",
+                            "formato": "video"
+                        },
+                        {
+                            "tipo": "logo",
+                            "url": "https://plataforma.controldepropiedades.com/storage/proyectos/legado-coban/logo/cp6aLssdivZiu1qCIJf6WlwsphNs5OWJ0lJKgOou.png",
+                            "formato": "imagen"
+                        },
+                        {
+                            "tipo": "masterplan",
+                            "url": "https://plataforma.controldepropiedades.com/storage/proyectos/legado-coban/masterplan/EFcdfStCOodkVvD1Gtayel6zcJm1nGjIM9Fij4xR.png",
+                            "formato": "imagen"
+                        }
+                    ]
+                }
+            ]
+        },

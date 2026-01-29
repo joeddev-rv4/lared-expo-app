@@ -823,15 +823,22 @@ const TopAlliesSection = () => {
         
         if (response.ok) {
           const data = await response.json();
-          const mappedAllies: TopAlly[] = (data || []).slice(0, 6).map((user: any, index: number) => ({
-            id: user.id || user.userId || `ally-${index}`,
-            name: user.name || user.nombre || user.fullName || 'Aliado',
-            company: user.company || user.empresa || user.businessName || 'Inmobiliaria',
-            properties: user.propertyCount || user.properties || user.totalProperties || 0,
-            sales: user.sales || user.ventas || user.totalSales || 0,
-            clients: user.clients || user.clientes || user.totalClients || 0,
-            photoUrl: user.photoUrl || user.photo || user.avatar || null,
-          }));
+          const mappedAllies: TopAlly[] = (data || []).slice(0, 6).map((user: any, index: number) => {
+            const validProperties = (user.properties || []).filter((p: any) => p !== null);
+            const firstPropertyImage = validProperties.length > 0 && validProperties[0].imagenes?.length > 0
+              ? validProperties[0].imagenes.find((img: any) => img.tipo === 'Imagen')?.url
+              : null;
+            
+            return {
+              id: user.userId || user.id || `ally-${index}`,
+              name: user.userName || user.name || 'Aliado',
+              company: user.company || user.empresa || 'La Red Inmobiliaria',
+              properties: user.totalProperties || validProperties.length || 0,
+              sales: user.sales || user.ventas || 0,
+              clients: user.clients || user.clientes || 0,
+              photoUrl: user.photoUrl || user.photo || firstPropertyImage || null,
+            };
+          });
           setAllies(mappedAllies);
         }
       } catch (error) {
