@@ -236,34 +236,75 @@ export function PropertyCard({
     try {
       if (isWeb) {
         try {
-          const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
-          const baseUrl = domain ? `https://${domain.replace(':3000', '')}:3000` : "";
+          // Use the API URL for the proxy (backend on port 5000)
+          const apiUrl = process.env.EXPO_PUBLIC_API_URL || "";
+          let proxyBaseUrl = apiUrl;
+          
+          // If no API URL, construct from domain
+          if (!proxyBaseUrl && typeof window !== "undefined" && window.location) {
+            proxyBaseUrl = window.location.origin;
+          }
+
+          console.log("Sharing images via proxy, base URL:", proxyBaseUrl);
 
           const files: File[] = [];
           for (let i = 0; i < selectedMediaItems.length; i++) {
             const media = selectedMediaItems[i];
-            const proxyUrl = `${baseUrl}/api/image-proxy?url=${encodeURIComponent(media.url)}`;
+            const proxyUrl = `${proxyBaseUrl}/api/image-proxy?url=${encodeURIComponent(media.url)}`;
+            console.log("Fetching image from proxy:", proxyUrl);
+            
             const response = await fetch(proxyUrl);
             if (response.ok) {
               const blob = await response.blob();
               const extension = isVideoMedia(media.url, media.tipo) ? "mp4" : "jpg";
               const mimeType = isVideoMedia(media.url, media.tipo) ? "video/mp4" : "image/jpeg";
               files.push(new File([blob], `propiedad_${i + 1}.${extension}`, { type: mimeType }));
+              console.log(`Image ${i + 1} fetched successfully, size: ${blob.size}`);
+            } else {
+              console.error(`Failed to fetch image ${i + 1}:`, response.status);
             }
           }
 
-          if (files.length > 0 && navigator.share && navigator.canShare && navigator.canShare({ files })) {
-            await navigator.share({
-              title: property.title,
-              text: shareText,
-              files,
-            });
-            return;
+          console.log(`Total files prepared for sharing: ${files.length}`);
+
+          if (files.length > 0 && navigator.share && navigator.canShare) {
+            const canShareFiles = navigator.canShare({ files });
+            console.log("Browser can share files:", canShareFiles);
+            
+            if (canShareFiles) {
+              await navigator.share({
+                title: property.title,
+                text: shareText,
+                files,
+              });
+              console.log("Files shared successfully!");
+              return;
+            } else {
+              // Browser doesn't support file sharing, download images instead
+              console.log("Browser doesn't support file sharing, downloading images...");
+              for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const url = URL.createObjectURL(file);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = file.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              }
+              Alert.alert(
+                "Imagenes descargadas",
+                `Se descargaron ${files.length} imagen(es). Puedes compartirlas manualmente.`
+              );
+              return;
+            }
           }
         } catch (proxyError) {
-          console.log("Proxy error, falling back to text share:", proxyError);
+          console.error("Proxy error:", proxyError);
         }
 
+        // Fallback to text sharing
         if (navigator.share) {
           try {
             await navigator.share({
@@ -310,8 +351,11 @@ export function PropertyCard({
           );
         }
       } else {
+        // Mobile native sharing
         const cacheDir = FileSystem.documentDirectory || "";
         const downloadedUris: string[] = [];
+
+        console.log("Downloading images for mobile sharing...");
 
         for (let i = 0; i < selectedMediaItems.length; i++) {
           const media = selectedMediaItems[i];
@@ -322,26 +366,34 @@ export function PropertyCard({
             const downloadResult = await FileSystem.downloadAsync(media.url, localUri);
             if (downloadResult.status === 200) {
               downloadedUris.push(downloadResult.uri);
+              console.log(`Downloaded image ${i + 1} to:`, downloadResult.uri);
             }
           } catch (downloadError) {
             console.error("Download error for item", i, ":", downloadError);
           }
         }
 
+        console.log(`Total images downloaded: ${downloadedUris.length}`);
+
         if (downloadedUris.length > 0) {
           const isSharingAvailable = await Sharing.isAvailableAsync();
+          console.log("Sharing available:", isSharingAvailable);
 
           if (isSharingAvailable) {
-            for (const uri of downloadedUris) {
+            // Share images one by one (expo-sharing limitation)
+            for (let i = 0; i < downloadedUris.length; i++) {
+              const uri = downloadedUris[i];
+              console.log(`Sharing image ${i + 1}:`, uri);
               await Sharing.shareAsync(uri, {
                 mimeType: uri.includes(".mp4") ? "video/mp4" : "image/jpeg",
-                dialogTitle: property.title,
+                dialogTitle: `${property.title} - Imagen ${i + 1} de ${downloadedUris.length}`,
               });
             }
             return;
           }
         }
 
+        // Fallback to text sharing
         await Share.share({
           message: shareText,
           title: property.title,
