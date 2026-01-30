@@ -12,6 +12,8 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
+  Platform,
+  Share,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -21,6 +23,8 @@ import * as Haptics from "expo-haptics";
 import * as FileSystem from "expo-file-system/legacy";
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
+
+const isWeb = Platform.OS === "web";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
@@ -48,6 +52,31 @@ export default function PropertyDetailScreen() {
   const [showGallery, setShowGallery] = useState(false);
   const [downloadingAll, setDownloadingAll] = useState(false);
   const [downloadingIndex, setDownloadingIndex] = useState<number | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [selectedMediaIndices, setSelectedMediaIndices] = useState<number[]>([0]);
+  const [isSharing, setIsSharing] = useState(false);
+
+  const propertyMedia = property?.imagenes
+    ?.filter((img) => ["Imagen", "Video"].includes(img.tipo))
+    ?.map((img) => ({ url: img.url, tipo: img.tipo })) || [{ url: property?.imageUrl || "", tipo: "Imagen" }];
+
+  const isVideoMedia = (url: string, tipo?: string) => {
+    return tipo === "Video" || url.includes(".mp4") || url.includes("video");
+  };
+
+  const toggleMediaSelection = (index: number) => {
+    setSelectedMediaIndices(prev => {
+      if (prev.includes(index)) {
+        if (prev.length === 1) return prev;
+        return prev.filter(i => i !== index);
+      }
+      return [...prev, index];
+    });
+  };
+
+  const selectAllMedia = () => {
+    setSelectedMediaIndices(propertyMedia.map((_, i) => i));
+  };
 
   const filteredImages = property?.imagenes
     ?.filter(img => ["Imagen", "Video", "masterplan"].includes(img.tipo))
@@ -88,6 +117,143 @@ export default function PropertyDetailScreen() {
         [{ text: "Entendido" }]
       );
       return;
+    }
+    setShowShareModal(true);
+  };
+
+  const getShareText = () => {
+    const priceFormatted = `Q${property.price.toLocaleString()}`;
+    return `${property.title}\n\n${property.location}\n${priceFormatted}\n${property.area} m²\n\n${property.description || ""}\n\nLa Red Inmobiliaria - Hecha por vendedores, para vendedores`;
+  };
+
+  const shareWithImages = async () => {
+    setIsSharing(true);
+    const selectedMediaItems = selectedMediaIndices.map(i => propertyMedia[i]);
+    const shareText = getShareText();
+
+    try {
+      if (isWeb) {
+        // Use EXPO_PUBLIC_DOMAIN for the image proxy
+        const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
+        const proxyBaseUrl = domain ? `https://${domain}` : "";
+
+        console.log("Sharing images via proxy, base URL:", proxyBaseUrl);
+
+        const files: File[] = [];
+        for (let i = 0; i < selectedMediaItems.length; i++) {
+          const media = selectedMediaItems[i];
+          const proxyUrl = `${proxyBaseUrl}/api/image-proxy?url=${encodeURIComponent(media.url)}`;
+          console.log("Fetching image from proxy:", proxyUrl);
+          
+          try {
+            const response = await fetch(proxyUrl);
+            if (response.ok) {
+              const blob = await response.blob();
+              const extension = isVideoMedia(media.url, media.tipo) ? "mp4" : "jpg";
+              const mimeType = isVideoMedia(media.url, media.tipo) ? "video/mp4" : "image/jpeg";
+              files.push(new File([blob], `propiedad_${i + 1}.${extension}`, { type: mimeType }));
+              console.log(`Image ${i + 1} fetched successfully, size: ${blob.size}`);
+            }
+          } catch (fetchError) {
+            console.error(`Failed to fetch image ${i + 1}:`, fetchError);
+          }
+        }
+
+        console.log(`Total files prepared for sharing: ${files.length}`);
+
+        if (files.length > 0 && typeof navigator !== "undefined" && navigator.share && navigator.canShare) {
+          const canShareFiles = navigator.canShare({ files });
+          console.log("Browser can share files:", canShareFiles);
+          
+          if (canShareFiles) {
+            await navigator.share({
+              title: property.title,
+              text: shareText,
+              files,
+            });
+            console.log("Files shared successfully!");
+            setShowShareModal(false);
+            return;
+          }
+        }
+
+        // If can't share files, download them
+        if (files.length > 0) {
+          console.log("Browser doesn't support file sharing, downloading images...");
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const url = URL.createObjectURL(file);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }
+          Alert.alert(
+            "Imagenes descargadas",
+            `Se descargaron ${files.length} imagen(es). Puedes compartirlas manualmente.`
+          );
+          setShowShareModal(false);
+          return;
+        }
+
+        // Fallback to text sharing
+        if (typeof navigator !== "undefined" && navigator.share) {
+          await navigator.share({
+            title: property.title,
+            text: shareText,
+          });
+        }
+      } else {
+        // Mobile native sharing
+        const cacheDir = FileSystem.documentDirectory || "";
+        const downloadedUris: string[] = [];
+
+        for (let i = 0; i < selectedMediaItems.length; i++) {
+          const media = selectedMediaItems[i];
+          const extension = isVideoMedia(media.url, media.tipo) ? "mp4" : "jpg";
+          const localUri = `${cacheDir}propiedad_${property.id}_${i}_${Date.now()}.${extension}`;
+
+          try {
+            const downloadResult = await FileSystem.downloadAsync(media.url, localUri);
+            if (downloadResult.status === 200) {
+              downloadedUris.push(downloadResult.uri);
+            }
+          } catch (downloadError) {
+            console.error("Download error for item", i, ":", downloadError);
+          }
+        }
+
+        if (downloadedUris.length > 0) {
+          const isSharingAvailable = await Sharing.isAvailableAsync();
+
+          if (isSharingAvailable) {
+            for (let i = 0; i < downloadedUris.length; i++) {
+              const uri = downloadedUris[i];
+              await Sharing.shareAsync(uri, {
+                mimeType: uri.includes(".mp4") ? "video/mp4" : "image/jpeg",
+                dialogTitle: `${property.title} - Imagen ${i + 1} de ${downloadedUris.length}`,
+              });
+            }
+            setShowShareModal(false);
+            return;
+          }
+        }
+
+        // Fallback to text sharing
+        await Share.share({
+          message: shareText,
+          title: property.title,
+        });
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+      Alert.alert("Error", "No se pudo compartir la propiedad.");
+    } finally {
+      setIsSharing(false);
+      setShowShareModal(false);
     }
   };
 
@@ -389,6 +555,80 @@ export default function PropertyDetailScreen() {
           </Pressable>
         </View>
       </View>
+
+      <Modal
+        visible={showShareModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowShareModal(false)}
+      >
+        <View style={styles.shareModalOverlay}>
+          <View style={styles.shareModalContent}>
+            <View style={styles.shareModalHeader}>
+              <ThemedText style={styles.shareModalTitle}>Compartir Propiedad</ThemedText>
+              <Pressable onPress={() => setShowShareModal(false)} style={styles.shareModalClose}>
+                <Ionicons name="close" size={24} color="#333" />
+              </Pressable>
+            </View>
+
+            <View style={styles.shareModalSubtitleRow}>
+              <ThemedText style={styles.shareModalSubtitle}>Selecciona imágenes o videos</ThemedText>
+              <Pressable onPress={selectAllMedia} style={styles.selectAllButton}>
+                <ThemedText style={styles.selectAllText}>Seleccionar todas</ThemedText>
+              </Pressable>
+            </View>
+
+            <ThemedText style={styles.selectedCountText}>
+              {selectedMediaIndices.length} de {propertyMedia.length} seleccionadas
+            </ThemedText>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.mediaScrollView}
+              contentContainerStyle={styles.mediaScrollContent}
+            >
+              {propertyMedia.map((media, index) => (
+                <Pressable
+                  key={index}
+                  style={[
+                    styles.mediaThumbnail,
+                    selectedMediaIndices.includes(index) && styles.mediaThumbnailSelected
+                  ]}
+                  onPress={() => toggleMediaSelection(index)}
+                >
+                  <Image source={{ uri: media.url }} style={styles.mediaThumbnailImage} />
+                  {isVideoMedia(media.url, media.tipo) && (
+                    <View style={styles.videoIndicator}>
+                      <Ionicons name="play-circle" size={32} color="rgba(255,255,255,0.9)" />
+                    </View>
+                  )}
+                  {selectedMediaIndices.includes(index) ? (
+                    <View style={styles.selectedIndicator}>
+                      <Ionicons name="checkmark-circle" size={28} color="#FF5A5F" />
+                    </View>
+                  ) : null}
+                </Pressable>
+              ))}
+            </ScrollView>
+
+            <Pressable
+              style={[styles.shareMainButton, isSharing && styles.shareMainButtonDisabled]}
+              onPress={shareWithImages}
+              disabled={isSharing}
+            >
+              {isSharing ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Ionicons name="share-outline" size={22} color="#FFFFFF" />
+              )}
+              <ThemedText style={styles.shareMainButtonText}>
+                {isSharing ? "Preparando..." : `Compartir (${selectedMediaIndices.length})`}
+              </ThemedText>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={showGallery}
@@ -851,5 +1091,113 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#FFFFFF",
+  },
+  shareModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  shareModalContent: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: Spacing.lg,
+    maxHeight: "80%",
+  },
+  shareModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.md,
+  },
+  shareModalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#222222",
+  },
+  shareModalClose: {
+    padding: Spacing.xs,
+  },
+  shareModalSubtitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.sm,
+  },
+  shareModalSubtitle: {
+    fontSize: 14,
+    color: "#666666",
+  },
+  selectAllButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  selectAllText: {
+    fontSize: 14,
+    color: Colors.light.primary,
+    fontWeight: "500",
+  },
+  selectedCountText: {
+    fontSize: 12,
+    color: "#888888",
+    marginBottom: Spacing.md,
+  },
+  mediaScrollView: {
+    maxHeight: 150,
+  },
+  mediaScrollContent: {
+    gap: Spacing.sm,
+    paddingRight: Spacing.sm,
+  },
+  mediaThumbnail: {
+    width: 120,
+    height: 120,
+    borderRadius: BorderRadius.md,
+    overflow: "hidden",
+    position: "relative",
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  mediaThumbnailSelected: {
+    borderColor: Colors.light.primary,
+  },
+  mediaThumbnailImage: {
+    width: "100%",
+    height: "100%",
+  },
+  videoIndicator: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  selectedIndicator: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+  },
+  shareMainButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+    backgroundColor: Colors.light.primary,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.lg,
+  },
+  shareMainButtonDisabled: {
+    opacity: 0.7,
+  },
+  shareMainButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
