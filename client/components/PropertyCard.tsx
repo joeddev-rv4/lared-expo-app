@@ -235,34 +235,51 @@ export function PropertyCard({
 
     try {
       if (isWeb) {
-        try {
-          // Use EXPO_PUBLIC_DOMAIN for the image proxy (backend server)
-          const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
-          const proxyBaseUrl = domain ? `https://${domain}` : "";
+        // Get proxy base URL from EXPO_PUBLIC_DOMAIN
+        const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
+        let proxyBaseUrl = "";
+        
+        if (domain) {
+          // Remove any port suffix and use clean domain for proxy
+          const cleanDomain = domain.replace(/:5000$/, '');
+          proxyBaseUrl = `https://${cleanDomain}`;
+        } else if (typeof window !== "undefined" && window.location) {
+          // Fallback to current origin
+          proxyBaseUrl = window.location.origin;
+        }
 
-          console.log("Sharing images via proxy, base URL:", proxyBaseUrl);
+        console.log("Web sharing - proxyBaseUrl:", proxyBaseUrl);
+        console.log("Selected media items:", selectedMediaItems.length);
 
-          const files: File[] = [];
-          for (let i = 0; i < selectedMediaItems.length; i++) {
-            const media = selectedMediaItems[i];
-            const proxyUrl = `${proxyBaseUrl}/api/image-proxy?url=${encodeURIComponent(media.url)}`;
-            console.log("Fetching image from proxy:", proxyUrl);
-            
+        const files: File[] = [];
+        
+        // Try to fetch images via proxy
+        for (let i = 0; i < selectedMediaItems.length; i++) {
+          const media = selectedMediaItems[i];
+          const proxyUrl = `${proxyBaseUrl}/api/image-proxy?url=${encodeURIComponent(media.url)}`;
+          console.log(`Fetching image ${i + 1}:`, proxyUrl);
+          
+          try {
             const response = await fetch(proxyUrl);
+            console.log(`Image ${i + 1} response status:`, response.status);
+            
             if (response.ok) {
               const blob = await response.blob();
               const extension = isVideoMedia(media.url, media.tipo) ? "mp4" : "jpg";
               const mimeType = isVideoMedia(media.url, media.tipo) ? "video/mp4" : "image/jpeg";
               files.push(new File([blob], `propiedad_${i + 1}.${extension}`, { type: mimeType }));
               console.log(`Image ${i + 1} fetched successfully, size: ${blob.size}`);
-            } else {
-              console.error(`Failed to fetch image ${i + 1}:`, response.status);
             }
+          } catch (fetchErr) {
+            console.error(`Error fetching image ${i + 1}:`, fetchErr);
           }
+        }
 
-          console.log(`Total files prepared for sharing: ${files.length}`);
+        console.log(`Total files prepared: ${files.length}`);
 
-          if (files.length > 0 && navigator.share && navigator.canShare) {
+        // Try native file sharing first
+        if (files.length > 0 && typeof navigator !== "undefined" && navigator.share && navigator.canShare) {
+          try {
             const canShareFiles = navigator.canShare({ files });
             console.log("Browser can share files:", canShareFiles);
             
@@ -274,77 +291,44 @@ export function PropertyCard({
               });
               console.log("Files shared successfully!");
               return;
-            } else {
-              // Browser doesn't support file sharing, download images instead
-              console.log("Browser doesn't support file sharing, downloading images...");
-              for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const url = URL.createObjectURL(file);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = file.name;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-              }
-              Alert.alert(
-                "Imagenes descargadas",
-                `Se descargaron ${files.length} imagen(es). Puedes compartirlas manualmente.`
-              );
-              return;
             }
+          } catch (shareErr) {
+            console.log("File share failed, will download instead:", shareErr);
           }
-        } catch (proxyError) {
-          console.error("Proxy error:", proxyError);
         }
 
-        // Fallback to text sharing
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              title: property.title,
-              text: shareText,
-              url: getShareUrl(),
-            });
-          } catch (shareError: any) {
-            if (shareError.name !== 'AbortError') {
-              if (navigator.clipboard) {
-                await navigator.clipboard.writeText(shareText);
-              } else {
-                const textArea = document.createElement("textarea");
-                textArea.value = shareText;
-                textArea.style.position = "fixed";
-                textArea.style.left = "-999999px";
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand("copy");
-                document.body.removeChild(textArea);
-              }
-              Alert.alert(
-                "Contenido copiado",
-                "El texto ha sido copiado al portapapeles. Puedes pegarlo donde desees compartirlo."
-              );
-            }
-          }
-        } else {
-          if (navigator.clipboard) {
-            await navigator.clipboard.writeText(shareText);
-          } else {
-            const textArea = document.createElement("textarea");
-            textArea.value = shareText;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textArea);
+        // If we have files but can't share natively, download them
+        if (files.length > 0) {
+          console.log("Downloading images...");
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const url = URL.createObjectURL(file);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = file.name;
+            a.style.display = "none";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
           }
           Alert.alert(
-            "Contenido copiado",
-            "El texto ha sido copiado al portapapeles. Puedes pegarlo donde desees compartirlo."
+            "Imagenes descargadas",
+            `Se descargaron ${files.length} imagen(es). Puedes compartirlas desde tu galeria.`
           );
+          return;
         }
+
+        // If no files could be fetched, open images in new tabs for manual download
+        console.log("Opening images in new tabs for download...");
+        for (let i = 0; i < selectedMediaItems.length; i++) {
+          const media = selectedMediaItems[i];
+          window.open(media.url, "_blank");
+        }
+        Alert.alert(
+          "Imagenes abiertas",
+          `Se abrieron ${selectedMediaItems.length} imagen(es) en nuevas pestanas. Manten presionado para guardarlas.`
+        );
       } else {
         // Mobile native sharing
         const cacheDir = FileSystem.documentDirectory || "";

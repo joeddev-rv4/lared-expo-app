@@ -133,20 +133,34 @@ export default function PropertyDetailScreen() {
 
     try {
       if (isWeb) {
-        // Use EXPO_PUBLIC_DOMAIN for the image proxy
+        // Get proxy base URL from EXPO_PUBLIC_DOMAIN
         const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
-        const proxyBaseUrl = domain ? `https://${domain}` : "";
+        let proxyBaseUrl = "";
+        
+        if (domain) {
+          // Remove any port suffix and use clean domain for proxy
+          const cleanDomain = domain.replace(/:5000$/, '');
+          proxyBaseUrl = `https://${cleanDomain}`;
+        } else if (typeof window !== "undefined" && window.location) {
+          // Fallback to current origin
+          proxyBaseUrl = window.location.origin;
+        }
 
-        console.log("Sharing images via proxy, base URL:", proxyBaseUrl);
+        console.log("Web sharing - proxyBaseUrl:", proxyBaseUrl);
+        console.log("Selected media items:", selectedMediaItems.length);
 
         const files: File[] = [];
+        
+        // Try to fetch images via proxy
         for (let i = 0; i < selectedMediaItems.length; i++) {
           const media = selectedMediaItems[i];
           const proxyUrl = `${proxyBaseUrl}/api/image-proxy?url=${encodeURIComponent(media.url)}`;
-          console.log("Fetching image from proxy:", proxyUrl);
+          console.log(`Fetching image ${i + 1}:`, proxyUrl);
           
           try {
             const response = await fetch(proxyUrl);
+            console.log(`Image ${i + 1} response status:`, response.status);
+            
             if (response.ok) {
               const blob = await response.blob();
               const extension = isVideoMedia(media.url, media.tipo) ? "mp4" : "jpg";
@@ -154,38 +168,44 @@ export default function PropertyDetailScreen() {
               files.push(new File([blob], `propiedad_${i + 1}.${extension}`, { type: mimeType }));
               console.log(`Image ${i + 1} fetched successfully, size: ${blob.size}`);
             }
-          } catch (fetchError) {
-            console.error(`Failed to fetch image ${i + 1}:`, fetchError);
+          } catch (fetchErr) {
+            console.error(`Error fetching image ${i + 1}:`, fetchErr);
           }
         }
 
-        console.log(`Total files prepared for sharing: ${files.length}`);
+        console.log(`Total files prepared: ${files.length}`);
 
+        // Try native file sharing first
         if (files.length > 0 && typeof navigator !== "undefined" && navigator.share && navigator.canShare) {
-          const canShareFiles = navigator.canShare({ files });
-          console.log("Browser can share files:", canShareFiles);
-          
-          if (canShareFiles) {
-            await navigator.share({
-              title: property.title,
-              text: shareText,
-              files,
-            });
-            console.log("Files shared successfully!");
-            setShowShareModal(false);
-            return;
+          try {
+            const canShareFiles = navigator.canShare({ files });
+            console.log("Browser can share files:", canShareFiles);
+            
+            if (canShareFiles) {
+              await navigator.share({
+                title: property.title,
+                text: shareText,
+                files,
+              });
+              console.log("Files shared successfully!");
+              setShowShareModal(false);
+              return;
+            }
+          } catch (shareErr) {
+            console.log("File share failed, will download instead:", shareErr);
           }
         }
 
-        // If can't share files, download them
+        // If we have files but can't share natively, download them
         if (files.length > 0) {
-          console.log("Browser doesn't support file sharing, downloading images...");
+          console.log("Downloading images...");
           for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const url = URL.createObjectURL(file);
             const a = document.createElement("a");
             a.href = url;
             a.download = file.name;
+            a.style.display = "none";
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -193,19 +213,23 @@ export default function PropertyDetailScreen() {
           }
           Alert.alert(
             "Imagenes descargadas",
-            `Se descargaron ${files.length} imagen(es). Puedes compartirlas manualmente.`
+            `Se descargaron ${files.length} imagen(es). Puedes compartirlas desde tu galeria.`
           );
           setShowShareModal(false);
           return;
         }
 
-        // Fallback to text sharing
-        if (typeof navigator !== "undefined" && navigator.share) {
-          await navigator.share({
-            title: property.title,
-            text: shareText,
-          });
+        // If no files could be fetched, open images in new tabs for manual download
+        console.log("Opening images in new tabs for download...");
+        for (let i = 0; i < selectedMediaItems.length; i++) {
+          const media = selectedMediaItems[i];
+          window.open(media.url, "_blank");
         }
+        Alert.alert(
+          "Imagenes abiertas",
+          `Se abrieron ${selectedMediaItems.length} imagen(es) en nuevas pestanas. Manten presionado para guardarlas.`
+        );
+        setShowShareModal(false);
       } else {
         // Mobile native sharing
         const cacheDir = FileSystem.documentDirectory || "";
