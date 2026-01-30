@@ -235,17 +235,21 @@ export function PropertyCard({
 
     try {
       if (isWeb) {
-        // Get proxy base URL from EXPO_PUBLIC_DOMAIN
+        // Build the proxy URL - use EXPO_PUBLIC_DOMAIN with https and keep :5000 port
         const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
         let proxyBaseUrl = "";
         
-        if (domain) {
-          // Remove any port suffix and use clean domain for proxy
-          const cleanDomain = domain.replace(/:5000$/, '');
-          proxyBaseUrl = `https://${cleanDomain}`;
+        if (domain && !domain.includes("localhost")) {
+          // Use the full domain with protocol (domain already includes :5000)
+          proxyBaseUrl = `https://${domain}`;
         } else if (typeof window !== "undefined" && window.location) {
-          // Fallback to current origin
-          proxyBaseUrl = window.location.origin;
+          // In local dev, use the current origin but adjust port to 5000
+          const origin = window.location.origin;
+          if (origin.includes("localhost")) {
+            proxyBaseUrl = origin.replace(/:\d+$/, ":5000");
+          } else {
+            proxyBaseUrl = origin;
+          }
         }
 
         console.log("Web sharing - proxyBaseUrl:", proxyBaseUrl);
@@ -277,7 +281,7 @@ export function PropertyCard({
 
         console.log(`Total files prepared: ${files.length}`);
 
-        // Try native file sharing first
+        // Try native file sharing with files
         if (files.length > 0 && typeof navigator !== "undefined" && navigator.share && navigator.canShare) {
           try {
             const canShareFiles = navigator.canShare({ files });
@@ -293,42 +297,32 @@ export function PropertyCard({
               return;
             }
           } catch (shareErr) {
-            console.log("File share failed, will download instead:", shareErr);
+            console.log("File share error:", shareErr);
           }
         }
 
-        // If we have files but can't share natively, download them
-        if (files.length > 0) {
-          console.log("Downloading images...");
-          for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const url = URL.createObjectURL(file);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = file.name;
-            a.style.display = "none";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+        // If we have files but native sharing didn't work, try text share with URL
+        if (typeof navigator !== "undefined" && navigator.share) {
+          try {
+            await navigator.share({
+              title: property.title,
+              text: shareText,
+              url: getShareUrl(),
+            });
+            console.log("Text share completed");
+            return;
+          } catch (shareErr: any) {
+            if (shareErr.name !== 'AbortError') {
+              console.log("Text share error:", shareErr);
+            }
           }
-          Alert.alert(
-            "Imagenes descargadas",
-            `Se descargaron ${files.length} imagen(es). Puedes compartirlas desde tu galeria.`
-          );
-          return;
         }
 
-        // If no files could be fetched, open images in new tabs for manual download
-        console.log("Opening images in new tabs for download...");
-        for (let i = 0; i < selectedMediaItems.length; i++) {
-          const media = selectedMediaItems[i];
-          window.open(media.url, "_blank");
+        // Last fallback - copy to clipboard
+        if (typeof navigator !== "undefined" && navigator.clipboard) {
+          await navigator.clipboard.writeText(shareText);
+          Alert.alert("Copiado", "El contenido ha sido copiado al portapapeles.");
         }
-        Alert.alert(
-          "Imagenes abiertas",
-          `Se abrieron ${selectedMediaItems.length} imagen(es) en nuevas pestanas. Manten presionado para guardarlas.`
-        );
       } else {
         // Mobile native sharing
         const cacheDir = FileSystem.documentDirectory || "";
