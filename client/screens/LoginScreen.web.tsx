@@ -1098,7 +1098,7 @@ export default function LoginScreenWeb() {
 
                       try {
                         // Enviar código de verificación por WhatsApp
-                        const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+                        const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
                         const response = await fetch(`${API_URL}/api/auth/send-verification`, {
                           method: 'POST',
                           headers: {
@@ -1267,7 +1267,7 @@ export default function LoginScreenWeb() {
                     try {
                       // Verificar el código con el servidor
                       console.log('🔍 Verificando código:', code);
-                      const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+                      const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
                       const verifyResponse = await fetch(`${API_URL}/api/auth/verify-code`, {
                         method: 'POST',
                         headers: {

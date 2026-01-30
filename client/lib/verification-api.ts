@@ -1,4 +1,4 @@
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 interface ApiResponse {
   success: boolean;
@@ -10,7 +10,7 @@ export async function sendVerificationCode(phoneNumber: string): Promise<ApiResp
     console.log('📱 [CLIENT] Enviando código de verificación...');
     console.log('   Número:', phoneNumber);
     console.log('   API URL:', API_URL);
-    
+
     const response = await fetch(`${API_URL}/api/auth/send-verification`, {
       method: 'POST',
       headers: {

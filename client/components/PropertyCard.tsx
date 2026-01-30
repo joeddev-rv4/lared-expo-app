@@ -30,33 +30,33 @@ const TikTokIcon = ({ size = 24, color = "#000000" }: { size?: number; color?: s
 
 const initTikTokPixel = () => {
   if (Platform.OS !== "web" || typeof window === "undefined") return;
-  
+
   const pixelId = process.env.EXPO_PUBLIC_TIKTOK_PIXEL_ID;
   if (!pixelId || window.ttq) return;
 
   const w = window as any;
   const d = document;
   const t = "ttq";
-  
+
   w.TiktokAnalyticsObject = t;
   const ttq = w[t] = w[t] || [];
   ttq.methods = ["page", "track", "identify", "instances", "debug", "on", "off", "once", "ready", "alias", "group", "enableCookie", "disableCookie", "holdConsent", "revokeConsent", "grantConsent"];
-  ttq.setAndDefer = function(t: any, e: string) {
-    t[e] = function() {
+  ttq.setAndDefer = function (t: any, e: string) {
+    t[e] = function () {
       t.push([e].concat(Array.prototype.slice.call(arguments, 0)));
     };
   };
   for (let i = 0; i < ttq.methods.length; i++) {
     ttq.setAndDefer(ttq, ttq.methods[i]);
   }
-  ttq.instance = function(t: string) {
+  ttq.instance = function (t: string) {
     const e = ttq._i[t] || [];
     for (let n = 0; n < ttq.methods.length; n++) {
       ttq.setAndDefer(e, ttq.methods[n]);
     }
     return e;
   };
-  ttq.load = function(e: string, n?: any) {
+  ttq.load = function (e: string, n?: any) {
     const r = "https://analytics.tiktok.com/i18n/pixel/events.js";
     ttq._i = ttq._i || {};
     ttq._i[e] = [];
@@ -72,7 +72,7 @@ const initTikTokPixel = () => {
     const firstScript = d.getElementsByTagName("script")[0];
     firstScript.parentNode?.insertBefore(script, firstScript);
   };
-  
+
   ttq.load(pixelId);
   ttq.page();
 };
@@ -115,19 +115,19 @@ export function PropertyCard({
   const shareScale = useSharedValue(1);
   const copyScale = useSharedValue(1);
   const tiktokScale = useSharedValue(1);
-  
+
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedMediaIndices, setSelectedMediaIndices] = useState<number[]>([0]);
   const [isSharing, setIsSharing] = useState(false);
-  
+
   const propertyMedia = property.imagenes
     ?.filter((img) => ["Imagen", "Video"].includes(img.tipo))
     ?.map((img) => ({ url: img.url, tipo: img.tipo })) || [{ url: property.imageUrl, tipo: "Imagen" }];
-  
+
   const isVideoMedia = (url: string, tipo?: string) => {
     return tipo === "Video" || url.includes(".mp4") || url.includes("video");
   };
-  
+
   const toggleMediaSelection = (index: number) => {
     setSelectedMediaIndices(prev => {
       if (prev.includes(index)) {
@@ -137,7 +137,7 @@ export function PropertyCard({
       return [...prev, index];
     });
   };
-  
+
   const selectAllMedia = () => {
     setSelectedMediaIndices(propertyMedia.map((_, i) => i));
   };
@@ -184,7 +184,7 @@ export function PropertyCard({
     if (!isWeb) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    
+
     if (isGuest) {
       if (onGuestAction) {
         onGuestAction();
@@ -197,7 +197,7 @@ export function PropertyCard({
       }
       return;
     }
-    
+
     onFavoritePress();
   };
 
@@ -211,34 +211,34 @@ export function PropertyCard({
     }
     setShowShareModal(true);
   };
-  
+
   const getShareText = () => {
     const priceFormatted = `Q${property.price.toLocaleString()}`;
     return `${property.title}\n\n${property.location}\n${priceFormatted}\n${property.area} m²\n\n${property.description || ""}\n\nLa Red Inmobiliaria - Hecha por vendedores, para vendedores`;
   };
-  
+
   const getShareUrl = () => {
     let baseUrl = "";
     if (isWeb && typeof window !== "undefined" && window.location) {
       baseUrl = window.location.origin;
     } else {
       const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
-      baseUrl = domain ? `https://${domain.replace(':5000', '')}` : "";
+      baseUrl = domain ? `https://${domain.replace(':3000', '')}` : "";
     }
     return userId ? `${baseUrl}/blog/${userId}/${property.id}` : baseUrl;
   };
-  
+
   const shareWithImage = async () => {
     setIsSharing(true);
     const selectedMediaItems = selectedMediaIndices.map(i => propertyMedia[i]);
     const shareText = `${getShareText()}\n\n${getShareUrl()}`;
-    
+
     try {
       if (isWeb) {
         try {
           const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
-          const baseUrl = domain ? `https://${domain.replace(':5000', '')}:5000` : "";
-          
+          const baseUrl = domain ? `https://${domain.replace(':3000', '')}:3000` : "";
+
           const files: File[] = [];
           for (let i = 0; i < selectedMediaItems.length; i++) {
             const media = selectedMediaItems[i];
@@ -251,7 +251,7 @@ export function PropertyCard({
               files.push(new File([blob], `propiedad_${i + 1}.${extension}`, { type: mimeType }));
             }
           }
-          
+
           if (files.length > 0 && navigator.share && navigator.canShare && navigator.canShare({ files })) {
             await navigator.share({
               title: property.title,
@@ -263,7 +263,7 @@ export function PropertyCard({
         } catch (proxyError) {
           console.log("Proxy error, falling back to text share:", proxyError);
         }
-        
+
         if (navigator.share) {
           try {
             await navigator.share({
@@ -312,12 +312,12 @@ export function PropertyCard({
       } else {
         const cacheDir = FileSystem.documentDirectory || "";
         const downloadedUris: string[] = [];
-        
+
         for (let i = 0; i < selectedMediaItems.length; i++) {
           const media = selectedMediaItems[i];
           const extension = isVideoMedia(media.url, media.tipo) ? "mp4" : "jpg";
           const localUri = `${cacheDir}propiedad_${property.id}_${i}_${Date.now()}.${extension}`;
-          
+
           try {
             const downloadResult = await FileSystem.downloadAsync(media.url, localUri);
             if (downloadResult.status === 200) {
@@ -327,10 +327,10 @@ export function PropertyCard({
             console.error("Download error for item", i, ":", downloadError);
           }
         }
-        
+
         if (downloadedUris.length > 0) {
           const isSharingAvailable = await Sharing.isAvailableAsync();
-          
+
           if (isSharingAvailable) {
             for (const uri of downloadedUris) {
               await Sharing.shareAsync(uri, {
@@ -341,7 +341,7 @@ export function PropertyCard({
             return;
           }
         }
-        
+
         await Share.share({
           message: shareText,
           title: property.title,
@@ -397,7 +397,7 @@ export function PropertyCard({
     setTimeout(() => {
       copyScale.value = withSpring(1, { damping: 10 });
     }, 100);
-    
+
     if (!isWeb) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
@@ -425,7 +425,7 @@ export function PropertyCard({
       baseUrl = window.location.origin;
     } else {
       const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
-      baseUrl = domain ? `https://${domain.replace(':5000', '')}` : "";
+      baseUrl = domain ? `https://${domain.replace(':3000', '')}` : "";
     }
     const blogUrl = `${baseUrl}/blog/${userId}/${property.id}`;
 
@@ -465,7 +465,7 @@ export function PropertyCard({
     setTimeout(() => {
       tiktokScale.value = withSpring(1, { damping: 10 });
     }, 100);
-    
+
     if (!isWeb) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
@@ -499,19 +499,19 @@ export function PropertyCard({
       baseUrl = window.location.origin;
     } else {
       const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
-      baseUrl = domain ? `https://${domain.replace(':5000', '')}` : "";
+      baseUrl = domain ? `https://${domain.replace(':3000', '')}` : "";
     }
-    
-    const propertyUrl = userId 
+
+    const propertyUrl = userId
       ? `${baseUrl}/blog/${userId}/${property.id}`
       : `${baseUrl}/property/${property.id}`;
-    
+
     const priceFormatted = `Q${property.price.toLocaleString()}`;
     const shareText = `${property.title} - ${priceFormatted} - ${property.location}\n\nLa Red Inmobiliaria\n${propertyUrl}`;
-    
+
     try {
       await Clipboard.setStringAsync(shareText);
-      
+
       if (isWeb && typeof window !== "undefined") {
         Alert.alert(
           "Texto copiado",
@@ -527,7 +527,7 @@ export function PropertyCard({
       } else {
         const tiktokAppUrl = "snssdk1233://";
         const canOpen = await Linking.canOpenURL(tiktokAppUrl);
-        
+
         if (canOpen) {
           Alert.alert(
             "Texto copiado",
@@ -655,7 +655,7 @@ export function PropertyCard({
           ) : null}
         </View>
       </View>
-      
+
       <Modal
         visible={showShareModal}
         animationType="slide"
@@ -670,20 +670,20 @@ export function PropertyCard({
                 <Ionicons name="close" size={24} color="#333" />
               </Pressable>
             </View>
-            
+
             <View style={styles.shareModalSubtitleRow}>
               <ThemedText style={styles.shareModalSubtitle}>Selecciona imágenes o videos</ThemedText>
               <Pressable onPress={selectAllMedia} style={styles.selectAllButton}>
                 <ThemedText style={styles.selectAllText}>Seleccionar todas</ThemedText>
               </Pressable>
             </View>
-            
+
             <ThemedText style={styles.selectedCountText}>
               {selectedMediaIndices.length} de {propertyMedia.length} seleccionadas
             </ThemedText>
-            
-            <ScrollView 
-              horizontal 
+
+            <ScrollView
+              horizontal
               showsHorizontalScrollIndicator={false}
               style={styles.mediaScrollView}
               contentContainerStyle={styles.mediaScrollContent}
@@ -711,9 +711,9 @@ export function PropertyCard({
                 </Pressable>
               ))}
             </ScrollView>
-            
-            <Pressable 
-              style={[styles.shareMainButton, isSharing && styles.shareMainButtonDisabled]} 
+
+            <Pressable
+              style={[styles.shareMainButton, isSharing && styles.shareMainButtonDisabled]}
               onPress={shareWithImage}
               disabled={isSharing}
             >

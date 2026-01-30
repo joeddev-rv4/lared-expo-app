@@ -94,7 +94,7 @@ export default function PropertyDetailScreenWeb() {
         return window.location.origin;
       }
       const domain = process.env.EXPO_PUBLIC_DOMAIN || process.env.REPLIT_DEV_DOMAIN;
-      return domain ? `https://${domain.replace(':5000', '')}` : "";
+      return domain ? `https://${domain.replace(':3000', '')}` : "";
     };
     const baseUrl = getBaseUrl();
     const blogUrl = `${baseUrl}/blog/${userId}/${property.id}`;
@@ -209,7 +209,7 @@ export default function PropertyDetailScreenWeb() {
     ?.map(img => ({ url: img.url, tipo: img.tipo })) || [];
   const galleryMedia = filteredMedia.length > 0 ? filteredMedia : [{ url: property?.imageUrl || "", tipo: "Imagen" }];
   const galleryImages = galleryMedia.map(m => m.url);
-  
+
   const isVideo = (url: string, tipo?: string) => {
     return tipo === "Video" || url.includes(".mp4") || url.includes("video");
   };
