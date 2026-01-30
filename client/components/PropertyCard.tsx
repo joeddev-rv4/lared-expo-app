@@ -1,5 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, StyleSheet, Pressable, Image, Dimensions, Share, Platform, Alert, Modal, ScrollView, ActivityIndicator } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  Image,
+  Dimensions,
+  Share,
+  Platform,
+  Alert,
+  Modal,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -24,9 +36,13 @@ declare global {
   }
 }
 
-const TikTokIcon = ({ size = 24, color = "#000000" }: { size?: number; color?: string }) => (
-  <Ionicons name="logo-tiktok" size={size} color={color} />
-);
+const TikTokIcon = ({
+  size = 24,
+  color = "#000000",
+}: {
+  size?: number;
+  color?: string;
+}) => <Ionicons name="logo-tiktok" size={size} color={color} />;
 
 const initTikTokPixel = () => {
   if (Platform.OS !== "web" || typeof window === "undefined") return;
@@ -39,8 +55,25 @@ const initTikTokPixel = () => {
   const t = "ttq";
 
   w.TiktokAnalyticsObject = t;
-  const ttq = w[t] = w[t] || [];
-  ttq.methods = ["page", "track", "identify", "instances", "debug", "on", "off", "once", "ready", "alias", "group", "enableCookie", "disableCookie", "holdConsent", "revokeConsent", "grantConsent"];
+  const ttq = (w[t] = w[t] || []);
+  ttq.methods = [
+    "page",
+    "track",
+    "identify",
+    "instances",
+    "debug",
+    "on",
+    "off",
+    "once",
+    "ready",
+    "alias",
+    "group",
+    "enableCookie",
+    "disableCookie",
+    "holdConsent",
+    "revokeConsent",
+    "grantConsent",
+  ];
   ttq.setAndDefer = function (t: any, e: string) {
     t[e] = function () {
       t.push([e].concat(Array.prototype.slice.call(arguments, 0)));
@@ -117,22 +150,26 @@ export function PropertyCard({
   const tiktokScale = useSharedValue(1);
 
   const [showShareModal, setShowShareModal] = useState(false);
-  const [selectedMediaIndices, setSelectedMediaIndices] = useState<number[]>([0]);
+  const [selectedMediaIndices, setSelectedMediaIndices] = useState<number[]>([
+    0,
+  ]);
   const [isSharing, setIsSharing] = useState(false);
 
   const propertyMedia = property.imagenes
     ?.filter((img) => ["Imagen", "Video"].includes(img.tipo))
-    ?.map((img) => ({ url: img.url, tipo: img.tipo })) || [{ url: property.imageUrl, tipo: "Imagen" }];
+    ?.map((img) => ({ url: img.url, tipo: img.tipo })) || [
+    { url: property.imageUrl, tipo: "Imagen" },
+  ];
 
   const isVideoMedia = (url: string, tipo?: string) => {
     return tipo === "Video" || url.includes(".mp4") || url.includes("video");
   };
 
   const toggleMediaSelection = (index: number) => {
-    setSelectedMediaIndices(prev => {
+    setSelectedMediaIndices((prev) => {
       if (prev.includes(index)) {
         if (prev.length === 1) return prev;
-        return prev.filter(i => i !== index);
+        return prev.filter((i) => i !== index);
       }
       return [...prev, index];
     });
@@ -192,7 +229,7 @@ export function PropertyCard({
         Alert.alert(
           "Acción no disponible",
           "Debes crear una cuenta para guardar propiedades en favoritos.",
-          [{ text: "Entendido" }]
+          [{ text: "Entendido" }],
         );
       }
       return;
@@ -214,7 +251,7 @@ export function PropertyCard({
 
   const getShareText = () => {
     const priceFormatted = `Q${property.price.toLocaleString()}`;
-    return `${property.title}\n\n${property.location}\n${priceFormatted}\n${property.area} m²\n\n${property.description || ""}\n\nLa Red Inmobiliaria - Hecha por vendedores, para vendedores`;
+    return `${property.title}\n\n${property.location}\n${priceFormatted}\n${property.area} m²\n\n${property.description || ""}\n\nLa Red Inmobiliaria - Hecho por vendedores, para ser vendedores`;
   };
 
   const getShareUrl = () => {
@@ -223,14 +260,16 @@ export function PropertyCard({
       baseUrl = window.location.origin;
     } else {
       const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
-      baseUrl = domain ? `https://${domain.replace(':3000', '')}` : "";
+      baseUrl = domain ? `https://${domain.replace(":3000", "")}` : "";
     }
     return userId ? `${baseUrl}/blog/${userId}/${property.id}` : baseUrl;
   };
 
   const shareWithImage = async () => {
     setIsSharing(true);
-    const selectedMediaItems = selectedMediaIndices.map(i => propertyMedia[i]);
+    const selectedMediaItems = selectedMediaIndices.map(
+      (i) => propertyMedia[i],
+    );
     const shareText = `${getShareText()}\n\n${getShareUrl()}`;
 
     try {
@@ -238,14 +277,14 @@ export function PropertyCard({
         // Build the proxy URL - backend is on port 5000
         const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
         let proxyBaseUrl = "";
-        
+
         if (domain && !domain.includes("localhost")) {
           // EXPO_PUBLIC_DOMAIN should include :5000, but ensure it
           if (domain.includes(":5000")) {
             proxyBaseUrl = `https://${domain}`;
           } else {
             // Extract base domain without any port and add :5000
-            const baseDomain = domain.replace(/:\d+$/, '');
+            const baseDomain = domain.replace(/:\d+$/, "");
             proxyBaseUrl = `https://${baseDomain}:5000`;
           }
         } else if (typeof window !== "undefined" && window.location) {
@@ -264,20 +303,20 @@ export function PropertyCard({
         console.log("Selected media items:", selectedMediaItems.length);
 
         const files: File[] = [];
-        
+
         // Helper function to get file extension from MIME type
         const getExtensionFromMime = (mimeType: string): string => {
           const mimeToExt: Record<string, string> = {
-            'image/jpeg': 'jpg',
-            'image/jpg': 'jpg',
-            'image/png': 'png',
-            'image/gif': 'gif',
-            'image/webp': 'webp',
-            'video/mp4': 'mp4',
-            'video/quicktime': 'mov',
-            'video/webm': 'webm',
+            "image/jpeg": "jpg",
+            "image/jpg": "jpg",
+            "image/png": "png",
+            "image/gif": "gif",
+            "image/webp": "webp",
+            "video/mp4": "mp4",
+            "video/quicktime": "mov",
+            "video/webm": "webm",
           };
-          return mimeToExt[mimeType] || 'jpg';
+          return mimeToExt[mimeType] || "jpg";
         };
 
         // Try to fetch images via proxy
@@ -285,39 +324,56 @@ export function PropertyCard({
           const media = selectedMediaItems[i];
           const proxyUrl = `${proxyBaseUrl}/api/image-proxy?url=${encodeURIComponent(media.url)}`;
           console.log(`Fetching media ${i + 1}:`, proxyUrl);
-          
+
           try {
             const response = await fetch(proxyUrl);
             console.log(`Media ${i + 1} response status:`, response.status);
-            
+
             if (response.ok) {
               // Get the actual content type from response
-              const contentType = response.headers.get('content-type') || 'image/jpeg';
-              
+              const contentType =
+                response.headers.get("content-type") || "image/jpeg";
+
               // Verify this is actually an image or video, not HTML
-              if (!contentType.startsWith('image/') && !contentType.startsWith('video/')) {
-                console.error(`Media ${i + 1} is not an image/video, got:`, contentType);
+              if (
+                !contentType.startsWith("image/") &&
+                !contentType.startsWith("video/")
+              ) {
+                console.error(
+                  `Media ${i + 1} is not an image/video, got:`,
+                  contentType,
+                );
                 continue;
               }
-              
+
               const arrayBuffer = await response.arrayBuffer();
-              
+
               // Verify we got a reasonable file size (at least 1KB for images)
               if (arrayBuffer.byteLength < 1000) {
-                console.error(`Media ${i + 1} is too small (${arrayBuffer.byteLength} bytes), likely an error`);
+                console.error(
+                  `Media ${i + 1} is too small (${arrayBuffer.byteLength} bytes), likely an error`,
+                );
                 continue;
               }
-              
+
               // Create blob with correct MIME type
               const blob = new Blob([arrayBuffer], { type: contentType });
               const extension = getExtensionFromMime(contentType);
-              
+
               // Create file with correct MIME type from response
-              const file = new File([blob], `propiedad_${i + 1}.${extension}`, { type: contentType });
+              const file = new File([blob], `propiedad_${i + 1}.${extension}`, {
+                type: contentType,
+              });
               files.push(file);
-              console.log(`Media ${i + 1} fetched successfully, size: ${blob.size}, type: ${contentType}`);
+              console.log(
+                `Media ${i + 1} fetched successfully, size: ${blob.size}, type: ${contentType}`,
+              );
             } else {
-              console.error(`Media ${i + 1} fetch failed:`, response.status, await response.text());
+              console.error(
+                `Media ${i + 1} fetch failed:`,
+                response.status,
+                await response.text(),
+              );
             }
           } catch (fetchErr) {
             console.error(`Error fetching media ${i + 1}:`, fetchErr);
@@ -327,11 +383,16 @@ export function PropertyCard({
         console.log(`Total files prepared: ${files.length}`);
 
         // Try native file sharing with files
-        if (files.length > 0 && typeof navigator !== "undefined" && navigator.share && navigator.canShare) {
+        if (
+          files.length > 0 &&
+          typeof navigator !== "undefined" &&
+          navigator.share &&
+          navigator.canShare
+        ) {
           try {
             const canShareFiles = navigator.canShare({ files });
             console.log("Browser can share files:", canShareFiles);
-            
+
             if (canShareFiles) {
               await navigator.share({
                 title: property.title,
@@ -357,7 +418,7 @@ export function PropertyCard({
             console.log("Text share completed");
             return;
           } catch (shareErr: any) {
-            if (shareErr.name !== 'AbortError') {
+            if (shareErr.name !== "AbortError") {
               console.log("Text share error:", shareErr);
             }
           }
@@ -366,7 +427,10 @@ export function PropertyCard({
         // Last fallback - copy to clipboard
         if (typeof navigator !== "undefined" && navigator.clipboard) {
           await navigator.clipboard.writeText(shareText);
-          Alert.alert("Copiado", "El contenido ha sido copiado al portapapeles.");
+          Alert.alert(
+            "Copiado",
+            "El contenido ha sido copiado al portapapeles.",
+          );
         }
       } else {
         // Mobile native sharing
@@ -381,7 +445,10 @@ export function PropertyCard({
           const localUri = `${cacheDir}propiedad_${property.id}_${i}_${Date.now()}.${extension}`;
 
           try {
-            const downloadResult = await FileSystem.downloadAsync(media.url, localUri);
+            const downloadResult = await FileSystem.downloadAsync(
+              media.url,
+              localUri,
+            );
             if (downloadResult.status === 200) {
               downloadedUris.push(downloadResult.uri);
               console.log(`Downloaded image ${i + 1} to:`, downloadResult.uri);
@@ -425,7 +492,7 @@ export function PropertyCard({
             await navigator.clipboard.writeText(shareText);
             Alert.alert(
               "Contenido copiado",
-              "El texto ha sido copiado al portapapeles. Puedes pegarlo donde desees compartirlo."
+              "El texto ha sido copiado al portapapeles. Puedes pegarlo donde desees compartirlo.",
             );
           } else {
             const textArea = document.createElement("textarea");
@@ -438,7 +505,7 @@ export function PropertyCard({
             document.body.removeChild(textArea);
             Alert.alert(
               "Contenido copiado",
-              "El texto ha sido copiado al portapapeles. Puedes pegarlo donde desees compartirlo."
+              "El texto ha sido copiado al portapapeles. Puedes pegarlo donde desees compartirlo.",
             );
           }
         } catch (clipboardError) {
@@ -479,7 +546,7 @@ export function PropertyCard({
         Alert.alert(
           "Acción no disponible",
           "Debes crear una cuenta para compartir enlaces de propiedades.",
-          [{ text: "Entendido" }]
+          [{ text: "Entendido" }],
         );
       }
       return;
@@ -495,17 +562,23 @@ export function PropertyCard({
       baseUrl = window.location.origin;
     } else {
       const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
-      baseUrl = domain ? `https://${domain.replace(':3000', '')}` : "";
+      baseUrl = domain ? `https://${domain.replace(":3000", "")}` : "";
     }
     const blogUrl = `${baseUrl}/blog/${userId}/${property.id}`;
 
     try {
       if (isWeb && typeof navigator !== "undefined" && navigator.clipboard) {
         await navigator.clipboard.writeText(blogUrl);
-        Alert.alert("Enlace copiado", "El enlace ha sido copiado al portapapeles.");
+        Alert.alert(
+          "Enlace copiado",
+          "El enlace ha sido copiado al portapapeles.",
+        );
       } else {
         await Clipboard.setStringAsync(blogUrl);
-        Alert.alert("Enlace copiado", "El enlace ha sido copiado al portapapeles.");
+        Alert.alert(
+          "Enlace copiado",
+          "El enlace ha sido copiado al portapapeles.",
+        );
       }
     } catch (error) {
       console.error("Error copying to clipboard:", error);
@@ -519,10 +592,17 @@ export function PropertyCard({
           textArea.select();
           document.execCommand("copy");
           document.body.removeChild(textArea);
-          Alert.alert("Enlace copiado", "El enlace ha sido copiado al portapapeles.");
+          Alert.alert(
+            "Enlace copiado",
+            "El enlace ha sido copiado al portapapeles.",
+          );
         } catch (fallbackError) {
           console.error("Fallback copy failed:", fallbackError);
-          Alert.alert("Error", "No se pudo copiar el enlace. Por favor, copia manualmente: " + blogUrl);
+          Alert.alert(
+            "Error",
+            "No se pudo copiar el enlace. Por favor, copia manualmente: " +
+              blogUrl,
+          );
         }
       } else {
         Alert.alert("Error", "No se pudo copiar el enlace.");
@@ -547,7 +627,7 @@ export function PropertyCard({
         Alert.alert(
           "Accion no disponible",
           "Debes crear una cuenta para compartir propiedades en TikTok.",
-          [{ text: "Entendido" }]
+          [{ text: "Entendido" }],
         );
       }
       return;
@@ -569,7 +649,7 @@ export function PropertyCard({
       baseUrl = window.location.origin;
     } else {
       const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
-      baseUrl = domain ? `https://${domain.replace(':3000', '')}` : "";
+      baseUrl = domain ? `https://${domain.replace(":3000", "")}` : "";
     }
 
     const propertyUrl = userId
@@ -592,7 +672,7 @@ export function PropertyCard({
               onPress: () => window.open("https://www.tiktok.com", "_blank"),
             },
             { text: "Cerrar" },
-          ]
+          ],
         );
       } else {
         const tiktokAppUrl = "snssdk1233://";
@@ -608,13 +688,13 @@ export function PropertyCard({
                 onPress: () => Linking.openURL(tiktokAppUrl),
               },
               { text: "Cerrar" },
-            ]
+            ],
           );
         } else {
           Alert.alert(
             "Texto copiado",
             "El texto fue copiado al portapapeles. Abre TikTok y pega el contenido en tu video.",
-            [{ text: "Entendido" }]
+            [{ text: "Entendido" }],
           );
         }
       }
@@ -669,11 +749,7 @@ export function PropertyCard({
               style={styles.iconCircle}
               testID={`share-button-${property.id}`}
             >
-              <Ionicons
-                name="share"
-                size={18}
-                color="#333333"
-              />
+              <Ionicons name="share" size={18} color="#333333" />
             </Pressable>
           </Animated.View>
           {isTikTokEnabled ? (
@@ -692,14 +768,15 @@ export function PropertyCard({
           ) : null}
         </View>
         <View style={styles.commissionBadge}>
-          <ThemedText style={styles.commissionText}>
-            Gana Q750.00
-          </ThemedText>
+          <ThemedText style={styles.commissionText}>Gana Q750.00</ThemedText>
         </View>
       </View>
 
       <View style={[styles.content, isMobileWeb && styles.contentMobileWeb]}>
-        <ThemedText style={[styles.title, isMobileWeb && styles.titleMobileWeb]} numberOfLines={2}>
+        <ThemedText
+          style={[styles.title, isMobileWeb && styles.titleMobileWeb]}
+          numberOfLines={2}
+        >
           {property.title}
         </ThemedText>
 
@@ -707,7 +784,9 @@ export function PropertyCard({
           Cuota desde Q{bankQuota.toLocaleString()}/mes
         </ThemedText>
 
-        <View style={[styles.actionsRow, isMobileWeb && styles.actionsRowMobileWeb]}>
+        <View
+          style={[styles.actionsRow, isMobileWeb && styles.actionsRowMobileWeb]}
+        >
           <Pressable onPress={handleSharePress} style={styles.shareButton}>
             <ThemedText style={[styles.shareButtonText, { color: "#bf0a0a" }]}>
               COMPARTE Y GANA
@@ -717,7 +796,13 @@ export function PropertyCard({
 
           {showCopyLink ? (
             <Animated.View style={copyAnimatedStyle}>
-              <Pressable onPress={handleCopyLink} style={[styles.copyLinkButton, isMobileWeb && styles.copyLinkButtonMobileWeb]}>
+              <Pressable
+                onPress={handleCopyLink}
+                style={[
+                  styles.copyLinkButton,
+                  isMobileWeb && styles.copyLinkButtonMobileWeb,
+                ]}
+              >
                 <Ionicons name="link-outline" size={16} color="#FFFFFF" />
                 <ThemedText style={styles.copyLinkText}>Copiar Link</ThemedText>
               </Pressable>
@@ -735,21 +820,34 @@ export function PropertyCard({
         <View style={styles.shareModalOverlay}>
           <View style={styles.shareModalContent}>
             <View style={styles.shareModalHeader}>
-              <ThemedText style={styles.shareModalTitle}>Compartir Propiedad</ThemedText>
-              <Pressable onPress={() => setShowShareModal(false)} style={styles.shareModalClose}>
+              <ThemedText style={styles.shareModalTitle}>
+                Compartir Propiedad
+              </ThemedText>
+              <Pressable
+                onPress={() => setShowShareModal(false)}
+                style={styles.shareModalClose}
+              >
                 <Ionicons name="close" size={24} color="#333" />
               </Pressable>
             </View>
 
             <View style={styles.shareModalSubtitleRow}>
-              <ThemedText style={styles.shareModalSubtitle}>Selecciona imágenes o videos</ThemedText>
-              <Pressable onPress={selectAllMedia} style={styles.selectAllButton}>
-                <ThemedText style={styles.selectAllText}>Seleccionar todas</ThemedText>
+              <ThemedText style={styles.shareModalSubtitle}>
+                Selecciona imágenes o videos
+              </ThemedText>
+              <Pressable
+                onPress={selectAllMedia}
+                style={styles.selectAllButton}
+              >
+                <ThemedText style={styles.selectAllText}>
+                  Seleccionar todas
+                </ThemedText>
               </Pressable>
             </View>
 
             <ThemedText style={styles.selectedCountText}>
-              {selectedMediaIndices.length} de {propertyMedia.length} seleccionadas
+              {selectedMediaIndices.length} de {propertyMedia.length}{" "}
+              seleccionadas
             </ThemedText>
 
             <ScrollView
@@ -763,19 +861,31 @@ export function PropertyCard({
                   key={index}
                   style={[
                     styles.mediaThumbnail,
-                    selectedMediaIndices.includes(index) && styles.mediaThumbnailSelected
+                    selectedMediaIndices.includes(index) &&
+                      styles.mediaThumbnailSelected,
                   ]}
                   onPress={() => toggleMediaSelection(index)}
                 >
-                  <Image source={{ uri: media.url }} style={styles.mediaThumbnailImage} />
+                  <Image
+                    source={{ uri: media.url }}
+                    style={styles.mediaThumbnailImage}
+                  />
                   {isVideoMedia(media.url, media.tipo) && (
                     <View style={styles.videoIndicator}>
-                      <Ionicons name="play-circle" size={32} color="rgba(255,255,255,0.9)" />
+                      <Ionicons
+                        name="play-circle"
+                        size={32}
+                        color="rgba(255,255,255,0.9)"
+                      />
                     </View>
                   )}
                   {selectedMediaIndices.includes(index) && (
                     <View style={styles.selectedIndicator}>
-                      <Ionicons name="checkmark-circle" size={28} color="#FF5A5F" />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={28}
+                        color="#FF5A5F"
+                      />
                     </View>
                   )}
                 </Pressable>
@@ -783,7 +893,10 @@ export function PropertyCard({
             </ScrollView>
 
             <Pressable
-              style={[styles.shareMainButton, isSharing && styles.shareMainButtonDisabled]}
+              style={[
+                styles.shareMainButton,
+                isSharing && styles.shareMainButtonDisabled,
+              ]}
               onPress={shareWithImage}
               disabled={isSharing}
             >
@@ -793,7 +906,9 @@ export function PropertyCard({
                 <Ionicons name="share-outline" size={22} color="#FFFFFF" />
               )}
               <ThemedText style={styles.shareMainButtonText}>
-                {isSharing ? "Preparando..." : `Compartir (${selectedMediaIndices.length})`}
+                {isSharing
+                  ? "Preparando..."
+                  : `Compartir (${selectedMediaIndices.length})`}
               </ThemedText>
             </Pressable>
           </View>

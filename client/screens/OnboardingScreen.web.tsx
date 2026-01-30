@@ -86,7 +86,9 @@ export default function OnboardingScreenWeb() {
                     styles.dot,
                     {
                       backgroundColor:
-                        index === currentPage ? "#FFFFFF" : "rgba(255, 255, 255, 0.5)",
+                        index === currentPage
+                          ? "#FFFFFF"
+                          : "rgba(255, 255, 255, 0.5)",
                       width: index === currentPage ? 24 : 8,
                     },
                   ]}
@@ -105,14 +107,17 @@ export default function OnboardingScreenWeb() {
               Bienvenido a La Red Inmobiliaria
             </ThemedText>
             <ThemedText style={styles.welcomeSubtitle}>
-              Hecha por vendedores, para vendedores
+              Hecho por vendedores, para ser vendedores
             </ThemedText>
 
             <Pressable
               onPress={handleGetStarted}
               style={({ pressed }) => [
                 styles.getStartedButton,
-                { opacity: pressed ? 0.9 : 1, backgroundColor: Colors.light.primary },
+                {
+                  opacity: pressed ? 0.9 : 1,
+                  backgroundColor: Colors.light.primary,
+                },
               ]}
             >
               <ThemedText style={styles.getStartedText}>Comenzar</ThemedText>

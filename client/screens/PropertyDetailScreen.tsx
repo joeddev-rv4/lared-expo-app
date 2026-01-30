@@ -39,7 +39,8 @@ const IMAGE_HEIGHT = SCREEN_WIDTH * 0.75;
 type PropertyDetailRouteProp = RouteProp<RootStackParamList, "PropertyDetail">;
 
 export default function PropertyDetailScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<PropertyDetailRouteProp>();
   const { theme } = useTheme();
   const { isGuest } = useAuth();
@@ -53,22 +54,26 @@ export default function PropertyDetailScreen() {
   const [downloadingAll, setDownloadingAll] = useState(false);
   const [downloadingIndex, setDownloadingIndex] = useState<number | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [selectedMediaIndices, setSelectedMediaIndices] = useState<number[]>([0]);
+  const [selectedMediaIndices, setSelectedMediaIndices] = useState<number[]>([
+    0,
+  ]);
   const [isSharing, setIsSharing] = useState(false);
 
   const propertyMedia = property?.imagenes
     ?.filter((img) => ["Imagen", "Video"].includes(img.tipo))
-    ?.map((img) => ({ url: img.url, tipo: img.tipo })) || [{ url: property?.imageUrl || "", tipo: "Imagen" }];
+    ?.map((img) => ({ url: img.url, tipo: img.tipo })) || [
+    { url: property?.imageUrl || "", tipo: "Imagen" },
+  ];
 
   const isVideoMedia = (url: string, tipo?: string) => {
     return tipo === "Video" || url.includes(".mp4") || url.includes("video");
   };
 
   const toggleMediaSelection = (index: number) => {
-    setSelectedMediaIndices(prev => {
+    setSelectedMediaIndices((prev) => {
       if (prev.includes(index)) {
         if (prev.length === 1) return prev;
-        return prev.filter(i => i !== index);
+        return prev.filter((i) => i !== index);
       }
       return [...prev, index];
     });
@@ -78,14 +83,18 @@ export default function PropertyDetailScreen() {
     setSelectedMediaIndices(propertyMedia.map((_, i) => i));
   };
 
-  const filteredImages = property?.imagenes
-    ?.filter(img => ["Imagen", "Video", "masterplan"].includes(img.tipo))
-    ?.map(img => img.url) || [];
-  const images = filteredImages.length > 0 ? filteredImages : [property?.imageUrl || ""];
+  const filteredImages =
+    property?.imagenes
+      ?.filter((img) => ["Imagen", "Video", "masterplan"].includes(img.tipo))
+      ?.map((img) => img.url) || [];
+  const images =
+    filteredImages.length > 0 ? filteredImages : [property?.imageUrl || ""];
 
   if (!property) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+      <View
+        style={[styles.container, { backgroundColor: theme.backgroundRoot }]}
+      >
         <ThemedText>Propiedad no encontrada</ThemedText>
       </View>
     );
@@ -101,7 +110,7 @@ export default function PropertyDetailScreen() {
       Alert.alert(
         "Acción no disponible",
         "Debes crear una cuenta para guardar propiedades en favoritos.",
-        [{ text: "Entendido" }]
+        [{ text: "Entendido" }],
       );
       return;
     }
@@ -114,7 +123,7 @@ export default function PropertyDetailScreen() {
       Alert.alert(
         "Acción no disponible",
         "Debes crear una cuenta para compartir propiedades.",
-        [{ text: "Entendido" }]
+        [{ text: "Entendido" }],
       );
       return;
     }
@@ -123,12 +132,14 @@ export default function PropertyDetailScreen() {
 
   const getShareText = () => {
     const priceFormatted = `Q${property.price.toLocaleString()}`;
-    return `${property.title}\n\n${property.location}\n${priceFormatted}\n${property.area} m²\n\n${property.description || ""}\n\nLa Red Inmobiliaria - Hecha por vendedores, para vendedores`;
+    return `${property.title}\n\n${property.location}\n${priceFormatted}\n${property.area} m²\n\n${property.description || ""}\n\nLa Red Inmobiliaria - Hecho por vendedores, para ser vendedores`;
   };
 
   const shareWithImages = async () => {
     setIsSharing(true);
-    const selectedMediaItems = selectedMediaIndices.map(i => propertyMedia[i]);
+    const selectedMediaItems = selectedMediaIndices.map(
+      (i) => propertyMedia[i],
+    );
     const shareText = getShareText();
 
     try {
@@ -136,14 +147,14 @@ export default function PropertyDetailScreen() {
         // Build the proxy URL - backend is on port 5000
         const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
         let proxyBaseUrl = "";
-        
+
         if (domain && !domain.includes("localhost")) {
           // EXPO_PUBLIC_DOMAIN should include :5000, but ensure it
           if (domain.includes(":5000")) {
             proxyBaseUrl = `https://${domain}`;
           } else {
             // Extract base domain without any port and add :5000
-            const baseDomain = domain.replace(/:\d+$/, '');
+            const baseDomain = domain.replace(/:\d+$/, "");
             proxyBaseUrl = `https://${baseDomain}:5000`;
           }
         } else if (typeof window !== "undefined" && window.location) {
@@ -162,20 +173,20 @@ export default function PropertyDetailScreen() {
         console.log("Selected media items:", selectedMediaItems.length);
 
         const files: File[] = [];
-        
+
         // Helper function to get file extension from MIME type
         const getExtensionFromMime = (mimeType: string): string => {
           const mimeToExt: Record<string, string> = {
-            'image/jpeg': 'jpg',
-            'image/jpg': 'jpg',
-            'image/png': 'png',
-            'image/gif': 'gif',
-            'image/webp': 'webp',
-            'video/mp4': 'mp4',
-            'video/quicktime': 'mov',
-            'video/webm': 'webm',
+            "image/jpeg": "jpg",
+            "image/jpg": "jpg",
+            "image/png": "png",
+            "image/gif": "gif",
+            "image/webp": "webp",
+            "video/mp4": "mp4",
+            "video/quicktime": "mov",
+            "video/webm": "webm",
           };
-          return mimeToExt[mimeType] || 'jpg';
+          return mimeToExt[mimeType] || "jpg";
         };
 
         // Try to fetch images via proxy
@@ -183,39 +194,56 @@ export default function PropertyDetailScreen() {
           const media = selectedMediaItems[i];
           const proxyUrl = `${proxyBaseUrl}/api/image-proxy?url=${encodeURIComponent(media.url)}`;
           console.log(`Fetching media ${i + 1}:`, proxyUrl);
-          
+
           try {
             const response = await fetch(proxyUrl);
             console.log(`Media ${i + 1} response status:`, response.status);
-            
+
             if (response.ok) {
               // Get the actual content type from response
-              const contentType = response.headers.get('content-type') || 'image/jpeg';
-              
+              const contentType =
+                response.headers.get("content-type") || "image/jpeg";
+
               // Verify this is actually an image or video, not HTML
-              if (!contentType.startsWith('image/') && !contentType.startsWith('video/')) {
-                console.error(`Media ${i + 1} is not an image/video, got:`, contentType);
+              if (
+                !contentType.startsWith("image/") &&
+                !contentType.startsWith("video/")
+              ) {
+                console.error(
+                  `Media ${i + 1} is not an image/video, got:`,
+                  contentType,
+                );
                 continue;
               }
-              
+
               const arrayBuffer = await response.arrayBuffer();
-              
+
               // Verify we got a reasonable file size (at least 1KB for images)
               if (arrayBuffer.byteLength < 1000) {
-                console.error(`Media ${i + 1} is too small (${arrayBuffer.byteLength} bytes), likely an error`);
+                console.error(
+                  `Media ${i + 1} is too small (${arrayBuffer.byteLength} bytes), likely an error`,
+                );
                 continue;
               }
-              
+
               // Create blob with correct MIME type
               const blob = new Blob([arrayBuffer], { type: contentType });
               const extension = getExtensionFromMime(contentType);
-              
+
               // Create file with correct MIME type from response
-              const file = new File([blob], `propiedad_${i + 1}.${extension}`, { type: contentType });
+              const file = new File([blob], `propiedad_${i + 1}.${extension}`, {
+                type: contentType,
+              });
               files.push(file);
-              console.log(`Media ${i + 1} fetched successfully, size: ${blob.size}, type: ${contentType}`);
+              console.log(
+                `Media ${i + 1} fetched successfully, size: ${blob.size}, type: ${contentType}`,
+              );
             } else {
-              console.error(`Media ${i + 1} fetch failed:`, response.status, await response.text());
+              console.error(
+                `Media ${i + 1} fetch failed:`,
+                response.status,
+                await response.text(),
+              );
             }
           } catch (fetchErr) {
             console.error(`Error fetching media ${i + 1}:`, fetchErr);
@@ -225,11 +253,16 @@ export default function PropertyDetailScreen() {
         console.log(`Total files prepared: ${files.length}`);
 
         // Try native file sharing with files
-        if (files.length > 0 && typeof navigator !== "undefined" && navigator.share && navigator.canShare) {
+        if (
+          files.length > 0 &&
+          typeof navigator !== "undefined" &&
+          navigator.share &&
+          navigator.canShare
+        ) {
           try {
             const canShareFiles = navigator.canShare({ files });
             console.log("Browser can share files:", canShareFiles);
-            
+
             if (canShareFiles) {
               await navigator.share({
                 title: property.title,
@@ -256,7 +289,7 @@ export default function PropertyDetailScreen() {
             setShowShareModal(false);
             return;
           } catch (shareErr: any) {
-            if (shareErr.name !== 'AbortError') {
+            if (shareErr.name !== "AbortError") {
               console.log("Text share error:", shareErr);
             }
           }
@@ -265,7 +298,10 @@ export default function PropertyDetailScreen() {
         // Last fallback - copy to clipboard
         if (typeof navigator !== "undefined" && navigator.clipboard) {
           await navigator.clipboard.writeText(shareText);
-          Alert.alert("Copiado", "El contenido ha sido copiado al portapapeles.");
+          Alert.alert(
+            "Copiado",
+            "El contenido ha sido copiado al portapapeles.",
+          );
         }
         setShowShareModal(false);
       } else {
@@ -279,7 +315,10 @@ export default function PropertyDetailScreen() {
           const localUri = `${cacheDir}propiedad_${property.id}_${i}_${Date.now()}.${extension}`;
 
           try {
-            const downloadResult = await FileSystem.downloadAsync(media.url, localUri);
+            const downloadResult = await FileSystem.downloadAsync(
+              media.url,
+              localUri,
+            );
             if (downloadResult.status === 200) {
               downloadedUris.push(downloadResult.uri);
             }
@@ -326,11 +365,15 @@ export default function PropertyDetailScreen() {
 
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permiso requerido", "Necesitas dar permiso para guardar archivos en tu galería.");
+        Alert.alert(
+          "Permiso requerido",
+          "Necesitas dar permiso para guardar archivos en tu galería.",
+        );
         return;
       }
 
-      const extension = imageUrl.includes(".mp4") || imageUrl.includes("video") ? "mp4" : "jpg";
+      const extension =
+        imageUrl.includes(".mp4") || imageUrl.includes("video") ? "mp4" : "jpg";
       const filename = `${property.title.replace(/[^a-zA-Z0-9]/g, "_")}_${index + 1}.${extension}`;
       const fileUri = FileSystem.documentDirectory + filename;
 
@@ -359,14 +402,18 @@ export default function PropertyDetailScreen() {
 
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permiso requerido", "Necesitas dar permiso para guardar archivos en tu galería.");
+        Alert.alert(
+          "Permiso requerido",
+          "Necesitas dar permiso para guardar archivos en tu galería.",
+        );
         setDownloadingAll(false);
         return;
       }
 
-      const allMedia = property?.imagenes?.filter(img =>
-        ["Imagen", "Video", "masterplan"].includes(img.tipo)
-      ) || [];
+      const allMedia =
+        property?.imagenes?.filter((img) =>
+          ["Imagen", "Video", "masterplan"].includes(img.tipo),
+        ) || [];
 
       if (allMedia.length === 0) {
         Alert.alert("Sin archivos", "No hay archivos para descargar.");
@@ -379,11 +426,17 @@ export default function PropertyDetailScreen() {
       for (let i = 0; i < allMedia.length; i++) {
         const media = allMedia[i];
         try {
-          const extension = media.tipo === "Video" || media.url.includes(".mp4") ? "mp4" : "jpg";
+          const extension =
+            media.tipo === "Video" || media.url.includes(".mp4")
+              ? "mp4"
+              : "jpg";
           const filename = `${property.title.replace(/[^a-zA-Z0-9]/g, "_")}_${i + 1}.${extension}`;
           const fileUri = FileSystem.documentDirectory + filename;
 
-          const downloadResult = await FileSystem.downloadAsync(media.url, fileUri);
+          const downloadResult = await FileSystem.downloadAsync(
+            media.url,
+            fileUri,
+          );
 
           if (downloadResult.status === 200) {
             await MediaLibrary.saveToLibraryAsync(downloadResult.uri);
@@ -395,7 +448,10 @@ export default function PropertyDetailScreen() {
       }
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert("Descarga completa", `Se descargaron ${downloadedCount} de ${allMedia.length} archivos a tu galería.`);
+      Alert.alert(
+        "Descarga completa",
+        `Se descargaron ${downloadedCount} de ${allMedia.length} archivos a tu galería.`,
+      );
     } catch (error) {
       console.error("Error downloading all media:", error);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -420,29 +476,41 @@ export default function PropertyDetailScreen() {
     }).format(price);
   };
 
-  const amenities = property.proyectoCaracteristicas && property.proyectoCaracteristicas.length > 0
-    ? property.proyectoCaracteristicas.map(c => ({ icon: "check", label: c }))
-    : [
-        { icon: "wifi", label: "WiFi" },
-        { icon: "wind", label: "Aire acondicionado" },
-        { icon: "tv", label: "TV" },
-        { icon: "coffee", label: "Cocina" },
-        { icon: "truck", label: "Estacionamiento" },
-        { icon: "droplet", label: "Piscina" },
-      ];
+  const amenities =
+    property.proyectoCaracteristicas &&
+    property.proyectoCaracteristicas.length > 0
+      ? property.proyectoCaracteristicas.map((c) => ({
+          icon: "check",
+          label: c,
+        }))
+      : [
+          { icon: "wifi", label: "WiFi" },
+          { icon: "wind", label: "Aire acondicionado" },
+          { icon: "tv", label: "TV" },
+          { icon: "coffee", label: "Cocina" },
+          { icon: "truck", label: "Estacionamiento" },
+          { icon: "droplet", label: "Piscina" },
+        ];
 
   const renderImageItem = ({ item }: { item: string }) => (
     <Image source={{ uri: item }} style={styles.carouselImage} />
   );
 
-  const shortDescription = property.descripcionCorta || property.description || "";
-  const fullDescription = property.descripcionLarga || property.description || "Esta hermosa propiedad ofrece un espacio cómodo y moderno en una ubicación privilegiada.";
+  const shortDescription =
+    property.descripcionCorta || property.description || "";
+  const fullDescription =
+    property.descripcionLarga ||
+    property.description ||
+    "Esta hermosa propiedad ofrece un espacio cómodo y moderno en una ubicación privilegiada.";
 
   return (
     <View style={[styles.container, { backgroundColor: "#FFFFFF" }]}>
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 + insets.bottom }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 100 + insets.bottom },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.imageContainer}>
@@ -456,7 +524,9 @@ export default function PropertyDetailScreen() {
             scrollEventThrottle={16}
             keyExtractor={(_, index) => index.toString()}
           />
-          <View style={[styles.floatingHeader, { paddingTop: insets.top + 10 }]}>
+          <View
+            style={[styles.floatingHeader, { paddingTop: insets.top + 10 }]}
+          >
             <Pressable onPress={handleBack} style={styles.floatingButton}>
               <Ionicons name="chevron-back" size={24} color="#222222" />
             </Pressable>
@@ -465,17 +535,25 @@ export default function PropertyDetailScreen() {
                 <Ionicons name="share" size={20} color="#222222" />
               </Pressable>
               <Pressable onPress={handleFavorite} style={styles.floatingButton}>
-                <Ionicons 
-                  name="heart-outline" 
-                  size={20} 
-                  color={isFavorite ? Colors.light.primary : "#222222"} 
+                <Ionicons
+                  name="heart-outline"
+                  size={20}
+                  color={isFavorite ? Colors.light.primary : "#222222"}
                 />
               </Pressable>
             </View>
           </View>
           <View style={styles.paginationContainer}>
-            <Pressable style={styles.pagination} onPress={() => setShowGallery(true)}>
-              <Ionicons name="grid-outline" size={12} color="#FFFFFF" style={{ marginRight: 6 }} />
+            <Pressable
+              style={styles.pagination}
+              onPress={() => setShowGallery(true)}
+            >
+              <Ionicons
+                name="grid-outline"
+                size={12}
+                color="#FFFFFF"
+                style={{ marginRight: 6 }}
+              />
               <ThemedText style={styles.paginationText}>
                 {currentImageIndex + 1} / {images.length}
               </ThemedText>
@@ -499,20 +577,26 @@ export default function PropertyDetailScreen() {
 
         <View style={styles.content}>
           <ThemedText style={styles.title}>{property.title}</ThemedText>
-          
+
           {shortDescription ? (
-            <ThemedText style={styles.shortDescription}>{shortDescription}</ThemedText>
+            <ThemedText style={styles.shortDescription}>
+              {shortDescription}
+            </ThemedText>
           ) : null}
-          
+
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Ionicons name="share" size={14} color="#222222" />
-              <ThemedText style={styles.statText}>10 veces compartida</ThemedText>
+              <ThemedText style={styles.statText}>
+                10 veces compartida
+              </ThemedText>
             </View>
             <ThemedText style={styles.statDot}>·</ThemedText>
             <View style={styles.statItem}>
               <Ionicons name="people-outline" size={14} color="#222222" />
-              <ThemedText style={styles.statText}>2 personas interesadas</ThemedText>
+              <ThemedText style={styles.statText}>
+                2 personas interesadas
+              </ThemedText>
             </View>
             <ThemedText style={styles.statDot}>·</ThemedText>
             <View style={styles.statItem}>
@@ -525,16 +609,24 @@ export default function PropertyDetailScreen() {
 
           <View style={styles.highlightsSection}>
             {property.caracteristicas && property.caracteristicas.length > 0 ? (
-              property.caracteristicas.slice(0, 4).map((caracteristica, index) => (
-                <View key={index} style={styles.highlight}>
-                  <View style={styles.highlightIcon}>
-                    <Ionicons name="checkmark-circle-outline" size={24} color="#222222" />
+              property.caracteristicas
+                .slice(0, 4)
+                .map((caracteristica, index) => (
+                  <View key={index} style={styles.highlight}>
+                    <View style={styles.highlightIcon}>
+                      <Ionicons
+                        name="checkmark-circle-outline"
+                        size={24}
+                        color="#222222"
+                      />
+                    </View>
+                    <View style={styles.highlightContent}>
+                      <ThemedText style={styles.highlightTitle}>
+                        {caracteristica}
+                      </ThemedText>
+                    </View>
                   </View>
-                  <View style={styles.highlightContent}>
-                    <ThemedText style={styles.highlightTitle}>{caracteristica}</ThemedText>
-                  </View>
-                </View>
-              ))
+                ))
             ) : (
               <>
                 <View style={styles.highlight}>
@@ -542,7 +634,9 @@ export default function PropertyDetailScreen() {
                     <Ionicons name="home" size={24} color="#222222" />
                   </View>
                   <View style={styles.highlightContent}>
-                    <ThemedText style={styles.highlightTitle}>Propiedad completa</ThemedText>
+                    <ThemedText style={styles.highlightTitle}>
+                      Propiedad completa
+                    </ThemedText>
                     <ThemedText style={styles.highlightDescription}>
                       Tendrás la propiedad solo para ti
                     </ThemedText>
@@ -554,7 +648,9 @@ export default function PropertyDetailScreen() {
                     <Ionicons name="flash-outline" size={24} color="#222222" />
                   </View>
                   <View style={styles.highlightContent}>
-                    <ThemedText style={styles.highlightTitle}>Limpieza mejorada</ThemedText>
+                    <ThemedText style={styles.highlightTitle}>
+                      Limpieza mejorada
+                    </ThemedText>
                     <ThemedText style={styles.highlightDescription}>
                       Este anfitrión sigue el proceso de limpieza avanzada
                     </ThemedText>
@@ -567,18 +663,28 @@ export default function PropertyDetailScreen() {
           <View style={styles.divider} />
 
           <View style={styles.descriptionSection}>
-            <ThemedText style={styles.sectionTitle}>Acerca de este espacio</ThemedText>
-            <ThemedText 
+            <ThemedText style={styles.sectionTitle}>
+              Acerca de este espacio
+            </ThemedText>
+            <ThemedText
               style={styles.description}
               numberOfLines={showFullDescription ? undefined : 4}
             >
               {fullDescription}
             </ThemedText>
             {fullDescription.length > 200 ? (
-              <Pressable onPress={() => setShowFullDescription(!showFullDescription)}>
+              <Pressable
+                onPress={() => setShowFullDescription(!showFullDescription)}
+              >
                 <ThemedText style={styles.showMore}>
-                  {showFullDescription ? "Mostrar menos" : "Mostrar más"} 
-                  <Ionicons name={showFullDescription ? "chevron-up" : "chevron-forward"} size={14} color="#222222" />
+                  {showFullDescription ? "Mostrar menos" : "Mostrar más"}
+                  <Ionicons
+                    name={
+                      showFullDescription ? "chevron-up" : "chevron-forward"
+                    }
+                    size={14}
+                    color="#222222"
+                  />
                 </ThemedText>
               </Pressable>
             ) : null}
@@ -587,12 +693,20 @@ export default function PropertyDetailScreen() {
           <View style={styles.divider} />
 
           <View style={styles.amenitiesSection}>
-            <ThemedText style={styles.sectionTitle}>Lo que este lugar ofrece</ThemedText>
+            <ThemedText style={styles.sectionTitle}>
+              Lo que este lugar ofrece
+            </ThemedText>
             <View style={styles.amenitiesGrid}>
               {amenities.map((amenity, index) => (
                 <View key={index} style={styles.amenityItem}>
-                  <Ionicons name={amenity.icon as any} size={24} color="#222222" />
-                  <ThemedText style={styles.amenityLabel}>{amenity.label}</ThemedText>
+                  <Ionicons
+                    name={amenity.icon as any}
+                    size={24}
+                    color="#222222"
+                  />
+                  <ThemedText style={styles.amenityLabel}>
+                    {amenity.label}
+                  </ThemedText>
                 </View>
               ))}
             </View>
@@ -603,13 +717,21 @@ export default function PropertyDetailScreen() {
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
         <View style={styles.priceInfoContainer}>
           <ThemedText style={styles.price}>Q750.00</ThemedText>
-          <ThemedText style={styles.priceDetail}>por compartir en redes sociales</ThemedText>
-          <ThemedText style={styles.priceDetail}>Precio: {formatPrice(property.price)}</ThemedText>
-          <ThemedText style={styles.priceDetail}>Cuota desde: {formatPrice(Math.round(property.price / 180))}/mes</ThemedText>
+          <ThemedText style={styles.priceDetail}>
+            por compartir en redes sociales
+          </ThemedText>
+          <ThemedText style={styles.priceDetail}>
+            Precio: {formatPrice(property.price)}
+          </ThemedText>
+          <ThemedText style={styles.priceDetail}>
+            Cuota desde: {formatPrice(Math.round(property.price / 180))}/mes
+          </ThemedText>
         </View>
         <View style={styles.buttonsContainer}>
           <Pressable style={styles.reserveButton}>
-            <ThemedText style={styles.reserveButtonText}>Comparte y gana</ThemedText>
+            <ThemedText style={styles.reserveButtonText}>
+              Comparte y gana
+            </ThemedText>
           </Pressable>
           <Pressable style={styles.copyLinkButton} onPress={handleShare}>
             <Ionicons name="link-outline" size={16} color="#FFFFFF" />
@@ -627,21 +749,34 @@ export default function PropertyDetailScreen() {
         <View style={styles.shareModalOverlay}>
           <View style={styles.shareModalContent}>
             <View style={styles.shareModalHeader}>
-              <ThemedText style={styles.shareModalTitle}>Compartir Propiedad</ThemedText>
-              <Pressable onPress={() => setShowShareModal(false)} style={styles.shareModalClose}>
+              <ThemedText style={styles.shareModalTitle}>
+                Compartir Propiedad
+              </ThemedText>
+              <Pressable
+                onPress={() => setShowShareModal(false)}
+                style={styles.shareModalClose}
+              >
                 <Ionicons name="close" size={24} color="#333" />
               </Pressable>
             </View>
 
             <View style={styles.shareModalSubtitleRow}>
-              <ThemedText style={styles.shareModalSubtitle}>Selecciona imágenes o videos</ThemedText>
-              <Pressable onPress={selectAllMedia} style={styles.selectAllButton}>
-                <ThemedText style={styles.selectAllText}>Seleccionar todas</ThemedText>
+              <ThemedText style={styles.shareModalSubtitle}>
+                Selecciona imágenes o videos
+              </ThemedText>
+              <Pressable
+                onPress={selectAllMedia}
+                style={styles.selectAllButton}
+              >
+                <ThemedText style={styles.selectAllText}>
+                  Seleccionar todas
+                </ThemedText>
               </Pressable>
             </View>
 
             <ThemedText style={styles.selectedCountText}>
-              {selectedMediaIndices.length} de {propertyMedia.length} seleccionadas
+              {selectedMediaIndices.length} de {propertyMedia.length}{" "}
+              seleccionadas
             </ThemedText>
 
             <ScrollView
@@ -655,19 +790,31 @@ export default function PropertyDetailScreen() {
                   key={index}
                   style={[
                     styles.mediaThumbnail,
-                    selectedMediaIndices.includes(index) && styles.mediaThumbnailSelected
+                    selectedMediaIndices.includes(index) &&
+                      styles.mediaThumbnailSelected,
                   ]}
                   onPress={() => toggleMediaSelection(index)}
                 >
-                  <Image source={{ uri: media.url }} style={styles.mediaThumbnailImage} />
+                  <Image
+                    source={{ uri: media.url }}
+                    style={styles.mediaThumbnailImage}
+                  />
                   {isVideoMedia(media.url, media.tipo) && (
                     <View style={styles.videoIndicator}>
-                      <Ionicons name="play-circle" size={32} color="rgba(255,255,255,0.9)" />
+                      <Ionicons
+                        name="play-circle"
+                        size={32}
+                        color="rgba(255,255,255,0.9)"
+                      />
                     </View>
                   )}
                   {selectedMediaIndices.includes(index) ? (
                     <View style={styles.selectedIndicator}>
-                      <Ionicons name="checkmark-circle" size={28} color="#FF5A5F" />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={28}
+                        color="#FF5A5F"
+                      />
                     </View>
                   ) : null}
                 </Pressable>
@@ -675,7 +822,10 @@ export default function PropertyDetailScreen() {
             </ScrollView>
 
             <Pressable
-              style={[styles.shareMainButton, isSharing && styles.shareMainButtonDisabled]}
+              style={[
+                styles.shareMainButton,
+                isSharing && styles.shareMainButtonDisabled,
+              ]}
               onPress={shareWithImages}
               disabled={isSharing}
             >
@@ -685,7 +835,9 @@ export default function PropertyDetailScreen() {
                 <Ionicons name="share-outline" size={22} color="#FFFFFF" />
               )}
               <ThemedText style={styles.shareMainButtonText}>
-                {isSharing ? "Preparando..." : `Compartir (${selectedMediaIndices.length})`}
+                {isSharing
+                  ? "Preparando..."
+                  : `Compartir (${selectedMediaIndices.length})`}
               </ThemedText>
             </Pressable>
           </View>
@@ -699,7 +851,10 @@ export default function PropertyDetailScreen() {
       >
         <View style={[styles.galleryModal, { paddingTop: insets.top }]}>
           <View style={styles.galleryHeader}>
-            <Pressable onPress={() => setShowGallery(false)} style={styles.galleryBackButton}>
+            <Pressable
+              onPress={() => setShowGallery(false)}
+              style={styles.galleryBackButton}
+            >
               <Ionicons name="arrow-back" size={24} color="#222222" />
             </Pressable>
             <ThemedText style={styles.galleryTitle}>
@@ -707,9 +862,12 @@ export default function PropertyDetailScreen() {
             </ThemedText>
             <View style={{ width: 40 }} />
           </View>
-          <ScrollView 
+          <ScrollView
             style={styles.galleryScrollView}
-            contentContainerStyle={[styles.galleryContent, { paddingBottom: insets.bottom + 20 }]}
+            contentContainerStyle={[
+              styles.galleryContent,
+              { paddingBottom: insets.bottom + 20 },
+            ]}
             showsVerticalScrollIndicator={false}
           >
             {images.map((imageUrl, index) => (
@@ -728,7 +886,11 @@ export default function PropertyDetailScreen() {
                     {downloadingIndex === index ? (
                       <ActivityIndicator size="small" color="#FFFFFF" />
                     ) : (
-                      <Ionicons name="download-outline" size={20} color="#FFFFFF" />
+                      <Ionicons
+                        name="download-outline"
+                        size={20}
+                        color="#FFFFFF"
+                      />
                     )}
                   </Pressable>
                 </View>

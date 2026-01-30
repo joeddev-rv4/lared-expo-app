@@ -32,7 +32,13 @@ import { ProfileStackParamList } from "@/navigation/ProfileStackNavigator";
 
 const isWeb = Platform.OS === "web";
 
-const ClientCountButton = ({ clientCount, onPress }: { clientCount: number; onPress: () => void }) => {
+const ClientCountButton = ({
+  clientCount,
+  onPress,
+}: {
+  clientCount: number;
+  onPress: () => void;
+}) => {
   const buttonScale = useSharedValue(1);
   const buttonAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: buttonScale.value }],
@@ -67,7 +73,11 @@ import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Property, mapAPIPropertyToProperty } from "@/data/properties";
 import { fetchPropiedades } from "@/lib/api";
-import { getUserFavoritePropertiesWithClients, getPropertyClients, FavoritePropertyWithClients } from "@/lib/api";
+import {
+  getUserFavoritePropertiesWithClients,
+  getPropertyClients,
+  FavoritePropertyWithClients,
+} from "@/lib/api";
 import { Spacing, BorderRadius, Colors, Shadows } from "@/constants/theme";
 
 type FilterType = "day" | "month" | "all";
@@ -89,9 +99,10 @@ export default function ProfileScreen() {
   const tabBarHeight = isWeb ? 0 : nativeTabBarHeight;
   const { theme, isDark } = useTheme();
   const { user } = useAuth();
-  const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
   const { width: windowWidth } = useWindowDimensions();
-  
+
   const isMobileWeb = isWeb && windowWidth < 768;
 
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("day");
@@ -99,8 +110,12 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [webSearchExpanded, setWebSearchExpanded] = useState(false);
   const [webSearchQuery, setWebSearchQuery] = useState("");
-  const [favoritePropertiesData, setFavoritePropertiesData] = useState<FavoritePropertyWithClients[]>([]);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [favoritePropertiesData, setFavoritePropertiesData] = useState<
+    FavoritePropertyWithClients[]
+  >([]);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+    null,
+  );
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
   const searchExpandAnim = useSharedValue(0);
@@ -138,13 +153,13 @@ export default function ProfileScreen() {
       setLoading(true);
 
       if (!user?.id) {
-        console.log('No user ID available');
+        console.log("No user ID available");
         setProperties([]);
         setFavoritePropertiesData([]);
         return;
       }
 
-      console.log('Loading favorite properties for user:', user.id);
+      console.log("Loading favorite properties for user:", user.id);
 
       // Obtener propiedades favoritas con conteo de clientes
       const favoriteData = await getUserFavoritePropertiesWithClients(user.id);
@@ -157,7 +172,7 @@ export default function ProfileScreen() {
           return {
             ...fav.property,
             // Agregar el conteo de clientes como una propiedad adicional
-            clientCount: fav.client_count
+            clientCount: fav.client_count,
           };
         } else {
           // Crear una propiedad básica si no hay datos
@@ -184,14 +199,17 @@ export default function ProfileScreen() {
             projectName: "",
             propertyType: "Propiedad",
             estado: "Disponible",
-            clientCount: fav.client_count
+            clientCount: fav.client_count,
           } as Property & { clientCount: number };
         }
       });
 
       setProperties(propertiesWithClients);
-      console.log('Loaded', propertiesWithClients.length, 'favorite properties');
-
+      console.log(
+        "Loaded",
+        propertiesWithClients.length,
+        "favorite properties",
+      );
     } catch (error) {
       console.error("Error loading favorite properties:", error);
       setProperties([]);
@@ -209,11 +227,11 @@ export default function ProfileScreen() {
 
   const handleClientCountPress = (property: Property) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    navigation.navigate('ClientList', { property });
+    navigation.navigate("ClientList", { property });
   };
 
   const handlePropertyPress = (property: Property) => {
-    navigation.navigate('PropertyDetail', { property });
+    navigation.navigate("PropertyDetail", { property });
   };
 
   const handleSharePress = async (property: Property) => {
@@ -227,7 +245,7 @@ export default function ProfileScreen() {
 
     try {
       const priceFormatted = `Q${property.price.toLocaleString()}`;
-      const message = `${property.title}\n\n${property.location}\n${priceFormatted}\n${property.area} m²\n\n${property.description}\n\nLa Red Inmobiliaria - Hecha por vendedores, para vendedores`;
+      const message = `${property.title}\n\n${property.location}\n${priceFormatted}\n${property.area} m²\n\n${property.description}\n\nLa Red Inmobiliaria - Hecho por vendedores, para ser vendedores`;
 
       await Share.share({
         message,
@@ -304,12 +322,19 @@ export default function ProfileScreen() {
             {property.title}
           </ThemedText>
 
-          <ThemedText style={[styles.propertyBankQuota, { color: theme.textSecondary }]}>
+          <ThemedText
+            style={[styles.propertyBankQuota, { color: theme.textSecondary }]}
+          >
             Cuota desde Q{bankQuota.toLocaleString()}/mes
           </ThemedText>
 
-          <Pressable onPress={() => handlePropertyPress(property)} style={styles.propertyViewButton}>
-            <ThemedText style={[styles.propertyViewButtonText, { color: "#bf0a0a" }]}>
+          <Pressable
+            onPress={() => handlePropertyPress(property)}
+            style={styles.propertyViewButton}
+          >
+            <ThemedText
+              style={[styles.propertyViewButtonText, { color: "#bf0a0a" }]}
+            >
               VER PROPIEDAD
             </ThemedText>
             <Ionicons name="chevron-forward" size={16} color="#bf0a0a" />
@@ -322,15 +347,16 @@ export default function ProfileScreen() {
   const renderWebSearchHeader = () => (
     <View style={styles.webSearchHeader}>
       <View style={styles.webSearchRow}>
-        <Animated.View style={[styles.webSearchButtonContainer, searchButtonAnimatedStyle]}>
-          <Pressable
-            onPress={toggleWebSearch}
-            style={styles.webSearchButton}
-          >
+        <Animated.View
+          style={[styles.webSearchButtonContainer, searchButtonAnimatedStyle]}
+        >
+          <Pressable onPress={toggleWebSearch} style={styles.webSearchButton}>
             <Ionicons name="search-outline" size={20} color="#FFFFFF" />
           </Pressable>
           {webSearchExpanded ? (
-            <Animated.View style={[styles.webSearchInputContainer, searchInputAnimatedStyle]}>
+            <Animated.View
+              style={[styles.webSearchInputContainer, searchInputAnimatedStyle]}
+            >
               <TextInput
                 value={webSearchQuery}
                 onChangeText={handleWebSearch}
@@ -339,7 +365,10 @@ export default function ProfileScreen() {
                 style={styles.webSearchInput}
                 autoFocus
               />
-              <Pressable onPress={toggleWebSearch} style={styles.webSearchCloseButton}>
+              <Pressable
+                onPress={toggleWebSearch}
+                style={styles.webSearchCloseButton}
+              >
                 <Ionicons name="close" size={18} color="#666666" />
               </Pressable>
             </Animated.View>
@@ -367,15 +396,21 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { 
+          {
             paddingTop: 0,
             paddingBottom: tabBarHeight + Spacing.xl,
-            paddingHorizontal: isMobileWeb ? Spacing.md : (isWeb ? 90 : Spacing.lg),
-          }
+            paddingHorizontal: isMobileWeb
+              ? Spacing.md
+              : isWeb
+                ? 90
+                : Spacing.lg,
+          },
         ]}
       >
         {/* Web Search Header */}
-        {isWeb ? renderWebSearchHeader() : (
+        {isWeb ? (
+          renderWebSearchHeader()
+        ) : (
           <View style={styles.mobileFiltersWrapper}>
             <View style={styles.mobileFiltersContainer}>
               {filters.map((filter, index) => (
@@ -400,22 +435,34 @@ export default function ProfileScreen() {
                 size={64}
                 color={theme.textSecondary}
               />
-              <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>
+              <ThemedText
+                style={[styles.loadingText, { color: theme.textSecondary }]}
+              >
                 Cargando propiedades...
               </ThemedText>
             </View>
           ) : properties.length > 0 ? (
             isWeb ? (
-              <View style={[styles.webGrid, isMobileWeb && styles.webGridMobile]}>
+              <View
+                style={[styles.webGrid, isMobileWeb && styles.webGridMobile]}
+              >
                 {properties.map((property) => (
-                  <View style={[styles.webGridItem, isMobileWeb && styles.webGridItemMobile]} key={property.id}>
+                  <View
+                    style={[
+                      styles.webGridItem,
+                      isMobileWeb && styles.webGridItemMobile,
+                    ]}
+                    key={property.id}
+                  >
                     {renderClientPropertyCard(property)}
                   </View>
                 ))}
               </View>
             ) : (
               <View style={styles.mobileList}>
-                {properties.map((property) => renderClientPropertyCard(property))}
+                {properties.map((property) =>
+                  renderClientPropertyCard(property),
+                )}
               </View>
             )
           ) : (
@@ -425,10 +472,14 @@ export default function ProfileScreen() {
                 size={64}
                 color={theme.textSecondary}
               />
-              <ThemedText style={[styles.emptyStateTitle, { color: theme.text }]}>
+              <ThemedText
+                style={[styles.emptyStateTitle, { color: theme.text }]}
+              >
                 No hay propiedades con clientes interesados
               </ThemedText>
-              <ThemedText style={[styles.emptyStateText, { color: theme.textSecondary }]}>
+              <ThemedText
+                style={[styles.emptyStateText, { color: theme.textSecondary }]}
+              >
                 Las propiedades con clientes interesados aparecerán aquí
               </ThemedText>
             </View>
@@ -484,7 +535,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#FFFFFF",
     marginLeft: Spacing.sm,
-    ...(isWeb && { outlineWidth: 0, outlineStyle: "none", borderWidth: 0, boxShadow: "none", caretColor: "transparent" } as any),
+    ...(isWeb &&
+      ({
+        outlineWidth: 0,
+        outlineStyle: "none",
+        borderWidth: 0,
+        boxShadow: "none",
+        caretColor: "transparent",
+      } as any)),
   },
   webSearchCloseButton: {
     padding: Spacing.xs,
@@ -506,7 +564,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: Spacing.md,
     gap: Spacing.sm,
-    position: 'relative',
+    position: "relative",
   },
 
   // Clients
@@ -517,7 +575,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.lg,
-    ...(isWeb && { display: "grid" as any, gridTemplateColumns: "repeat(3, 1fr)" as any }),
+    ...(isWeb && {
+      display: "grid" as any,
+      gridTemplateColumns: "repeat(3, 1fr)" as any,
+    }),
   },
   webGridItem: {
     width: isWeb ? "100%" : "100%",
@@ -648,12 +709,12 @@ const styles = StyleSheet.create({
   },
   // Modal Styles
   modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+    borderBottomColor: "rgba(0,0,0,0.1)",
   },
   backButton: {
     padding: Spacing.sm,
@@ -664,7 +725,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 2,
   },
   headerSubtitle: {
@@ -675,12 +736,12 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     marginBottom: Spacing.sm,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.1)',
+    borderColor: "rgba(0,0,0,0.1)",
   },
   clientHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: Spacing.sm,
   },
   clientBasicInfo: {
@@ -688,7 +749,7 @@ const styles = StyleSheet.create({
   },
   clientName: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 2,
   },
   clientDate: {
@@ -703,8 +764,8 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.sm,
   },
   detailText: {
