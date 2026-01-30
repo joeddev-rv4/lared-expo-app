@@ -1,7 +1,13 @@
 import React, { useState } from "react";
-import { useWindowDimensions } from "react-native";
+import { useWindowDimensions, Image } from "react-native";
 
-const logoSvg = require("../../assets/images-lared/logo.svg");
+// Helper para resolver URI de assets (compatible con HTML img tags)
+const resolveAsset = (asset: any): string => {
+  const resolved = Image.resolveAssetSource(asset);
+  return resolved?.uri || "";
+};
+
+const logoSvg = resolveAsset(require("../../assets/images-lared/logo.svg"));
 
 const useIsMobile = () => {
   const { width } = useWindowDimensions();

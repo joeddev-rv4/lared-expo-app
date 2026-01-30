@@ -8,7 +8,6 @@ import React, {
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
-import { getApiUrl } from "@/lib/query-client";
 
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -38,19 +37,34 @@ const scrollToSection = (
   }
 };
 
-const baseUrl = getApiUrl();
-const heroImage1 = `${baseUrl}assets/images-lared/get-started-bg.png`;
-const heroImage2 = `${baseUrl}assets/images-lared/get-started-bg-2.png`;
-const heroImage3 = `${baseUrl}assets/images-lared/get-started-bg-3.png`;
-const heroImageMobile1 = `${baseUrl}assets/images-lared/get-started-bg-mobile-1.png`;
-const heroImageMobile2 = `${baseUrl}assets/images-lared/get-started-bg-mobile-2.png`;
-const heroImageMobile3 = `${baseUrl}assets/images-lared/get-started-bg-mobile-3.png`;
-const logoSvg = `${baseUrl}assets/images-lared/logo.svg`;
-const horizontalLinesImg = `${baseUrl}assets/images-lared/horizontal-lines.png`;
-const phoneImg = `${baseUrl}assets/images-lared/phone.png`;
-const portfolioImg = `${baseUrl}assets/images-lared/portfolio_v2.png`;
-const rrssImg = `${baseUrl}assets/images-lared/rrss_v2.png`;
-const hombreFelizImg = `${baseUrl}assets/images-lared/hombre_feliz_v2.png`;
+// Helper para resolver URI de assets (compatible con HTML img tags en web)
+const resolveAsset = (asset: any): string => {
+  // En web, require() devuelve directamente la URL o un objeto con 'default'
+  if (typeof asset === "string") {
+    return asset;
+  }
+  if (asset?.default) {
+    return asset.default;
+  }
+  if (asset?.uri) {
+    return asset.uri;
+  }
+  return asset || "";
+};
+
+// Imágenes cargadas con require() (igual que LoginScreen)
+const heroImage1 = resolveAsset(require("../../../assets/images-lared/get-started-bg.png"));
+const heroImage2 = resolveAsset(require("../../../assets/images-lared/get-started-bg-2.png"));
+const heroImage3 = resolveAsset(require("../../../assets/images-lared/get-started-bg-3.png"));
+const heroImageMobile1 = resolveAsset(require("../../../assets/images-lared/get-started-bg-mobile-1.png"));
+const heroImageMobile2 = resolveAsset(require("../../../assets/images-lared/get-started-bg-mobile-2.png"));
+const heroImageMobile3 = resolveAsset(require("../../../assets/images-lared/get-started-bg-mobile-3.png"));
+const logoSvg = resolveAsset(require("../../../assets/images-lared/logo.svg"));
+const horizontalLinesImg = resolveAsset(require("../../../assets/images-lared/horizontal-lines.png"));
+const phoneImg = resolveAsset(require("../../../assets/images-lared/phone.png"));
+const portfolioImg = resolveAsset(require("../../../assets/images-lared/portfolio_v2.png"));
+const rrssImg = resolveAsset(require("../../../assets/images-lared/rrss_v2.png"));
+const hombreFelizImg = resolveAsset(require("../../../assets/images-lared/hombre_feliz_v2.png"));
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
