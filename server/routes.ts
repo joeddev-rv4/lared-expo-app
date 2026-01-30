@@ -536,7 +536,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.setHeader("Content-Type", contentType);
       res.setHeader("Access-Control-Allow-Origin", "*");
-      res.setHeader("Cache-Control", "public, max-age=86400");
+      res.setHeader("Access-Control-Expose-Headers", "Content-Type, Content-Length");
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
       
       return res.send(buffer);
     } catch (error) {

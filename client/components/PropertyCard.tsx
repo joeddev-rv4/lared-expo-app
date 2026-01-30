@@ -235,24 +235,32 @@ export function PropertyCard({
 
     try {
       if (isWeb) {
-        // Build the proxy URL - use EXPO_PUBLIC_DOMAIN with https and keep :5000 port
+        // Build the proxy URL - backend is on port 5000
         const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
         let proxyBaseUrl = "";
         
         if (domain && !domain.includes("localhost")) {
-          // Use the full domain with protocol (domain already includes :5000)
-          proxyBaseUrl = `https://${domain}`;
-        } else if (typeof window !== "undefined" && window.location) {
-          // In local dev, use the current origin but adjust port to 5000
-          const origin = window.location.origin;
-          if (origin.includes("localhost")) {
-            proxyBaseUrl = origin.replace(/:\d+$/, ":5000");
+          // EXPO_PUBLIC_DOMAIN should include :5000, but ensure it
+          if (domain.includes(":5000")) {
+            proxyBaseUrl = `https://${domain}`;
           } else {
-            proxyBaseUrl = origin;
+            // Extract base domain without any port and add :5000
+            const baseDomain = domain.replace(/:\d+$/, '');
+            proxyBaseUrl = `https://${baseDomain}:5000`;
+          }
+        } else if (typeof window !== "undefined" && window.location) {
+          // In browser, get the hostname and use port 5000
+          const hostname = window.location.hostname;
+          if (hostname === "localhost" || hostname === "127.0.0.1") {
+            proxyBaseUrl = `http://${hostname}:5000`;
+          } else {
+            // External domain - add :5000 for backend
+            proxyBaseUrl = `https://${hostname}:5000`;
           }
         }
 
         console.log("Web sharing - proxyBaseUrl:", proxyBaseUrl);
+        console.log("EXPO_PUBLIC_DOMAIN:", domain);
         console.log("Selected media items:", selectedMediaItems.length);
 
         const files: File[] = [];
