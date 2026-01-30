@@ -528,9 +528,10 @@ export default function PropertyDetailScreenWeb() {
                   <ThemedText style={styles.mobilePriceLabel}>Cuota desde:</ThemedText>
                   <ThemedText style={styles.mobilePriceValue}>Q1,950/mes</ThemedText>
                 </View>
-                <View style={styles.mobileCommissionRow}>
-                  <ThemedText style={styles.mobileCommissionText}>Gana Q750.00 por compartir</ThemedText>
-                </View>
+                <Pressable style={styles.mobileCommissionRow} onPress={handleCopyLink}>
+                  <Ionicons name="link-outline" size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
+                  <ThemedText style={styles.mobileCommissionText}>Copiar link</ThemedText>
+                </Pressable>
               </View>
             </>
           ) : null}
@@ -1432,12 +1433,14 @@ const styles = StyleSheet.create({
     color: "#222222",
   },
   mobileCommissionRow: {
+    flexDirection: "row",
     backgroundColor: "#bf0a0a",
     borderRadius: BorderRadius.sm,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     marginTop: Spacing.sm,
     alignItems: "center",
+    justifyContent: "center",
   },
   mobileCommissionText: {
     fontSize: 14,
