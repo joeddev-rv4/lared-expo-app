@@ -155,25 +155,47 @@ export default function PropertyDetailScreen() {
 
         const files: File[] = [];
         
+        // Helper function to get file extension from MIME type
+        const getExtensionFromMime = (mimeType: string): string => {
+          const mimeToExt: Record<string, string> = {
+            'image/jpeg': 'jpg',
+            'image/jpg': 'jpg',
+            'image/png': 'png',
+            'image/gif': 'gif',
+            'image/webp': 'webp',
+            'video/mp4': 'mp4',
+            'video/quicktime': 'mov',
+            'video/webm': 'webm',
+          };
+          return mimeToExt[mimeType] || 'jpg';
+        };
+
         // Try to fetch images via proxy
         for (let i = 0; i < selectedMediaItems.length; i++) {
           const media = selectedMediaItems[i];
           const proxyUrl = `${proxyBaseUrl}/api/image-proxy?url=${encodeURIComponent(media.url)}`;
-          console.log(`Fetching image ${i + 1}:`, proxyUrl);
+          console.log(`Fetching media ${i + 1}:`, proxyUrl);
           
           try {
             const response = await fetch(proxyUrl);
-            console.log(`Image ${i + 1} response status:`, response.status);
+            console.log(`Media ${i + 1} response status:`, response.status);
             
             if (response.ok) {
-              const blob = await response.blob();
-              const extension = isVideoMedia(media.url, media.tipo) ? "mp4" : "jpg";
-              const mimeType = isVideoMedia(media.url, media.tipo) ? "video/mp4" : "image/jpeg";
-              files.push(new File([blob], `propiedad_${i + 1}.${extension}`, { type: mimeType }));
-              console.log(`Image ${i + 1} fetched successfully, size: ${blob.size}`);
+              // Get the actual content type from response
+              const contentType = response.headers.get('content-type') || 'image/jpeg';
+              const arrayBuffer = await response.arrayBuffer();
+              
+              // Create blob with correct MIME type
+              const blob = new Blob([arrayBuffer], { type: contentType });
+              const extension = getExtensionFromMime(contentType);
+              
+              // Create file with correct MIME type from response
+              const file = new File([blob], `propiedad_${i + 1}.${extension}`, { type: contentType });
+              files.push(file);
+              console.log(`Media ${i + 1} fetched successfully, size: ${blob.size}, type: ${contentType}`);
             }
           } catch (fetchErr) {
-            console.error(`Error fetching image ${i + 1}:`, fetchErr);
+            console.error(`Error fetching media ${i + 1}:`, fetchErr);
           }
         }
 
