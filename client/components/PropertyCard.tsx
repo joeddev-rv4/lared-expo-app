@@ -236,13 +236,9 @@ export function PropertyCard({
     try {
       if (isWeb) {
         try {
-          // Use the current origin for the image proxy (it's on our backend server)
-          // EXPO_PUBLIC_API_URL might point to external API, so use window.location.origin instead
-          let proxyBaseUrl = "";
-          
-          if (typeof window !== "undefined" && window.location) {
-            proxyBaseUrl = window.location.origin;
-          }
+          // Use EXPO_PUBLIC_DOMAIN for the image proxy (backend server)
+          const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
+          const proxyBaseUrl = domain ? `https://${domain}` : "";
 
           console.log("Sharing images via proxy, base URL:", proxyBaseUrl);
 
