@@ -54,6 +54,9 @@ export default function PropertyDetailScreenWeb() {
   const [isFavorite, setIsFavorite] = useState(sourceTab === "favorites");
   const [downloadingAll, setDownloadingAll] = useState(false);
   const [downloadingIndex, setDownloadingIndex] = useState<number | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [selectedMediaIndices, setSelectedMediaIndices] = useState<number[]>([]);
+  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     const checkFavoriteStatus = async () => {
@@ -105,6 +108,193 @@ export default function PropertyDetailScreenWeb() {
     } catch (error) {
       console.error("Error copying to clipboard:", error);
       Alert.alert("Error", "No se pudo copiar el enlace.");
+    }
+  };
+
+  // Build property media array
+  const propertyMedia = React.useMemo(() => {
+    const media: { url: string; type: "image" | "video" }[] = [];
+    if (property?.imagenes) {
+      property.imagenes.forEach((img) => {
+        if (img.tipo === "Imagen" || img.tipo === "masterplan") {
+          media.push({ url: img.url, type: "image" });
+        } else if (img.tipo === "Video") {
+          media.push({ url: img.url, type: "video" });
+        }
+      });
+    }
+    if (media.length === 0 && property?.imageUrl) {
+      media.push({ url: property.imageUrl, type: "image" });
+    }
+    return media;
+  }, [property]);
+
+  const handleFavorite = async () => {
+    if (isGuest) {
+      Alert.alert(
+        "Acción no disponible",
+        "Debes crear una cuenta para guardar propiedades en favoritos.",
+        [{ text: "Entendido" }]
+      );
+      return;
+    }
+    
+    try {
+      const stored = await AsyncStorage.getItem("favorites");
+      let favoriteIds: string[] = stored ? JSON.parse(stored) : [];
+      
+      if (isFavorite) {
+        favoriteIds = favoriteIds.filter(id => id !== property.id);
+      } else {
+        if (!favoriteIds.includes(property.id)) {
+          favoriteIds.push(property.id);
+        }
+      }
+      
+      await AsyncStorage.setItem("favorites", JSON.stringify(favoriteIds));
+      setIsFavorite(!isFavorite);
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    }
+  };
+
+  const handleShare = () => {
+    if (isGuest) {
+      Alert.alert(
+        "Acción no disponible",
+        "Debes crear una cuenta para compartir propiedades.",
+        [{ text: "Entendido" }]
+      );
+      return;
+    }
+    setSelectedMediaIndices([0]);
+    setShowShareModal(true);
+  };
+
+  const toggleMediaSelection = (index: number) => {
+    setSelectedMediaIndices(prev => {
+      if (prev.includes(index)) {
+        return prev.filter(i => i !== index);
+      } else {
+        return [...prev, index];
+      }
+    });
+  };
+
+  const getShareText = () => {
+    const priceFormatted = `Q${property.price.toLocaleString()}`;
+    return `${property.title}\n\n${property.location}\n${priceFormatted}\n${property.area} m²\n\n${property.description || ""}\n\nLa Red Inmobiliaria - Hecho por vendedores, para ser vendedores`;
+  };
+
+  const getShareUrl = () => {
+    const userId = getCurrentUserId();
+    const getBaseUrl = () => {
+      if (typeof window !== "undefined" && window.location?.origin) {
+        return window.location.origin;
+      }
+      const domain = process.env.EXPO_PUBLIC_DOMAIN || process.env.REPLIT_DEV_DOMAIN;
+      return domain ? `https://${domain.replace(':3000', '')}` : "";
+    };
+    return `${getBaseUrl()}/blog/${userId}/${property.id}`;
+  };
+
+  const shareWithImages = async () => {
+    setIsSharing(true);
+    const selectedMediaItems = selectedMediaIndices.map(i => propertyMedia[i]);
+    const shareText = `${getShareText()}\n\n${getShareUrl()}`;
+
+    try {
+      // Build the proxy URL - backend is on port 5000
+      const domain = process.env.EXPO_PUBLIC_DOMAIN || "";
+      let proxyBaseUrl = "";
+      
+      if (domain && !domain.includes("localhost")) {
+        if (domain.includes(":5000")) {
+          proxyBaseUrl = `https://${domain}`;
+        } else {
+          const baseDomain = domain.replace(/:\d+$/, '');
+          proxyBaseUrl = `https://${baseDomain}:5000`;
+        }
+      } else if (typeof window !== "undefined" && window.location) {
+        const hostname = window.location.hostname;
+        if (hostname === "localhost" || hostname === "127.0.0.1") {
+          proxyBaseUrl = `http://${hostname}:5000`;
+        } else {
+          proxyBaseUrl = `https://${hostname}:5000`;
+        }
+      }
+
+      const files: File[] = [];
+      
+      const getExtensionFromMime = (mimeType: string): string => {
+        const mimeToExt: Record<string, string> = {
+          'image/jpeg': 'jpg',
+          'image/jpg': 'jpg',
+          'image/png': 'png',
+          'image/gif': 'gif',
+          'image/webp': 'webp',
+          'video/mp4': 'mp4',
+          'video/quicktime': 'mov',
+          'video/webm': 'webm',
+        };
+        return mimeToExt[mimeType] || 'jpg';
+      };
+
+      for (let i = 0; i < selectedMediaItems.length; i++) {
+        const media = selectedMediaItems[i];
+        const proxyUrl = `${proxyBaseUrl}/api/image-proxy?url=${encodeURIComponent(media.url)}`;
+        
+        try {
+          const response = await fetch(proxyUrl);
+          
+          if (response.ok) {
+            const contentType = response.headers.get('content-type') || 'image/jpeg';
+            
+            if (!contentType.startsWith('image/') && !contentType.startsWith('video/')) {
+              continue;
+            }
+            
+            const arrayBuffer = await response.arrayBuffer();
+            
+            if (arrayBuffer.byteLength < 1000) {
+              continue;
+            }
+            
+            const blob = new Blob([arrayBuffer], { type: contentType });
+            const extension = getExtensionFromMime(contentType);
+            const filename = `propiedad_${property.id}_${i + 1}.${extension}`;
+            const file = new File([blob], filename, { type: contentType });
+            files.push(file);
+          }
+        } catch (error) {
+          console.error(`Error fetching media ${i + 1}:`, error);
+        }
+      }
+
+      if (files.length > 0 && navigator.canShare && navigator.canShare({ files })) {
+        await navigator.share({
+          text: shareText,
+          files: files,
+        });
+      } else if (navigator.share) {
+        await navigator.share({
+          text: shareText,
+          url: getShareUrl(),
+        });
+      } else {
+        await Clipboard.setStringAsync(shareText);
+        Alert.alert("Copiado", "El texto ha sido copiado al portapapeles.");
+      }
+      
+      setShowShareModal(false);
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error("Error sharing:", error);
+        Alert.alert("Error", "No se pudo compartir. El texto fue copiado al portapapeles.");
+        await Clipboard.setStringAsync(shareText);
+      }
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -261,13 +451,13 @@ export default function PropertyDetailScreenWeb() {
             <Ionicons name="arrow-back" size={20} color="#222222" />
           </Pressable>
           <View style={styles.headerActions}>
-            <Pressable style={styles.headerActionButton}>
+            <Pressable style={styles.headerActionButton} onPress={handleShare}>
               <Ionicons name="share-outline" size={18} color="#222222" />
               <ThemedText style={styles.headerActionText}>Compartir</ThemedText>
             </Pressable>
-            <Pressable style={styles.headerActionButton}>
-              <Ionicons name="heart-outline" size={18} color="#222222" />
-              <ThemedText style={styles.headerActionText}>Guardar</ThemedText>
+            <Pressable style={styles.headerActionButton} onPress={handleFavorite}>
+              <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={18} color={isFavorite ? "#FF5A5F" : "#222222"} />
+              <ThemedText style={styles.headerActionText}>{isFavorite ? "Guardado" : "Guardar"}</ThemedText>
             </Pressable>
           </View>
         </View>
@@ -479,6 +669,72 @@ export default function PropertyDetailScreenWeb() {
           </View>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={showShareModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowShareModal(false)}
+      >
+        <View style={styles.shareModalOverlay}>
+          <View style={styles.shareModalContent}>
+            <View style={styles.shareModalHeader}>
+              <ThemedText style={styles.shareModalTitle}>Selecciona las imágenes a compartir</ThemedText>
+              <Pressable onPress={() => setShowShareModal(false)} style={styles.shareModalClose}>
+                <Ionicons name="close" size={24} color="#222222" />
+              </Pressable>
+            </View>
+            
+            <ScrollView style={styles.shareMediaGrid} contentContainerStyle={styles.shareMediaGridContent}>
+              {propertyMedia.map((media, index) => (
+                <Pressable
+                  key={index}
+                  style={[
+                    styles.shareMediaItem,
+                    selectedMediaIndices.includes(index) && styles.shareMediaItemSelected
+                  ]}
+                  onPress={() => toggleMediaSelection(index)}
+                >
+                  <Image source={{ uri: media.url }} style={styles.shareMediaImage} />
+                  {selectedMediaIndices.includes(index) ? (
+                    <View style={styles.shareMediaCheck}>
+                      <Ionicons name="checkmark-circle" size={24} color="#FF5A5F" />
+                    </View>
+                  ) : null}
+                  {media.type === "video" ? (
+                    <View style={styles.shareMediaVideoIcon}>
+                      <Ionicons name="play-circle" size={24} color="#FFFFFF" />
+                    </View>
+                  ) : null}
+                </Pressable>
+              ))}
+            </ScrollView>
+            
+            <View style={styles.shareModalFooter}>
+              <ThemedText style={styles.shareMediaCount}>
+                {selectedMediaIndices.length} seleccionada(s)
+              </ThemedText>
+              <Pressable
+                style={[
+                  styles.shareButton,
+                  selectedMediaIndices.length === 0 && styles.shareButtonDisabled
+                ]}
+                onPress={shareWithImages}
+                disabled={selectedMediaIndices.length === 0 || isSharing}
+              >
+                {isSharing ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="share-social" size={18} color="#FFFFFF" />
+                    <ThemedText style={styles.shareButtonText}>Compartir</ThemedText>
+                  </>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={showGallery}
@@ -1194,5 +1450,102 @@ const styles = StyleSheet.create({
   scrollContentMobile: {
     paddingBottom: Spacing.xl,
     paddingTop: 60 + Spacing.md,
+  },
+  shareModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  shareModalContent: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: BorderRadius.lg,
+    width: "90%",
+    maxWidth: 500,
+    maxHeight: "80%",
+  },
+  shareModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EBEBEB",
+  },
+  shareModalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#222222",
+  },
+  shareModalClose: {
+    padding: Spacing.xs,
+  },
+  shareMediaGrid: {
+    maxHeight: 400,
+  },
+  shareMediaGridContent: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    padding: Spacing.sm,
+  },
+  shareMediaItem: {
+    width: "31%",
+    aspectRatio: 1,
+    margin: "1%",
+    borderRadius: BorderRadius.sm,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  shareMediaItemSelected: {
+    borderColor: "#FF5A5F",
+  },
+  shareMediaImage: {
+    width: "100%",
+    height: "100%",
+  },
+  shareMediaCheck: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+  },
+  shareMediaVideoIcon: {
+    position: "absolute",
+    bottom: 4,
+    left: 4,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 12,
+    padding: 2,
+  },
+  shareModalFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: "#EBEBEB",
+  },
+  shareMediaCount: {
+    fontSize: 14,
+    color: "#717171",
+  },
+  shareButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FF5A5F",
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.xs,
+  },
+  shareButtonDisabled: {
+    backgroundColor: "#CCCCCC",
+  },
+  shareButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
 });
