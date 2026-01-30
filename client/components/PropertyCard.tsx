@@ -236,12 +236,11 @@ export function PropertyCard({
     try {
       if (isWeb) {
         try {
-          // Use the API URL for the proxy (backend on port 5000)
-          const apiUrl = process.env.EXPO_PUBLIC_API_URL || "";
-          let proxyBaseUrl = apiUrl;
+          // Use the current origin for the image proxy (it's on our backend server)
+          // EXPO_PUBLIC_API_URL might point to external API, so use window.location.origin instead
+          let proxyBaseUrl = "";
           
-          // If no API URL, construct from domain
-          if (!proxyBaseUrl && typeof window !== "undefined" && window.location) {
+          if (typeof window !== "undefined" && window.location) {
             proxyBaseUrl = window.location.origin;
           }
 
