@@ -183,7 +183,20 @@ export default function PropertyDetailScreen() {
             if (response.ok) {
               // Get the actual content type from response
               const contentType = response.headers.get('content-type') || 'image/jpeg';
+              
+              // Verify this is actually an image or video, not HTML
+              if (!contentType.startsWith('image/') && !contentType.startsWith('video/')) {
+                console.error(`Media ${i + 1} is not an image/video, got:`, contentType);
+                continue;
+              }
+              
               const arrayBuffer = await response.arrayBuffer();
+              
+              // Verify we got a reasonable file size (at least 1KB for images)
+              if (arrayBuffer.byteLength < 1000) {
+                console.error(`Media ${i + 1} is too small (${arrayBuffer.byteLength} bytes), likely an error`);
+                continue;
+              }
               
               // Create blob with correct MIME type
               const blob = new Blob([arrayBuffer], { type: contentType });
@@ -193,6 +206,8 @@ export default function PropertyDetailScreen() {
               const file = new File([blob], `propiedad_${i + 1}.${extension}`, { type: contentType });
               files.push(file);
               console.log(`Media ${i + 1} fetched successfully, size: ${blob.size}, type: ${contentType}`);
+            } else {
+              console.error(`Media ${i + 1} fetch failed:`, response.status, await response.text());
             }
           } catch (fetchErr) {
             console.error(`Error fetching media ${i + 1}:`, fetchErr);

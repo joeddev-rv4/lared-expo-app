@@ -505,7 +505,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("📷 Image proxy: Descargando imagen:", imageUrl.substring(0, 100));
       
-      const response = await fetch(imageUrl);
+      // Use browser-like headers to avoid being blocked
+      const response = await fetch(imageUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'image/webp,image/apng,image/*,video/*,*/*;q=0.8',
+          'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
+          'Referer': 'https://plataforma.controldepropiedades.com/',
+        },
+        redirect: 'follow',
+      });
       
       if (!response.ok) {
         console.error("❌ Error descargando imagen:", response.status);
@@ -513,8 +522,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const contentType = response.headers.get("content-type") || "image/jpeg";
+      
+      // Verify this is actually an image or video
+      if (!contentType.startsWith('image/') && !contentType.startsWith('video/')) {
+        console.error("❌ Contenido no es imagen/video:", contentType);
+        return res.status(415).json({ error: "El servidor devolvió contenido no válido", contentType });
+      }
+      
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
+      
+      console.log("✅ Imagen descargada correctamente, tipo:", contentType, "tamaño:", buffer.length);
       
       res.setHeader("Content-Type", contentType);
       res.setHeader("Access-Control-Allow-Origin", "*");
