@@ -21,11 +21,11 @@ const Stack = createNativeStackNavigator<ExploreStackParamList>();
 
 function HeaderLeftGreeting() {
   const { user } = useAuth();
-  
+
   if (isWeb) return null;
-  
-  const firstName = user?.name?.split(' ')[0] || 'Usuario';
-  
+
+  const firstName = user?.name?.split(" ")[0] || "Usuario";
+
   return (
     <ThemedText style={{ fontSize: 20, fontWeight: "700" }}>
       Hola, {firstName}

@@ -30,7 +30,7 @@ export default function ProfileStackNavigator() {
         options={{
           headerTitle: "",
           headerStyle: { backgroundColor: Colors.light.primary },
-          headerTintColor: '#FFFFFF',
+          headerTintColor: "#FFFFFF",
           headerShown: false,
         }}
       />
@@ -40,9 +40,9 @@ export default function ProfileStackNavigator() {
         options={{
           headerTitle: "Clientes Interesados",
           headerStyle: { backgroundColor: Colors.light.primary },
-          headerTintColor: '#FFFFFF',
+          headerTintColor: "#FFFFFF",
           headerShown: false, // Ya que tiene su propio header
-          presentation: 'modal',
+          presentation: "modal",
         }}
       />
       <Stack.Screen

@@ -6,7 +6,11 @@ import { ThemedText } from "@/components/ThemedText";
 import { Colors, Spacing, BorderRadius, Shadows } from "@/constants/theme";
 
 interface WebSearchBarProps {
-  onSearch?: (query: { property: string; project: string; location: string }) => void;
+  onSearch?: (query: {
+    property: string;
+    project: string;
+    location: string;
+  }) => void;
 }
 
 export function WebSearchBar({ onSearch }: WebSearchBarProps) {

@@ -43,7 +43,10 @@ import { ExploreScreenSkeleton } from "@/components/SkeletonLoader";
 import { useTheme } from "@/hooks/useTheme";
 import { Property, mapAPIPropertyToProperty } from "@/data/properties";
 import { toggleFavorite } from "@/lib/storage";
-import { togglePropertyInPortfolio, getPortfolioProperties } from "@/lib/portfolioService";
+import {
+  togglePropertyInPortfolio,
+  getPortfolioProperties,
+} from "@/lib/portfolioService";
 import {
   fetchPropiedades,
   fetchProyectos,
@@ -66,7 +69,8 @@ export default function ExploreScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme, isDark } = useTheme();
   const { user, isGuest } = useAuth();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { width: windowWidth } = useWindowDimensions();
 
   const isMobileWeb = isWeb && windowWidth < 768;
@@ -86,14 +90,18 @@ export default function ExploreScreen() {
   const [projects, setProjects] = useState<APIProyectoDetalle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
+    null,
+  );
   const [webSearchExpanded, setWebSearchExpanded] = useState(false);
   const [webSearchQuery, setWebSearchQuery] = useState("");
   const [expandedSection, setExpandedSection] = useState<SectionType>(null);
   const [favoritesPopupVisible, setFavoritesPopupVisible] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const [webFilterType, setWebFilterType] = useState<"all" | "properties" | "projects" | "new">("all");
+  const [webFilterType, setWebFilterType] = useState<
+    "all" | "properties" | "projects" | "new"
+  >("all");
 
   const searchExpandAnim = useSharedValue(0);
 
@@ -105,7 +113,7 @@ export default function ExploreScreen() {
     const userId = user?.id || auth.currentUser?.uid;
     if (userId) {
       const firebaseFavs = await getPortfolioProperties(userId);
-      const firebaseFavsStrings = firebaseFavs.map(id => id.toString());
+      const firebaseFavsStrings = firebaseFavs.map((id) => id.toString());
       setFavorites(firebaseFavsStrings);
     } else {
       setFavorites([]);
@@ -115,7 +123,7 @@ export default function ExploreScreen() {
   useFocusEffect(
     useCallback(() => {
       loadFavorites();
-    }, [loadFavorites])
+    }, [loadFavorites]),
   );
 
   const loadData = async () => {
@@ -134,7 +142,7 @@ export default function ExploreScreen() {
       const userId = user?.id || auth.currentUser?.uid;
       if (userId) {
         const firebaseFavs = await getPortfolioProperties(userId);
-        const firebaseFavsStrings = firebaseFavs.map(id => id.toString());
+        const firebaseFavsStrings = firebaseFavs.map((id) => id.toString());
         setFavorites(firebaseFavsStrings);
       } else {
         setFavorites([]);
@@ -164,26 +172,30 @@ export default function ExploreScreen() {
 
     // Actualización optimista del estado UI
     if (isCurrentlyFavorite) {
-      setFavorites(prev => prev.filter(id => id !== propertyId));
+      setFavorites((prev) => prev.filter((id) => id !== propertyId));
     } else {
-      setFavorites(prev => [...prev, propertyId]);
+      setFavorites((prev) => [...prev, propertyId]);
     }
 
     // Sincronizar con Firebase si el usuario está autenticado
     if (userId) {
       try {
-        const success = await togglePropertyInPortfolio(propertyId, isCurrentlyFavorite, userId);
+        const success = await togglePropertyInPortfolio(
+          propertyId,
+          isCurrentlyFavorite,
+          userId,
+        );
         if (!success) {
           // Revertir UI si Firebase falla
           if (isCurrentlyFavorite) {
-            setFavorites(prev => [...prev, propertyId]);
+            setFavorites((prev) => [...prev, propertyId]);
           } else {
-            setFavorites(prev => prev.filter(id => id !== propertyId));
+            setFavorites((prev) => prev.filter((id) => id !== propertyId));
           }
           Alert.alert(
             "Error",
             "No se pudo guardar en tu portafolio. Intenta de nuevo.",
-            [{ text: "OK" }]
+            [{ text: "OK" }],
           );
         } else {
           // También actualizar AsyncStorage para mantenerlo sincronizado
@@ -193,14 +205,14 @@ export default function ExploreScreen() {
         console.error("Error syncing favorite with Firebase:", error);
         // Revertir el estado UI
         if (isCurrentlyFavorite) {
-          setFavorites(prev => [...prev, propertyId]);
+          setFavorites((prev) => [...prev, propertyId]);
         } else {
-          setFavorites(prev => prev.filter(id => id !== propertyId));
+          setFavorites((prev) => prev.filter((id) => id !== propertyId));
         }
         Alert.alert(
           "Error",
           "Error de conexión. No se pudo guardar en tu portafolio.",
-          [{ text: "OK" }]
+          [{ text: "OK" }],
         );
       }
     } else {
@@ -210,7 +222,7 @@ export default function ExploreScreen() {
         Alert.alert(
           "Favorito guardado localmente",
           "Inicia sesión para sincronizar tus favoritos en todos tus dispositivos.",
-          [{ text: "OK" }]
+          [{ text: "OK" }],
         );
       }
     }
@@ -262,7 +274,7 @@ export default function ExploreScreen() {
   };
 
   const currentFavoriteProperties = useMemo(() => {
-    return properties.filter(p => favorites.includes(p.id));
+    return properties.filter((p) => favorites.includes(p.id));
   }, [properties, favorites]);
 
   const nearbyProperties = useMemo(() => {
@@ -276,9 +288,7 @@ export default function ExploreScreen() {
   }, [properties, webFilterType]);
 
   const topProperties = useMemo(() => {
-    return properties
-      .sort((a, b) => b.price - a.price)
-      .slice(0, 10);
+    return properties.sort((a, b) => b.price - a.price).slice(0, 10);
   }, [properties]);
 
   const filteredProperties = useMemo(() => {
@@ -292,16 +302,24 @@ export default function ExploreScreen() {
     }
 
     if (webSearchQuery && isWeb) {
-      filtered = filtered.filter((property) =>
-        property.title.toLowerCase().includes(webSearchQuery.toLowerCase()) ||
-        property.location.toLowerCase().includes(webSearchQuery.toLowerCase()) ||
-        property.projectName.toLowerCase().includes(webSearchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (property) =>
+          property.title.toLowerCase().includes(webSearchQuery.toLowerCase()) ||
+          property.location
+            .toLowerCase()
+            .includes(webSearchQuery.toLowerCase()) ||
+          property.projectName
+            .toLowerCase()
+            .includes(webSearchQuery.toLowerCase()),
       );
     } else if (searchQuery) {
-      filtered = filtered.filter((property) =>
-        property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        property.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        property.projectName.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (property) =>
+          property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          property.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          property.projectName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()),
       );
     }
 
@@ -338,8 +356,16 @@ export default function ExploreScreen() {
     return {
       opacity: withTiming(1 - searchExpandAnim.value, { duration: 200 }),
       transform: [
-        { translateX: withTiming(searchExpandAnim.value * -20, { duration: 200 }) },
-        { scale: withTiming(1 - searchExpandAnim.value * 0.1, { duration: 200 }) },
+        {
+          translateX: withTiming(searchExpandAnim.value * -20, {
+            duration: 200,
+          }),
+        },
+        {
+          scale: withTiming(1 - searchExpandAnim.value * 0.1, {
+            duration: 200,
+          }),
+        },
       ],
     };
   });
@@ -355,41 +381,58 @@ export default function ExploreScreen() {
       const img = project.imagenes.find((i) => i.formato === "imagen");
       return img?.url || "https://via.placeholder.com/400x300?text=Proyecto";
     }
-    const matchingProperty = properties.find((p) => p.projectName === project.nombre_proyecto);
-    return matchingProperty?.imageUrl || "https://via.placeholder.com/400x300?text=Proyecto";
+    const matchingProperty = properties.find(
+      (p) => p.projectName === project.nombre_proyecto,
+    );
+    return (
+      matchingProperty?.imageUrl ||
+      "https://via.placeholder.com/400x300?text=Proyecto"
+    );
   };
 
   const getSectionTitle = (section: SectionType): string => {
     switch (section) {
-      case "projects": return "Proyectos disponibles";
-      case "nearby": return "Propiedades cercanas";
-      case "top10": return "Top 10 propiedades";
-      case "all": return "Todas las propiedades";
-      default: return "";
+      case "projects":
+        return "Proyectos disponibles";
+      case "nearby":
+        return "Propiedades cercanas";
+      case "top10":
+        return "Top 10 propiedades";
+      case "all":
+        return "Todas las propiedades";
+      default:
+        return "";
     }
   };
 
   const getSectionData = (section: SectionType): Property[] => {
     switch (section) {
-      case "nearby": return nearbyProperties;
-      case "top10": return topProperties;
-      case "all": return filteredProperties;
-      default: return [];
+      case "nearby":
+        return nearbyProperties;
+      case "top10":
+        return topProperties;
+      case "all":
+        return filteredProperties;
+      default:
+        return [];
     }
   };
 
   const renderWebSearchHeader = () => (
     <View style={styles.webSearchHeader}>
-      <View style={[styles.webSearchRow, isMobileWeb && styles.webSearchRowMobile]}>
-        <Animated.View style={[styles.webSearchButtonContainer, searchButtonAnimatedStyle]}>
-          <Pressable
-            onPress={toggleWebSearch}
-            style={styles.webSearchButton}
-          >
+      <View
+        style={[styles.webSearchRow, isMobileWeb && styles.webSearchRowMobile]}
+      >
+        <Animated.View
+          style={[styles.webSearchButtonContainer, searchButtonAnimatedStyle]}
+        >
+          <Pressable onPress={toggleWebSearch} style={styles.webSearchButton}>
             <Ionicons name="search-outline" size={20} color="#FFFFFF" />
           </Pressable>
           {webSearchExpanded ? (
-            <Animated.View style={[styles.webSearchInputContainer, searchInputAnimatedStyle]}>
+            <Animated.View
+              style={[styles.webSearchInputContainer, searchInputAnimatedStyle]}
+            >
               <TextInput
                 value={webSearchQuery}
                 onChangeText={handleWebSearch}
@@ -398,7 +441,10 @@ export default function ExploreScreen() {
                 style={styles.webSearchInput}
                 autoFocus
               />
-              <Pressable onPress={toggleWebSearch} style={styles.webSearchCloseButton}>
+              <Pressable
+                onPress={toggleWebSearch}
+                style={styles.webSearchCloseButton}
+              >
                 <Ionicons name="close" size={18} color="#666666" />
               </Pressable>
             </Animated.View>
@@ -406,28 +452,77 @@ export default function ExploreScreen() {
         </Animated.View>
 
         {!webSearchExpanded ? (
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[styles.webTagsContainer, isMobileWeb && styles.webTagsContainerMobile]}
+            contentContainerStyle={[
+              styles.webTagsContainer,
+              isMobileWeb && styles.webTagsContainerMobile,
+            ]}
           >
-            <Pressable 
-              style={[styles.webTag, isMobileWeb && styles.webTagMobile, webFilterType === "properties" && styles.webTagActive]}
-              onPress={() => setWebFilterType(webFilterType === "properties" ? "all" : "properties")}
+            <Pressable
+              style={[
+                styles.webTag,
+                isMobileWeb && styles.webTagMobile,
+                webFilterType === "properties" && styles.webTagActive,
+              ]}
+              onPress={() =>
+                setWebFilterType(
+                  webFilterType === "properties" ? "all" : "properties",
+                )
+              }
             >
-              <ThemedText style={[styles.webTagText, isMobileWeb && styles.webTagTextMobile, webFilterType === "properties" && styles.webTagTextActive]}>Propiedades</ThemedText>
+              <ThemedText
+                style={[
+                  styles.webTagText,
+                  isMobileWeb && styles.webTagTextMobile,
+                  webFilterType === "properties" && styles.webTagTextActive,
+                ]}
+              >
+                Propiedades
+              </ThemedText>
             </Pressable>
-            <Pressable 
-              style={[styles.webTag, isMobileWeb && styles.webTagMobile, webFilterType === "projects" && styles.webTagActive]}
-              onPress={() => setWebFilterType(webFilterType === "projects" ? "all" : "projects")}
+            <Pressable
+              style={[
+                styles.webTag,
+                isMobileWeb && styles.webTagMobile,
+                webFilterType === "projects" && styles.webTagActive,
+              ]}
+              onPress={() =>
+                setWebFilterType(
+                  webFilterType === "projects" ? "all" : "projects",
+                )
+              }
             >
-              <ThemedText style={[styles.webTagText, isMobileWeb && styles.webTagTextMobile, webFilterType === "projects" && styles.webTagTextActive]}>Proyectos</ThemedText>
+              <ThemedText
+                style={[
+                  styles.webTagText,
+                  isMobileWeb && styles.webTagTextMobile,
+                  webFilterType === "projects" && styles.webTagTextActive,
+                ]}
+              >
+                Proyectos
+              </ThemedText>
             </Pressable>
-            <Pressable 
-              style={[styles.webTag, isMobileWeb && styles.webTagMobile, webFilterType === "new" && styles.webTagActive]}
-              onPress={() => setWebFilterType(webFilterType === "new" ? "all" : "new")}
+            <Pressable
+              style={[
+                styles.webTag,
+                isMobileWeb && styles.webTagMobile,
+                webFilterType === "new" && styles.webTagActive,
+              ]}
+              onPress={() =>
+                setWebFilterType(webFilterType === "new" ? "all" : "new")
+              }
             >
-              <ThemedText style={[styles.webTagText, isMobileWeb && styles.webTagTextMobile, webFilterType === "new" && styles.webTagTextActive]}>Nuevas</ThemedText>
+              <ThemedText
+                style={[
+                  styles.webTagText,
+                  isMobileWeb && styles.webTagTextMobile,
+                  webFilterType === "new" && styles.webTagTextActive,
+                ]}
+              >
+                Nuevas
+              </ThemedText>
             </Pressable>
           </ScrollView>
         ) : null}
@@ -452,18 +547,30 @@ export default function ExploreScreen() {
           isDark ? null : Shadows.card,
         ]}
       >
-        <Image source={{ uri: getProjectImage(project) }} style={styles.horizontalProjectImage} />
+        <Image
+          source={{ uri: getProjectImage(project) }}
+          style={styles.horizontalProjectImage}
+        />
         <View style={styles.horizontalProjectInfo}>
           <ThemedText style={styles.horizontalProjectName} numberOfLines={1}>
             {project.nombre_proyecto}
           </ThemedText>
           <View style={styles.projectLocationRow}>
-            <Ionicons name="location-outline" size={12} color={theme.textSecondary} />
-            <ThemedText style={[styles.projectLocation, { color: theme.textSecondary }]} numberOfLines={1}>
+            <Ionicons
+              name="location-outline"
+              size={12}
+              color={theme.textSecondary}
+            />
+            <ThemedText
+              style={[styles.projectLocation, { color: theme.textSecondary }]}
+              numberOfLines={1}
+            >
               {project.ubicacion || project.direccion}
             </ThemedText>
           </View>
-          <View style={[styles.projectTypeBadge, { backgroundColor: "#bf0a0a20" }]}>
+          <View
+            style={[styles.projectTypeBadge, { backgroundColor: "#bf0a0a20" }]}
+          >
             <ThemedText style={[styles.projectTypeLabel, { color: "#bf0a0a" }]}>
               {project.tipo}
             </ThemedText>
@@ -490,18 +597,30 @@ export default function ExploreScreen() {
           isDark ? null : Shadows.card,
         ]}
       >
-        <Image source={{ uri: getProjectImage(project) }} style={styles.expandedProjectImage} />
+        <Image
+          source={{ uri: getProjectImage(project) }}
+          style={styles.expandedProjectImage}
+        />
         <View style={styles.horizontalProjectInfo}>
           <ThemedText style={styles.horizontalProjectName} numberOfLines={1}>
             {project.nombre_proyecto}
           </ThemedText>
           <View style={styles.projectLocationRow}>
-            <Ionicons name="location-outline" size={12} color={theme.textSecondary} />
-            <ThemedText style={[styles.projectLocation, { color: theme.textSecondary }]} numberOfLines={1}>
+            <Ionicons
+              name="location-outline"
+              size={12}
+              color={theme.textSecondary}
+            />
+            <ThemedText
+              style={[styles.projectLocation, { color: theme.textSecondary }]}
+              numberOfLines={1}
+            >
               {project.ubicacion || project.direccion}
             </ThemedText>
           </View>
-          <View style={[styles.projectTypeBadge, { backgroundColor: "#bf0a0a20" }]}>
+          <View
+            style={[styles.projectTypeBadge, { backgroundColor: "#bf0a0a20" }]}
+          >
             <ThemedText style={[styles.projectTypeLabel, { color: "#bf0a0a" }]}>
               {project.tipo}
             </ThemedText>
@@ -524,12 +643,20 @@ export default function ExploreScreen() {
     </View>
   );
 
-  const renderSectionTitle = (title: string, section: SectionType, showClearButton?: boolean, hideArrow?: boolean) => (
+  const renderSectionTitle = (
+    title: string,
+    section: SectionType,
+    showClearButton?: boolean,
+    hideArrow?: boolean,
+  ) => (
     <View style={styles.sectionTitleContainer}>
       <ThemedText style={styles.sectionTitle}>{title}</ThemedText>
       <View style={styles.sectionTitleRight}>
         {showClearButton && selectedProjectId ? (
-          <Pressable onPress={() => setSelectedProjectId(null)} style={styles.clearButton}>
+          <Pressable
+            onPress={() => setSelectedProjectId(null)}
+            style={styles.clearButton}
+          >
             <ThemedText style={styles.clearButtonText}>Ver todos</ThemedText>
             <Ionicons name="close" size={14} color={Colors.light.primary} />
           </Pressable>
@@ -561,7 +688,9 @@ export default function ExploreScreen() {
       <Pressable onPress={handleBackFromExpanded} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="#bf0a0a" />
       </Pressable>
-      <ThemedText style={styles.expandedTitle}>{getSectionTitle(expandedSection)}</ThemedText>
+      <ThemedText style={styles.expandedTitle}>
+        {getSectionTitle(expandedSection)}
+      </ThemedText>
       <View style={styles.backButtonPlaceholder} />
     </View>
   );
@@ -569,7 +698,9 @@ export default function ExploreScreen() {
   const renderExpandedContent = () => {
     if (expandedSection === "projects") {
       return (
-        <View style={isWeb ? styles.webProjectsGrid : styles.mobilePropertiesList}>
+        <View
+          style={isWeb ? styles.webProjectsGrid : styles.mobilePropertiesList}
+        >
           {projects.map(renderExpandedProjectCard)}
         </View>
       );
@@ -632,9 +763,22 @@ export default function ExploreScreen() {
           <ThemedText style={styles.sectionTitle}>
             Resultados para "{webSearchQuery}" ({filteredProperties.length})
           </ThemedText>
-          <View style={[styles.webGrid, isMobileWeb && styles.webGridMobile, isTabletWeb && styles.webGridTablet]}>
+          <View
+            style={[
+              styles.webGrid,
+              isMobileWeb && styles.webGridMobile,
+              isTabletWeb && styles.webGridTablet,
+            ]}
+          >
             {filteredProperties.map((item) => (
-              <View key={item.id} style={[styles.webGridItem, isMobileWeb && styles.webGridItemMobile, isTabletWeb && styles.webGridItemTablet]}>
+              <View
+                key={item.id}
+                style={[
+                  styles.webGridItem,
+                  isMobileWeb && styles.webGridItemMobile,
+                  isTabletWeb && styles.webGridItemTablet,
+                ]}
+              >
                 <PropertyCard
                   property={item}
                   isFavorite={favorites.includes(item.id)}
@@ -660,7 +804,9 @@ export default function ExploreScreen() {
     if (isWeb && webFilterType === "projects") {
       return (
         <>
-          <ThemedText style={styles.sectionTitle}>Proyectos disponibles</ThemedText>
+          <ThemedText style={styles.sectionTitle}>
+            Proyectos disponibles
+          </ThemedText>
           <View style={styles.webProjectsGrid}>
             {projects.map(renderExpandedProjectCard)}
           </View>
@@ -671,10 +817,25 @@ export default function ExploreScreen() {
     if (isWeb && webFilterType === "properties") {
       return (
         <>
-          <ThemedText style={styles.sectionTitle}>Todas las propiedades ({filteredProperties.length})</ThemedText>
-          <View style={[styles.webGrid, isMobileWeb && styles.webGridMobile, isTabletWeb && styles.webGridTablet]}>
+          <ThemedText style={styles.sectionTitle}>
+            Todas las propiedades ({filteredProperties.length})
+          </ThemedText>
+          <View
+            style={[
+              styles.webGrid,
+              isMobileWeb && styles.webGridMobile,
+              isTabletWeb && styles.webGridTablet,
+            ]}
+          >
             {filteredProperties.map((item) => (
-              <View key={item.id} style={[styles.webGridItem, isMobileWeb && styles.webGridItemMobile, isTabletWeb && styles.webGridItemTablet]}>
+              <View
+                key={item.id}
+                style={[
+                  styles.webGridItem,
+                  isMobileWeb && styles.webGridItemMobile,
+                  isTabletWeb && styles.webGridItemTablet,
+                ]}
+              >
                 <PropertyCard
                   property={item}
                   isFavorite={favorites.includes(item.id)}
@@ -693,10 +854,25 @@ export default function ExploreScreen() {
     if (isWeb && webFilterType === "new") {
       return (
         <>
-          <ThemedText style={styles.sectionTitle}>Propiedades nuevas (10)</ThemedText>
-          <View style={[styles.webGrid, isMobileWeb && styles.webGridMobile, isTabletWeb && styles.webGridTablet]}>
+          <ThemedText style={styles.sectionTitle}>
+            Propiedades nuevas (10)
+          </ThemedText>
+          <View
+            style={[
+              styles.webGrid,
+              isMobileWeb && styles.webGridMobile,
+              isTabletWeb && styles.webGridTablet,
+            ]}
+          >
             {randomNewProperties.map((item) => (
-              <View key={item.id} style={[styles.webGridItem, isMobileWeb && styles.webGridItemMobile, isTabletWeb && styles.webGridItemTablet]}>
+              <View
+                key={item.id}
+                style={[
+                  styles.webGridItem,
+                  isMobileWeb && styles.webGridItemMobile,
+                  isTabletWeb && styles.webGridItemTablet,
+                ]}
+              >
                 <PropertyCard
                   property={item}
                   isFavorite={favorites.includes(item.id)}
@@ -746,9 +922,22 @@ export default function ExploreScreen() {
 
         {renderSectionTitle("Todas las propiedades", "all", true, true)}
         {isWeb ? (
-          <View style={[styles.webGrid, isMobileWeb && styles.webGridMobile, isTabletWeb && styles.webGridTablet]}>
+          <View
+            style={[
+              styles.webGrid,
+              isMobileWeb && styles.webGridMobile,
+              isTabletWeb && styles.webGridTablet,
+            ]}
+          >
             {filteredProperties.map((item) => (
-              <View key={item.id} style={[styles.webGridItem, isMobileWeb && styles.webGridItemMobile, isTabletWeb && styles.webGridItemTablet]}>
+              <View
+                key={item.id}
+                style={[
+                  styles.webGridItem,
+                  isMobileWeb && styles.webGridItemMobile,
+                  isTabletWeb && styles.webGridItemTablet,
+                ]}
+              >
                 <PropertyCard
                   property={item}
                   isFavorite={favorites.includes(item.id)}
@@ -781,7 +970,12 @@ export default function ExploreScreen() {
 
   if (expandedSection) {
     return (
-      <View style={[styles.container, { backgroundColor: isWeb ? "#FFFFFF" : theme.backgroundRoot }]}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: isWeb ? "#FFFFFF" : theme.backgroundRoot },
+        ]}
+      >
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
@@ -811,7 +1005,12 @@ export default function ExploreScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: isWeb ? "#FFFFFF" : theme.backgroundRoot }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: isWeb ? "#FFFFFF" : theme.backgroundRoot },
+      ]}
+    >
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
@@ -899,7 +1098,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#FFFFFF",
     marginLeft: Spacing.sm,
-    ...(isWeb && { outlineWidth: 0, outlineStyle: "none", borderWidth: 0, boxShadow: "none", caretColor: "transparent" } as any),
+    ...(isWeb &&
+      ({
+        outlineWidth: 0,
+        outlineStyle: "none",
+        borderWidth: 0,
+        boxShadow: "none",
+        caretColor: "transparent",
+      } as any)),
   },
   webSearchCloseButton: {
     padding: Spacing.xs,
@@ -1027,7 +1233,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.lg,
-    ...(isWeb && { display: "grid" as any, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" as any }),
+    ...(isWeb && {
+      display: "grid" as any,
+      gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" as any,
+    }),
   },
   webGridItem: {
     width: isWeb ? "100%" : "100%",
@@ -1037,7 +1246,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.lg,
-    ...(isWeb && { display: "grid" as any, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" as any }),
+    ...(isWeb && {
+      display: "grid" as any,
+      gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" as any,
+    }),
   },
   expandedProjectCard: {
     width: "100%",

@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView, Platform, Pressable } from "react-native";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Platform,
+  Pressable,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -45,11 +51,41 @@ const ACTIVITY_DATA = [
 ];
 
 const BADGES = [
-  { id: "1", name: "Primera Venta", icon: "pricetag" as const, variant: "bronze" as const, isLocked: false },
-  { id: "2", name: "Top Valorado", icon: "star" as const, variant: "gold" as const, isLocked: false },
-  { id: "3", name: "Veloz", icon: "flash" as const, variant: "silver" as const, isLocked: false },
-  { id: "4", name: "Cerrador", icon: "checkmark-done-circle" as const, variant: "gold" as const, isLocked: true },
-  { id: "5", name: "Influencer", icon: "people" as const, variant: "silver" as const, isLocked: true },
+  {
+    id: "1",
+    name: "Primera Venta",
+    icon: "pricetag" as const,
+    variant: "bronze" as const,
+    isLocked: false,
+  },
+  {
+    id: "2",
+    name: "Top Valorado",
+    icon: "star" as const,
+    variant: "gold" as const,
+    isLocked: false,
+  },
+  {
+    id: "3",
+    name: "Veloz",
+    icon: "flash" as const,
+    variant: "silver" as const,
+    isLocked: false,
+  },
+  {
+    id: "4",
+    name: "Cerrador",
+    icon: "checkmark-done-circle" as const,
+    variant: "gold" as const,
+    isLocked: true,
+  },
+  {
+    id: "5",
+    name: "Influencer",
+    icon: "people" as const,
+    variant: "silver" as const,
+    isLocked: true,
+  },
 ];
 
 const DAILY_GOAL = "Contactar 3 nuevos clientes";
@@ -61,7 +97,9 @@ export default function AchievementsScreen() {
   const { theme, isDark } = useTheme();
   const { user, isGuest } = useAuth();
   const navigation = useNavigation<any>();
-  const [timeRange, setTimeRange] = useState<"Día" | "Semana" | "Mes">("Semana");
+  const [timeRange, setTimeRange] = useState<"Día" | "Semana" | "Mes">(
+    "Semana",
+  );
   const [metrics, setMetrics] = useState({
     ganancias: 0,
     propiedades: 0,
@@ -76,11 +114,14 @@ export default function AchievementsScreen() {
 
       try {
         // Fetch leads
-        const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`, {
-          headers: {
-            'ngrok-skip-browser-warning': 'true',
+        const leadsResponse = await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`,
+          {
+            headers: {
+              "ngrok-skip-browser-warning": "true",
+            },
           },
-        });
+        );
         const leads = await leadsResponse.json();
         const totalLeads = Array.isArray(leads) ? leads.length : 0;
 
@@ -99,7 +140,7 @@ export default function AchievementsScreen() {
           clientes: clientesValue,
         });
       } catch (error) {
-        console.error('Error fetching metrics:', error);
+        console.error("Error fetching metrics:", error);
       }
     };
 
@@ -107,16 +148,26 @@ export default function AchievementsScreen() {
   }, [userId]);
 
   const handleNavigateToSignup = () => {
-    navigation.getParent()?.getParent()?.reset({
-      index: 0,
-      routes: [{ name: "Login" }],
-    });
+    navigation
+      .getParent()
+      ?.getParent()
+      ?.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
   };
 
   if (isGuest || !userId) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-        <View style={[styles.guestContainer, { paddingTop: headerHeight + Spacing.xl }]}>
+      <View
+        style={[styles.container, { backgroundColor: theme.backgroundRoot }]}
+      >
+        <View
+          style={[
+            styles.guestContainer,
+            { paddingTop: headerHeight + Spacing.xl },
+          ]}
+        >
           <EmptyState
             image={require("../../assets/images/empty-states/favorites.png")}
             title="Inicia sesión"
@@ -133,11 +184,19 @@ export default function AchievementsScreen() {
     const progress = (USER_LEVEL.xp / USER_LEVEL.nextLevelXp) * 100;
 
     return (
-      <View style={[styles.headerCard, isDark ? null : Shadows.card, { backgroundColor: Colors.light.primary }]}>
+      <View
+        style={[
+          styles.headerCard,
+          isDark ? null : Shadows.card,
+          { backgroundColor: Colors.light.primary },
+        ]}
+      >
         <View style={styles.headerTop}>
           <View>
             <ThemedText style={styles.userTitle}>{USER_LEVEL.title}</ThemedText>
-            <ThemedText style={styles.levelText}>Nivel {USER_LEVEL.current}</ThemedText>
+            <ThemedText style={styles.levelText}>
+              Nivel {USER_LEVEL.current}
+            </ThemedText>
           </View>
           <View style={styles.medalIcon}>
             <Ionicons name="ribbon" size={40} color="#FFD700" />
@@ -150,10 +209,13 @@ export default function AchievementsScreen() {
           </View>
           <View style={styles.xpTextRow}>
             <ThemedText style={styles.xpText}>{USER_LEVEL.xp} XP</ThemedText>
-            <ThemedText style={styles.xpText}>{USER_LEVEL.nextLevelXp} XP</ThemedText>
+            <ThemedText style={styles.xpText}>
+              {USER_LEVEL.nextLevelXp} XP
+            </ThemedText>
           </View>
           <ThemedText style={styles.nextLevelText}>
-            {USER_LEVEL.nextLevelXp - USER_LEVEL.xp} XP para {USER_LEVEL.nextTitle}
+            {USER_LEVEL.nextLevelXp - USER_LEVEL.xp} XP para{" "}
+            {USER_LEVEL.nextTitle}
           </ThemedText>
         </View>
       </View>
@@ -202,7 +264,9 @@ export default function AchievementsScreen() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
-            <ThemedText style={styles.sectionTitle}>Pulso de Actividad</ThemedText>
+            <ThemedText style={styles.sectionTitle}>
+              Pulso de Actividad
+            </ThemedText>
             <View style={styles.toggleContainer}>
               {(["Día", "Semana", "Mes"] as const).map((t) => (
                 <Pressable
@@ -210,13 +274,20 @@ export default function AchievementsScreen() {
                   onPress={() => setTimeRange(t)}
                   style={[
                     styles.toggleButton,
-                    timeRange === t && { backgroundColor: theme.backgroundSecondary }
+                    timeRange === t && {
+                      backgroundColor: theme.backgroundSecondary,
+                    },
                   ]}
                 >
-                  <ThemedText style={[
-                    styles.toggleText,
-                    timeRange === t && { fontWeight: '600', color: Colors.light.primary }
-                  ]}>
+                  <ThemedText
+                    style={[
+                      styles.toggleText,
+                      timeRange === t && {
+                        fontWeight: "600",
+                        color: Colors.light.primary,
+                      },
+                    ]}
+                  >
                     {t}
                   </ThemedText>
                 </Pressable>
@@ -233,27 +304,39 @@ export default function AchievementsScreen() {
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>Insignias y Metas</ThemedText>
 
-          <View style={[styles.goalCard, { backgroundColor: theme.backgroundDefault, borderColor: theme.border }]}>
+          <View
+            style={[
+              styles.goalCard,
+              {
+                backgroundColor: theme.backgroundDefault,
+                borderColor: theme.border,
+              },
+            ]}
+          >
             <View style={styles.goalIcon}>
               <Ionicons name="flag" size={24} color={Colors.light.primary} />
             </View>
             <View style={styles.goalContent}>
               <ThemedText style={styles.goalTitle}>Meta Diaria</ThemedText>
-              <ThemedText style={[styles.goalText, { color: theme.textSecondary }]}>{DAILY_GOAL}</ThemedText>
+              <ThemedText
+                style={[styles.goalText, { color: theme.textSecondary }]}
+              >
+                {DAILY_GOAL}
+              </ThemedText>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={theme.textSecondary}
+            />
           </View>
 
           <View style={styles.badgesGrid}>
-            {BADGES.map(badge => (
-              <BadgeComponent
-                key={badge.id}
-                {...badge}
-              />
+            {BADGES.map((badge) => (
+              <BadgeComponent key={badge.id} {...badge} />
             ))}
           </View>
         </View>
-
       </ScrollView>
     </View>
   );
@@ -278,23 +361,23 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
   },
   headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: Spacing.lg,
   },
   userTitle: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
   levelText: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
+    color: "rgba(255,255,255,0.9)",
     marginTop: 4,
   },
   medalIcon: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: "rgba(255,255,255,0.2)",
     padding: 8,
     borderRadius: 12,
   },
@@ -303,28 +386,28 @@ const styles = StyleSheet.create({
   },
   xpBarBg: {
     height: 8,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: "rgba(0,0,0,0.2)",
     borderRadius: 4,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   xpBarFill: {
-    height: '100%',
-    backgroundColor: '#FFFFFF',
+    height: "100%",
+    backgroundColor: "#FFFFFF",
     borderRadius: 4,
   },
   xpTextRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   xpText: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
-    fontWeight: '600',
+    color: "rgba(255,255,255,0.8)",
+    fontWeight: "600",
   },
   nextLevelText: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.9)',
-    textAlign: 'center',
+    color: "rgba(255,255,255,0.9)",
+    textAlign: "center",
     marginTop: 4,
   },
   section: {
@@ -332,21 +415,21 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: Spacing.md,
   },
   metricsGrid: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.md,
   },
   sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: Spacing.md,
   },
   toggleContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.xs,
   },
   toggleButton: {
@@ -358,8 +441,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   goalCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
@@ -369,9 +452,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.light.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: Colors.light.primary + "15",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: Spacing.md,
   },
   goalContent: {
@@ -379,15 +462,15 @@ const styles = StyleSheet.create({
   },
   goalTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   goalText: {
     fontSize: 14,
   },
   badgesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.lg,
-    justifyContent: 'flex-start', // Or 'space-between' depending on preference
+    justifyContent: "flex-start", // Or 'space-between' depending on preference
   },
 });

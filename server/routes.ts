@@ -3,7 +3,12 @@ import { createServer, type Server } from "node:http";
 import { verificationService } from "./services/verification-service";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { eq, count, sql } from "drizzle-orm";
-import { leads, lead_phase, lead_history, user_favorites } from "../shared/schema";
+import {
+  leads,
+  lead_phase,
+  lead_history,
+  user_favorites,
+} from "../shared/schema";
 import pkg from "pg";
 const { Pool } = pkg;
 
@@ -13,7 +18,8 @@ const pool = new Pool({
 });
 const db = drizzle(pool);
 
-const EXTERNAL_API = process.env.EXPO_PUBLIC_API_URL || "https://panel.laredgt.com/api";
+const EXTERNAL_API =
+  process.env.EXPO_PUBLIC_API_URL || "https://panel.laredgt.com/api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Proxy para la API de leads (soluciona CORS)
@@ -33,13 +39,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const data = await response.json();
-        console.log(`✅ Proxy: ${data.length} leads obtenidos desde API externa`);
+        console.log(
+          `✅ Proxy: ${data.length} leads obtenidos desde API externa`,
+        );
 
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", "Content-Type");
 
         return res.json(data);
-
       } catch (apiError) {
         console.log("⚠️  API de leads no disponible, usando datos de prueba");
 
@@ -56,7 +63,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             phase_id: 1,
             created_at: "2024-01-27T10:00:00Z",
             updated_at: "2024-01-27T10:30:00Z",
-            notes: "Cliente interesada en apartamento de 2 habitaciones"
+            notes: "Cliente interesada en apartamento de 2 habitaciones",
           },
           {
             id: 2,
@@ -69,7 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             phase_id: 2,
             created_at: "2024-01-26T15:00:00Z",
             updated_at: "2024-01-27T09:00:00Z",
-            notes: "Solicita más información sobre financiamiento"
+            notes: "Solicita más información sobre financiamiento",
           },
           {
             id: 3,
@@ -82,7 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             phase_id: 3,
             created_at: "2024-01-25T12:00:00Z",
             updated_at: "2024-01-27T08:00:00Z",
-            notes: "Lista para agendar visita"
+            notes: "Lista para agendar visita",
           },
           {
             id: 4,
@@ -95,8 +102,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             phase_id: 1,
             created_at: "2024-01-27T16:00:00Z",
             updated_at: "2024-01-27T16:15:00Z",
-            notes: "Consulta inicial sobre propiedades comerciales"
-          }
+            notes: "Consulta inicial sobre propiedades comerciales",
+          },
         ];
 
         console.log(`✅ Proxy: ${testLeads.length} leads de prueba devueltos`);
@@ -105,12 +112,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.header("Access-Control-Allow-Headers", "Content-Type");
         return res.json(testLeads);
       }
-
     } catch (error) {
       console.error("❌ Error en proxy de leads:", error);
       return res.status(500).json({
         success: false,
-        message: "Error interno del servidor proxy"
+        message: "Error interno del servidor proxy",
       });
     }
   });
@@ -123,11 +129,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("🔍 Proxy: Obteniendo count status 11 para usuario:", userId);
 
       try {
-        const response = await fetch(`${EXTERNAL_API}/lead/count-status-11/${userId}`, {
-          headers: {
-            'ngrok-skip-browser-warning': 'true',
+        const response = await fetch(
+          `${EXTERNAL_API}/lead/count-status-11/${userId}`,
+          {
+            headers: {
+              "ngrok-skip-browser-warning": "true",
+            },
           },
-        });
+        );
 
         if (!response.ok) {
           console.error("❌ Error en API count-status-11:", response.status);
@@ -138,9 +147,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`✅ Proxy: Count status 11 obtenido:`, data);
 
         let count = 0;
-        if (typeof data === 'number') {
+        if (typeof data === "number") {
           count = data;
-        } else if (typeof data === 'object' && data.count !== undefined) {
+        } else if (typeof data === "object" && data.count !== undefined) {
           count = data.count;
         }
 
@@ -148,9 +157,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.header("Access-Control-Allow-Headers", "Content-Type");
 
         return res.json(count);
-
       } catch (apiError) {
-        console.log("⚠️  API count-status-11 no disponible, usando dato de prueba");
+        console.log(
+          "⚠️  API count-status-11 no disponible, usando dato de prueba",
+        );
 
         // Dato de prueba
         const testCount = 5;
@@ -159,12 +169,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.header("Access-Control-Allow-Headers", "Content-Type");
         return res.json(testCount);
       }
-
     } catch (error) {
       console.error("❌ Error en proxy count-status-11:", error);
       return res.status(500).json({
         success: false,
-        message: "Error interno del servidor proxy"
+        message: "Error interno del servidor proxy",
       });
     }
   });
@@ -186,58 +195,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const data = await response.json();
-        console.log(`✅ Proxy: ${data.length} notificaciones obtenidas desde API externa`);
+        console.log(
+          `✅ Proxy: ${data.length} notificaciones obtenidas desde API externa`,
+        );
 
         // Devolver los datos con headers CORS
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", "Content-Type");
         return res.json(data);
-
       } catch (apiError) {
-        console.log("⚠️  API de notificaciones no disponible, usando datos de prueba");
+        console.log(
+          "⚠️  API de notificaciones no disponible, usando datos de prueba",
+        );
         console.error("❌ Error en API de notificaciones:", apiError);
 
         // Datos de prueba para desarrollo - notificaciones con status false (no leídas)
         const testNotifications = [
           {
-            "_id": "69791a1b809c7dd861f6e56e",
-            "user_id": userId,
-            "titulo": "Nueva propiedad disponible",
-            "mensaje": "Se ha agregado una nueva propiedad en tu zona de interés",
-            "fecha": "2026-01-27T14:00:00.000Z",
-            "status": false
+            _id: "69791a1b809c7dd861f6e56e",
+            user_id: userId,
+            titulo: "Nueva propiedad disponible",
+            mensaje: "Se ha agregado una nueva propiedad en tu zona de interés",
+            fecha: "2026-01-27T14:00:00.000Z",
+            status: false,
           },
           {
-            "_id": "69791a3d809c7dd861f6e570",
-            "user_id": userId,
-            "titulo": "Cliente interesado",
-            "mensaje": "María González mostró interés en tu propiedad",
-            "fecha": "2026-01-27T13:30:00.000Z",
-            "status": false
+            _id: "69791a3d809c7dd861f6e570",
+            user_id: userId,
+            titulo: "Cliente interesado",
+            mensaje: "María González mostró interés en tu propiedad",
+            fecha: "2026-01-27T13:30:00.000Z",
+            status: false,
           },
           {
-            "_id": "69791a4f809c7dd861f6e572",
-            "user_id": userId,
-            "titulo": "Actualización del sistema",
-            "mensaje": "Se ha actualizado la plataforma con nuevas funcionalidades",
-            "fecha": "2026-01-26T09:00:00.000Z",
-            "status": true
-          }
+            _id: "69791a4f809c7dd861f6e572",
+            user_id: userId,
+            titulo: "Actualización del sistema",
+            mensaje:
+              "Se ha actualizado la plataforma con nuevas funcionalidades",
+            fecha: "2026-01-26T09:00:00.000Z",
+            status: true,
+          },
         ];
 
-        console.log(`✅ Proxy: ${testNotifications.length} notificaciones de prueba devueltas`);
+        console.log(
+          `✅ Proxy: ${testNotifications.length} notificaciones de prueba devueltas`,
+        );
 
         // Devolver los datos de prueba con headers CORS
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", "Content-Type");
         return res.json(testNotifications);
       }
-
     } catch (error) {
       console.error("❌ Error en proxy de notificaciones:", error);
       return res.status(500).json({
         success: false,
-        message: "Error interno del servidor proxy"
+        message: "Error interno del servidor proxy",
       });
     }
   });
@@ -247,32 +261,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { notificationId } = req.params;
 
-      console.log("📖 Proxy: Marcando notificación como leída:", notificationId);
+      console.log(
+        "📖 Proxy: Marcando notificación como leída:",
+        notificationId,
+      );
 
       try {
         // Intentar hacer la petición al servidor de la API de notificaciones
-        const response = await fetch(`${EXTERNAL_API}/notifications/${notificationId}/read`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
+        const response = await fetch(
+          `${EXTERNAL_API}/notifications/${notificationId}/read`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
-        });
+        );
 
         if (!response.ok) {
-          console.error("❌ Error al actualizar notificación:", response.status);
+          console.error(
+            "❌ Error al actualizar notificación:",
+            response.status,
+          );
           throw new Error(`API devolvió error ${response.status}`);
         }
 
         const data = await response.json();
-        console.log(`✅ Proxy: Notificación ${notificationId} marcada como leída`);
+        console.log(
+          `✅ Proxy: Notificación ${notificationId} marcada como leída`,
+        );
 
         // Devolver los datos con headers CORS
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", "Content-Type");
         return res.json(data);
-
       } catch (apiError) {
-        console.log("⚠️  API de notificaciones no disponible para actualización");
+        console.log(
+          "⚠️  API de notificaciones no disponible para actualización",
+        );
         console.error("❌ Error al actualizar notificación:", apiError);
 
         // Simular respuesta exitosa cuando la API no esté disponible
@@ -280,15 +306,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.header("Access-Control-Allow-Headers", "Content-Type");
         return res.json({
           success: true,
-          message: "Notificación marcada como leída (simulado)"
+          message: "Notificación marcada como leída (simulado)",
         });
       }
-
     } catch (error) {
-      console.error("❌ Error en proxy de actualización de notificación:", error);
+      console.error(
+        "❌ Error en proxy de actualización de notificación:",
+        error,
+      );
       return res.status(500).json({
         success: false,
-        message: "Error interno del servidor proxy"
+        message: "Error interno del servidor proxy",
       });
     }
   });
@@ -303,12 +331,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("❌ Número de teléfono no proporcionado");
         return res.status(400).json({
           success: false,
-          message: "El número de teléfono es requerido"
+          message: "El número de teléfono es requerido",
         });
       }
 
       console.log("🚀 Enviando código de verificación...");
-      const result = await verificationService.sendVerificationCode(phoneNumber);
+      const result =
+        await verificationService.sendVerificationCode(phoneNumber);
       console.log("✅ Resultado:", result);
 
       return res.status(result.success ? 200 : 400).json(result);
@@ -316,7 +345,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("❌ Error sending verification code:", error);
       return res.status(500).json({
         success: false,
-        message: "Error interno del servidor"
+        message: "Error interno del servidor",
       });
     }
   });
@@ -328,7 +357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!phoneNumber || !code) {
         return res.status(400).json({
           success: false,
-          message: "El número de teléfono y el código son requeridos"
+          message: "El número de teléfono y el código son requeridos",
         });
       }
 
@@ -339,7 +368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error verifying code:", error);
       return res.status(500).json({
         success: false,
-        message: "Error interno del servidor"
+        message: "Error interno del servidor",
       });
     }
   });
@@ -349,10 +378,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId } = req.params;
 
-      if (!userId || typeof userId !== 'string') {
+      if (!userId || typeof userId !== "string") {
         return res.status(400).json({
           success: false,
-          message: "userId es requerido"
+          message: "userId es requerido",
         });
       }
 
@@ -367,17 +396,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (favorites.length === 0) {
         return res.json({
           success: true,
-          data: []
+          data: [],
         });
       }
 
-      const propertyIds = favorites.map(fav => fav.property_id);
+      const propertyIds = favorites.map((fav) => fav.property_id);
 
       // Para cada propiedad favorita, contar los leads asociados
       const clientCounts = await db
         .select({
           property_id: leads.property_id,
-          client_count: count(leads.id)
+          client_count: count(leads.id),
         })
         .from(leads)
         .where(sql`${leads.property_id} = ANY(${propertyIds})`)
@@ -385,28 +414,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Crear mapa de conteos por propiedad
       const clientCountMap = new Map(
-        clientCounts.map(item => [item.property_id, item.client_count])
+        clientCounts.map((item) => [item.property_id, item.client_count]),
       );
 
       // Combinar datos de favoritos con conteos
-      const result = favorites.map(fav => ({
+      const result = favorites.map((fav) => ({
         property_id: fav.property_id,
         added_at: fav.created_at,
-        client_count: clientCountMap.get(fav.property_id) || 0
+        client_count: clientCountMap.get(fav.property_id) || 0,
       }));
 
       console.log("✅ Propiedades favoritas encontradas:", result.length);
 
       return res.json({
         success: true,
-        data: result
+        data: result,
       });
-
     } catch (error) {
       console.error("❌ Error obteniendo propiedades favoritas:", error);
       return res.status(500).json({
         success: false,
-        message: "Error interno del servidor"
+        message: "Error interno del servidor",
       });
     }
   });
@@ -420,7 +448,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!propertyId) {
         return res.status(400).json({
           success: false,
-          message: "propertyId es requerido"
+          message: "propertyId es requerido",
         });
       }
 
@@ -435,7 +463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (propertyLeads.length === 0) {
         return res.json({
           success: true,
-          data: []
+          data: [],
         });
       }
 
@@ -461,7 +489,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .orderBy(sql`${lead_history.created_at} DESC`)
               .limit(1);
 
-            if (history.length > 0 && (history[0].history_data as any)?.message) {
+            if (
+              history.length > 0 &&
+              (history[0].history_data as any)?.message
+            ) {
               latestMessage = (history[0].history_data as any).message;
             }
           }
@@ -471,25 +502,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             name: lead.client_name,
             phone: lead.client_phone,
             comment: latestMessage,
-            date: lead.created_at?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+            date:
+              lead.created_at?.toISOString().split("T")[0] ||
+              new Date().toISOString().split("T")[0],
             email: null, // No tenemos email en la tabla leads
-            additionalInfo: lead.comment
+            additionalInfo: lead.comment,
           };
-        })
+        }),
       );
 
       console.log("✅ Clientes encontrados:", clientsWithHistory.length);
 
       return res.json({
         success: true,
-        data: clientsWithHistory
+        data: clientsWithHistory,
       });
-
     } catch (error) {
       console.error("❌ Error obteniendo clientes:", error);
       return res.status(500).json({
         success: false,
-        message: "Error interno del servidor"
+        message: "Error interno del servidor",
       });
     }
   });
@@ -498,29 +530,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/image-proxy", async (req, res) => {
     try {
       const imageUrl = req.query.url as string;
-      
+
       if (!imageUrl) {
         return res.status(400).json({ error: "URL de imagen requerida" });
       }
-      
-      console.log("📷 Image proxy: Descargando imagen:", imageUrl.substring(0, 100));
-      
-      // Use browser-like headers to avoid being blocked
-      const response = await fetch(imageUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'image/webp,image/apng,image/*,video/*,*/*;q=0.8',
-          'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
-          'Referer': 'https://plataforma.controldepropiedades.com/',
-        },
-        redirect: 'follow',
-      });
-      
+
+      console.log(
+        "📷 Image proxy: Descargando imagen:",
+        imageUrl.substring(0, 100),
+      );
+
+      const response = await fetch(imageUrl);
+
       if (!response.ok) {
         console.error("❌ Error descargando imagen:", response.status);
-        return res.status(response.status).json({ error: "Error descargando imagen" });
+        return res
+          .status(response.status)
+          .json({ error: "Error descargando imagen" });
       }
-      
+
       const contentType = response.headers.get("content-type") || "image/jpeg";
       
       // Verify this is actually an image or video
@@ -531,16 +559,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      
-      console.log("✅ Imagen descargada correctamente, tipo:", contentType, "tamaño:", buffer.length);
-      
+
       res.setHeader("Content-Type", contentType);
       res.setHeader("Access-Control-Allow-Origin", "*");
-      res.setHeader("Access-Control-Expose-Headers", "Content-Type, Content-Length");
-      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-      res.setHeader("Pragma", "no-cache");
-      res.setHeader("Expires", "0");
-      
+      res.setHeader("Cache-Control", "public, max-age=86400");
+
       return res.send(buffer);
     } catch (error) {
       console.error("❌ Error en image proxy:", error);

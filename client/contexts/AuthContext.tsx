@@ -1,16 +1,27 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { onAuthStateChanged, User, signOut } from 'firebase/auth';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
-import { auth } from '../lib/config';
-import { loginUser, loginWithGoogle, loginWithFacebook, getUserData } from '../lib/auth';
-import { FirestoreUser, UserStatus } from '../lib/user.interface';
-import { pagesConfig } from '../lib/pagesConfig';
-import { RootStackParamList } from '../navigation/RootStackNavigator';
-import { setUserId, clearUserId } from '../lib/storage';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { onAuthStateChanged, User, signOut } from "firebase/auth";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
+import { auth } from "../lib/config";
+import {
+  loginUser,
+  loginWithGoogle,
+  loginWithFacebook,
+  getUserData,
+} from "../lib/auth";
+import { FirestoreUser, UserStatus } from "../lib/user.interface";
+import { pagesConfig } from "../lib/pagesConfig";
+import { RootStackParamList } from "../navigation/RootStackNavigator";
+import { setUserId, clearUserId } from "../lib/storage";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -32,7 +43,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -49,18 +60,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigation = useNavigation<NavigationProp>();
 
   const { data: user } = useQuery({
-    queryKey: ['user'],
+    queryKey: ["user"],
     queryFn: async () => {
       // Intentar cargar desde storage
       try {
-        const storedUser = Platform.OS === "web" 
-          ? localStorage.getItem('userData')
-          : await AsyncStorage.getItem('userData');
+        const storedUser =
+          Platform.OS === "web"
+            ? localStorage.getItem("userData")
+            : await AsyncStorage.getItem("userData");
         if (storedUser) {
           return JSON.parse(storedUser);
         }
       } catch (error) {
-        console.error('Error loading user from storage:', error);
+        console.error("Error loading user from storage:", error);
       }
       return null;
     },
@@ -74,33 +86,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await setUserId(firebaseUser.uid);
 
         // Cargar datos del usuario de Firestore si no están en el contexto
-        const currentUser = queryClient.getQueryData(['user']) as FirestoreUser | null;
+        const currentUser = queryClient.getQueryData([
+          "user",
+        ]) as FirestoreUser | null;
         if (!currentUser) {
           try {
             const userData = await getUserData(firebaseUser.uid);
             if (userData) {
-              queryClient.setQueryData(['user'], userData);
+              queryClient.setQueryData(["user"], userData);
               // Guardar en storage
               const userString = JSON.stringify(userData);
               if (Platform.OS === "web") {
-                localStorage.setItem('userData', userString);
+                localStorage.setItem("userData", userString);
               } else {
-                await AsyncStorage.setItem('userData', userString);
+                await AsyncStorage.setItem("userData", userString);
               }
             } else {
             }
           } catch (error) {
-            console.error('Error loading user data from Firestore:', error);
+            console.error("Error loading user data from Firestore:", error);
           }
         }
       } else {
-        queryClient.setQueryData(['user'], null);
+        queryClient.setQueryData(["user"], null);
         await clearUserId();
         // Limpiar storage
         if (Platform.OS === "web") {
-          localStorage.removeItem('userData');
+          localStorage.removeItem("userData");
         } else {
-          await AsyncStorage.removeItem('userData');
+          await AsyncStorage.removeItem("userData");
         }
       }
       setIsInitializing(false);
@@ -116,18 +130,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const userData = await loginUser(email, password);
       if (userData.status === UserStatus.BLOCKED) {
         await logout();
-        throw new Error('User is blocked');
+        throw new Error("User is blocked");
       }
-      queryClient.setQueryData(['user'], userData);
+      queryClient.setQueryData(["user"], userData);
       // Guardar en storage
       const userString = JSON.stringify(userData);
       if (Platform.OS === "web") {
-        localStorage.setItem('userData', userString);
+        localStorage.setItem("userData", userString);
       } else {
-        await AsyncStorage.setItem('userData', userString);
+        await AsyncStorage.setItem("userData", userString);
       }
       await setUserId(userData.id);
-      navigation.navigate('Main' as any);
+      navigation.navigate("Main" as any);
     } catch (error) {
       throw error;
     } finally {
@@ -142,16 +156,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (result.user.status === UserStatus.BLOCKED) {
         await logout();
-        throw new Error('User is blocked');
+        throw new Error("User is blocked");
       }
 
-      queryClient.setQueryData(['user'], result.user);
+      queryClient.setQueryData(["user"], result.user);
       // Guardar en storage
       const userString = JSON.stringify(result.user);
       if (Platform.OS === "web") {
-        localStorage.setItem('userData', userString);
+        localStorage.setItem("userData", userString);
       } else {
-        await AsyncStorage.setItem('userData', userString);
+        await AsyncStorage.setItem("userData", userString);
       }
       await setUserId(result.user.id);
 
@@ -170,16 +184,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (result.user.status === UserStatus.BLOCKED) {
         await logout();
-        throw new Error('User is blocked');
+        throw new Error("User is blocked");
       }
 
-      queryClient.setQueryData(['user'], result.user);
+      queryClient.setQueryData(["user"], result.user);
       // Guardar en storage
       const userString = JSON.stringify(result.user);
       if (Platform.OS === "web") {
-        localStorage.setItem('userData', userString);
+        localStorage.setItem("userData", userString);
       } else {
-        await AsyncStorage.setItem('userData', userString);
+        await AsyncStorage.setItem("userData", userString);
       }
       await setUserId(result.user.id);
 
@@ -193,41 +207,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const loginAsGuest = () => {
     setIsGuest(true);
-    queryClient.setQueryData(['user'], null);
-    navigation.navigate('Main' as any);
+    queryClient.setQueryData(["user"], null);
+    navigation.navigate("Main" as any);
   };
 
   const logout = async () => {
     try {
       // Limpiar storage primero
       if (Platform.OS === "web") {
-        localStorage.removeItem('userData');
+        localStorage.removeItem("userData");
       } else {
-        await AsyncStorage.removeItem('userData');
+        await AsyncStorage.removeItem("userData");
       }
-      
+
       // Limpiar estado
       await clearUserId();
       setIsGuest(false);
-      queryClient.setQueryData(['user'], null);
+      queryClient.setQueryData(["user"], null);
       queryClient.clear();
-      
+
       // Cerrar sesión de Firebase
       await signOut(auth);
-      
+
       // Navegar a Landing (web) o Onboarding (mobile)
       const isWeb = Platform.OS === "web";
       navigation.reset({
         index: 0,
-        routes: [{ name: isWeb ? 'Landing' : 'Onboarding' }],
+        routes: [{ name: isWeb ? "Landing" : "Onboarding" }],
       });
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error("Error during logout:", error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isInitializing, isGuest, login, loginGoogle, loginFacebook, loginAsGuest, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        isInitializing,
+        isGuest,
+        login,
+        loginGoogle,
+        loginFacebook,
+        loginAsGuest,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

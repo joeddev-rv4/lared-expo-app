@@ -10,6 +10,17 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  Image,
+  TextInput,
+  Alert,
+  Animated,
+  ScrollView,
+  Platform,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
@@ -36,6 +47,20 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "@/lib/config";
+import {
+  getAuth,
+  fetchSignInMethodsForEmail,
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
+import {
+  doc,
+  setDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
+import { db } from "@/lib/config";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -45,10 +70,21 @@ const isGoogleLoginEnabled =
 const isFacebookLoginEnabled =
   process.env.EXPO_PUBLIC_FACEBOOK_LOGIN_ENABLED !== "false";
 const isDevEnv = process.env.EXPO_PUBLIC_DEV_ENV === "true";
+const isGoogleLoginEnabled =
+  process.env.EXPO_PUBLIC_GOOGLE_LOGIN_ENABLED !== "false";
+const isFacebookLoginEnabled =
+  process.env.EXPO_PUBLIC_FACEBOOK_LOGIN_ENABLED !== "false";
+const isDevEnv = process.env.EXPO_PUBLIC_DEV_ENV === "true";
 const devUser = process.env.EXPO_PUBLIC_DEV_ENV_USER;
 const devPsw = process.env.EXPO_PUBLIC_DEV_ENV_PSW;
 
 export default function LoginScreen() {
+  console.log("DEV ENV DEBUG:", {
+    isDevEnv,
+    devUser,
+    devPsw,
+    env: process.env.EXPO_PUBLIC_DEV_ENV,
+  });
   console.log("DEV ENV DEBUG:", {
     isDevEnv,
     devUser,
@@ -81,11 +117,65 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const {
+    login,
+    isLoading,
+    user,
+    logout,
+    loginGoogle,
+    loginFacebook,
+    loginAsGuest,
+  } = useAuth();
+  const [mode, setMode] = useState<
+    | "buttons"
+    | "login"
+    | "register"
+    | "register_password"
+    | "register_username"
+    | "register_phone"
+    | "verify_phone"
+    | "google_phone"
+    | "google_verify_phone"
+  >("buttons");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
+  const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
   const [isFromGoogle, setIsFromGoogle] = useState(false);
+  const [googleUserData, setGoogleUserData] = useState<{
+    uid: string;
+    email: string;
+    displayName: string;
+  } | null>(null);
+  const [verificationCode, setVerificationCode] = useState([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
+  const [codeColors] = useState([
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+  ]);
+  const codeInputRefs = useRef<(TextInput | null)[]>([
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+  ]);
   const [googleUserData, setGoogleUserData] = useState<{
     uid: string;
     email: string;
@@ -119,21 +209,30 @@ export default function LoginScreen() {
   const [formAnim] = useState(new Animated.Value(0));
   const [buttonsAnim] = useState(new Animated.Value(1));
   const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [errorSlideAnim] = useState(new Animated.Value(300));
   const testFirebaseConnection = async () => {
     try {
       const auth = getAuth();
       console.log("🔥 Firebase Auth initialized:", {
+      console.log("🔥 Firebase Auth initialized:", {
         appName: auth.app.name,
         projectId: auth.app.options.projectId,
+        apiKey: auth.app.options.apiKey?.substring(0, 10) + "...",
         apiKey: auth.app.options.apiKey?.substring(0, 10) + "...",
       });
       Alert.alert(
         "Firebase OK",
         "Conexión a Firebase funcionando correctamente",
       );
+      Alert.alert(
+        "Firebase OK",
+        "Conexión a Firebase funcionando correctamente",
+      );
     } catch (error) {
+      console.error("❌ Error de Firebase:", error);
+      Alert.alert("Error de Firebase", "No se puede conectar a Firebase");
       console.error("❌ Error de Firebase:", error);
       Alert.alert("Error de Firebase", "No se puede conectar a Firebase");
     }
@@ -146,6 +245,7 @@ export default function LoginScreen() {
       return signInMethods.length > 0;
     } catch (error) {
       console.error("Error checking user exists:", error);
+      console.error("Error checking user exists:", error);
       return false;
     }
   };
@@ -153,6 +253,7 @@ export default function LoginScreen() {
   // Clear old profile data on mount (but NOT logout - that would clear valid sessions)
   useEffect(() => {
     const clearOldData = async () => {
+      const { clearUserProfile } = await import("@/lib/storage");
       const { clearUserProfile } = await import("@/lib/storage");
       await clearUserProfile();
       // REMOVED: await logout(); - This was incorrectly clearing valid Firebase sessions
@@ -181,10 +282,21 @@ export default function LoginScreen() {
   useEffect(() => {
     if (user && hasAttemptedLogin) {
       navigation.replace("Main");
+      navigation.replace("Main");
     }
   }, [user, navigation, hasAttemptedLogin]);
 
   useEffect(() => {
+    if (
+      mode === "login" ||
+      mode === "register" ||
+      mode === "register_password" ||
+      mode === "register_username" ||
+      mode === "register_phone" ||
+      mode === "verify_phone" ||
+      mode === "google_phone" ||
+      mode === "google_verify_phone"
+    ) {
     if (
       mode === "login" ||
       mode === "register" ||
@@ -227,6 +339,7 @@ export default function LoginScreen() {
   const handleSubmit = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Por favor ingresa email y contraseña");
+      Alert.alert("Error", "Por favor ingresa email y contraseña");
       return;
     }
 
@@ -242,15 +355,30 @@ export default function LoginScreen() {
         authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
       },
     });
+    console.log("🔐 Intentando login con:", {
+      email,
+      firebaseConfig: {
+        apiKey:
+          process.env.EXPO_PUBLIC_FIREBASE_API_KEY?.substring(0, 10) + "...",
+        projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+        authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      },
+    });
 
     // Verificar si el usuario existe
     const userExists = await checkUserExists(email);
     if (!userExists) {
       console.log("❌ Usuario no existe en Firebase Auth");
+      console.log("❌ Usuario no existe en Firebase Auth");
       Alert.alert(
         "Usuario no encontrado",
         "Este email no está registrado en el sistema. ¿Quieres registrarte?",
+        "Usuario no encontrado",
+        "Este email no está registrado en el sistema. ¿Quieres registrarte?",
         [
+          { text: "Cancelar", style: "cancel" },
+          { text: "Registrarse", onPress: () => setMode("register") },
+        ],
           { text: "Cancelar", style: "cancel" },
           { text: "Registrarse", onPress: () => setMode("register") },
         ],
@@ -261,7 +389,12 @@ export default function LoginScreen() {
     try {
       await login(email, password);
       console.log("✅ Login exitoso");
+      console.log("✅ Login exitoso");
     } catch (error: any) {
+      console.error("❌ Error de login:", error);
+      console.error("Código de error:", error.code);
+      console.error("Mensaje de error:", error.message);
+      let errorMessage = "Error al iniciar sesión";
       console.error("❌ Error de login:", error);
       console.error("Código de error:", error.code);
       console.error("Mensaje de error:", error.message);
@@ -274,7 +407,17 @@ export default function LoginScreen() {
         error.code === "auth/wrong-password"
       ) {
         errorMessage = "Credenciales incorrectas";
+      if (
+        error.code === "auth/invalid-credential" ||
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/wrong-password"
+      ) {
+        errorMessage = "Credenciales incorrectas";
         isCredentialError = true;
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Email inválido";
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage = "Demasiados intentos fallidos. Intenta más tarde";
       } else if (error.code === "auth/invalid-email") {
         errorMessage = "Email inválido";
       } else if (error.code === "auth/too-many-requests") {
@@ -289,12 +432,17 @@ export default function LoginScreen() {
         setTimeout(() => setShowErrorPopup(false), 3000);
       } else {
         Alert.alert("Error de inicio de sesión", errorMessage);
+        Alert.alert("Error de inicio de sesión", errorMessage);
       }
     }
   };
 
   const handleDevLogin = async () => {
     if (!devUser || !devPsw) {
+      Alert.alert(
+        "Configuration Error",
+        "DEV_ENV_USER or DEV_ENV_PSW not set in .env",
+      );
       Alert.alert(
         "Configuration Error",
         "DEV_ENV_USER or DEV_ENV_PSW not set in .env",
@@ -309,6 +457,7 @@ export default function LoginScreen() {
       await login(devUser, devPsw);
     } catch (error: any) {
       Alert.alert("Dev Login Error", error.message);
+      Alert.alert("Dev Login Error", error.message);
     }
   };
 
@@ -319,6 +468,7 @@ export default function LoginScreen() {
       duration: 200,
       useNativeDriver: false,
     }).start(() => {
+      setMode("login");
       setMode("login");
     });
   };
@@ -331,11 +481,13 @@ export default function LoginScreen() {
       useNativeDriver: false,
     }).start(() => {
       setMode("register");
+      setMode("register");
     });
   };
 
   const handleRegisterNext = async () => {
     if (!email.trim()) {
+      setErrorMessage("Por favor ingresa un email");
       setErrorMessage("Por favor ingresa un email");
       setShowErrorPopup(true);
       setTimeout(() => setShowErrorPopup(false), 3000);
@@ -346,12 +498,16 @@ export default function LoginScreen() {
       const auth = getAuth();
 
       console.log("Verificando email:", email);
+      console.log("Verificando email:", email);
 
       // Verify in Firebase Auth
       const methods = await fetchSignInMethodsForEmail(auth, email);
       console.log("Métodos en Auth encontrados:", methods);
+      console.log("Métodos en Auth encontrados:", methods);
 
       if (methods.length > 0) {
+        console.log("Email ya existe en Firebase Auth");
+        setErrorMessage("Este email ya está relacionado a una cuenta");
         console.log("Email ya existe en Firebase Auth");
         setErrorMessage("Este email ya está relacionado a una cuenta");
         setShowErrorPopup(true);
@@ -362,9 +518,13 @@ export default function LoginScreen() {
       // Also verify in Firestore
       const usersRef = collection(db, "users");
       const q = query(usersRef, where("email", "==", email));
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", email));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
+        console.log("Email ya existe en Firestore");
+        setErrorMessage("Este email ya está relacionado a una cuenta");
         console.log("Email ya existe en Firestore");
         setErrorMessage("Este email ya está relacionado a una cuenta");
         setShowErrorPopup(true);
@@ -373,12 +533,14 @@ export default function LoginScreen() {
       }
 
       console.log("Email disponible, procediendo...");
+      console.log("Email disponible, procediendo...");
       // Email doesn't exist, proceed to next step
       Animated.timing(formAnim, {
         toValue: 0,
         duration: 200,
         useNativeDriver: false,
       }).start(() => {
+        setMode("register_password");
         setMode("register_password");
         formAnim.setValue(0);
         Animated.timing(formAnim, {
@@ -390,6 +552,8 @@ export default function LoginScreen() {
     } catch (error: any) {
       console.error("Error al verificar email:", error);
       setErrorMessage("Error al verificar email");
+      console.error("Error al verificar email:", error);
+      setErrorMessage("Error al verificar email");
       setShowErrorPopup(true);
       setTimeout(() => setShowErrorPopup(false), 3000);
     }
@@ -398,12 +562,14 @@ export default function LoginScreen() {
   const handlePasswordNext = async () => {
     if (!password.trim()) {
       setErrorMessage("Por favor ingresa una contraseña");
+      setErrorMessage("Por favor ingresa una contraseña");
       setShowErrorPopup(true);
       setTimeout(() => setShowErrorPopup(false), 3000);
       return;
     }
 
     if (password.length < 6) {
+      setErrorMessage("La contraseña debe tener al menos 6 caracteres");
       setErrorMessage("La contraseña debe tener al menos 6 caracteres");
       setShowErrorPopup(true);
       setTimeout(() => setShowErrorPopup(false), 3000);
@@ -412,6 +578,7 @@ export default function LoginScreen() {
 
     if (password !== confirmPassword) {
       setErrorMessage("Las contraseñas no coinciden");
+      setErrorMessage("Las contraseñas no coinciden");
       setShowErrorPopup(true);
       setTimeout(() => setShowErrorPopup(false), 3000);
       return;
@@ -419,11 +586,13 @@ export default function LoginScreen() {
 
     // Solo validar, no crear usuario todavía
     console.log("Contraseña validada, procediendo a username");
+    console.log("Contraseña validada, procediendo a username");
     Animated.timing(formAnim, {
       toValue: 0,
       duration: 200,
       useNativeDriver: false,
     }).start(() => {
+      setMode("register_username");
       setMode("register_username");
       formAnim.setValue(0);
       Animated.timing(formAnim, {
@@ -437,17 +606,20 @@ export default function LoginScreen() {
   const handleUsernameNext = async () => {
     if (!username.trim()) {
       setErrorMessage("Por favor ingresa un usuario");
+      setErrorMessage("Por favor ingresa un usuario");
       setShowErrorPopup(true);
       setTimeout(() => setShowErrorPopup(false), 3000);
       return;
     }
 
     console.log("Username ingresado:", username);
+    console.log("Username ingresado:", username);
     Animated.timing(formAnim, {
       toValue: 0,
       duration: 200,
       useNativeDriver: false,
     }).start(() => {
+      setMode("register_phone");
       setMode("register_phone");
       formAnim.setValue(0);
       Animated.timing(formAnim, {
@@ -468,12 +640,19 @@ export default function LoginScreen() {
     setUsername("");
     setPhone("");
     setVerificationCode(["", "", "", "", "", ""]);
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setUsername("");
+    setPhone("");
+    setVerificationCode(["", "", "", "", "", ""]);
 
     Animated.timing(formAnim, {
       toValue: 0,
       duration: 200,
       useNativeDriver: false,
     }).start(() => {
+      setMode("buttons");
       setMode("buttons");
     });
   };
@@ -505,8 +684,36 @@ export default function LoginScreen() {
               transform: Platform.OS === "web" ? [] : undefined, // help with stacking context
             }) as any
           }
+          style={({ pressed }) =>
+            ({
+              position: Platform.OS === "web" ? "fixed" : "absolute",
+              top: Platform.OS === "web" ? 100 : insets.top + 10,
+              right: 20,
+              zIndex: 99999,
+              backgroundColor: "#FF0000",
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 8,
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 2,
+              },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+              elevation: 5,
+              cursor: Platform.OS === "web" ? "pointer" : undefined,
+              opacity: pressed ? 0.8 : 1,
+              transform: Platform.OS === "web" ? [] : undefined, // help with stacking context
+            }) as any
+          }
           onPress={handleDevLogin}
         >
+          <ThemedText
+            style={{ color: "white", fontWeight: "bold", fontSize: 12 }}
+          >
+            DEV
+          </ThemedText>
           <ThemedText
             style={{ color: "white", fontWeight: "bold", fontSize: 12 }}
           >
@@ -515,6 +722,10 @@ export default function LoginScreen() {
         </Pressable>
       )}
       <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + Spacing["2xl"] },
+        ]}
         contentContainerStyle={[
           styles.scrollContent,
           { paddingTop: insets.top + Spacing["2xl"] },
@@ -534,11 +745,21 @@ export default function LoginScreen() {
         </View>
 
         {mode === "buttons" ? (
+        {mode === "buttons" ? (
           <Animated.View
             style={[
               styles.buttonContainer,
               {
                 opacity: buttonsAnim,
+                transform: [
+                  {
+                    translateY: buttonsAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-10, 0],
+                    }),
+                  },
+                ],
+              },
                 transform: [
                   {
                     translateY: buttonsAnim.interpolate({
@@ -576,6 +797,10 @@ export default function LoginScreen() {
                       "Login Google completado, isNewUser:",
                       isNewUser,
                     );
+                    console.log(
+                      "Login Google completado, isNewUser:",
+                      isNewUser,
+                    );
 
                     // Save Google user data immediately
                     const auth = getAuth();
@@ -583,6 +808,8 @@ export default function LoginScreen() {
                     if (currentUser) {
                       setGoogleUserData({
                         uid: currentUser.uid,
+                        email: currentUser.email || "",
+                        displayName: currentUser.displayName || "",
                         email: currentUser.email || "",
                         displayName: currentUser.displayName || "",
                       });
@@ -597,6 +824,7 @@ export default function LoginScreen() {
                         useNativeDriver: false,
                       }).start(() => {
                         setMode("google_phone");
+                        setMode("google_phone");
                         formAnim.setValue(0);
                         Animated.timing(formAnim, {
                           toValue: 1,
@@ -608,8 +836,13 @@ export default function LoginScreen() {
                       // Existing user, go to Main
                       setHasAttemptedLogin(true);
                       navigation.replace("Main");
+                      navigation.replace("Main");
                     }
                   } catch (error: any) {
+                    if (
+                      error.message.includes("credenciales") ||
+                      error.message.includes("Cuenta no existe")
+                    ) {
                     if (
                       error.message.includes("credenciales") ||
                       error.message.includes("Cuenta no existe")
@@ -618,6 +851,10 @@ export default function LoginScreen() {
                       setShowErrorPopup(true);
                       setTimeout(() => setShowErrorPopup(false), 3000);
                     } else {
+                      Alert.alert(
+                        "Error",
+                        error.message || "Error al iniciar sesión con Google",
+                      );
                       Alert.alert(
                         "Error",
                         error.message || "Error al iniciar sesión con Google",
@@ -640,6 +877,9 @@ export default function LoginScreen() {
                 <ThemedText
                   style={[styles.socialButtonText, { color: theme.text }]}
                 >
+                <ThemedText
+                  style={[styles.socialButtonText, { color: theme.text }]}
+                >
                   Continue with Google
                 </ThemedText>
               </Pressable>
@@ -655,6 +895,10 @@ export default function LoginScreen() {
                       "Login Facebook completado, isNewUser:",
                       isNewUser,
                     );
+                    console.log(
+                      "Login Facebook completado, isNewUser:",
+                      isNewUser,
+                    );
 
                     // Save Facebook user data immediately
                     const auth = getAuth();
@@ -662,6 +906,8 @@ export default function LoginScreen() {
                     if (currentUser) {
                       setGoogleUserData({
                         uid: currentUser.uid,
+                        email: currentUser.email || "",
+                        displayName: currentUser.displayName || "",
                         email: currentUser.email || "",
                         displayName: currentUser.displayName || "",
                       });
@@ -676,6 +922,7 @@ export default function LoginScreen() {
                         useNativeDriver: false,
                       }).start(() => {
                         setMode("google_phone");
+                        setMode("google_phone");
                         formAnim.setValue(0);
                         Animated.timing(formAnim, {
                           toValue: 1,
@@ -687,8 +934,13 @@ export default function LoginScreen() {
                       // Existing user, go to Main
                       setHasAttemptedLogin(true);
                       navigation.replace("Main");
+                      navigation.replace("Main");
                     }
                   } catch (error: any) {
+                    if (
+                      error.message.includes("credenciales") ||
+                      error.message.includes("Cuenta no existe")
+                    ) {
                     if (
                       error.message.includes("credenciales") ||
                       error.message.includes("Cuenta no existe")
@@ -697,6 +949,10 @@ export default function LoginScreen() {
                       setShowErrorPopup(true);
                       setTimeout(() => setShowErrorPopup(false), 3000);
                     } else {
+                      Alert.alert(
+                        "Error",
+                        error.message || "Error al iniciar sesión con Facebook",
+                      );
                       Alert.alert(
                         "Error",
                         error.message || "Error al iniciar sesión con Facebook",
@@ -728,6 +984,7 @@ export default function LoginScreen() {
                   useNativeDriver: false,
                 }).start(() => {
                   setMode("register");
+                  setMode("register");
                 });
               }}
               style={({ pressed }) => [
@@ -740,6 +997,17 @@ export default function LoginScreen() {
                 },
               ]}
             >
+              <Feather
+                name="user-plus"
+                size={20}
+                color={Colors.light.primary}
+              />
+              <ThemedText
+                style={[
+                  styles.socialButtonText,
+                  { color: Colors.light.primary },
+                ]}
+              >
               <Feather
                 name="user-plus"
                 size={20}
@@ -768,16 +1036,29 @@ export default function LoginScreen() {
               <ThemedText
                 style={[styles.skipText, { color: theme.textSecondary }]}
               >
+              <ThemedText
+                style={[styles.skipText, { color: theme.textSecondary }]}
+              >
                 Continue as Guest
               </ThemedText>
             </Pressable>
           </Animated.View>
+        ) : mode === "login" ? (
         ) : mode === "login" ? (
           <Animated.View
             style={[
               styles.formContainer,
               {
                 opacity: formAnim,
+                transform: [
+                  {
+                    translateY: formAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [50, 0],
+                    }),
+                  },
+                ],
+              },
                 transform: [
                   {
                     translateY: formAnim.interpolate({
@@ -798,6 +1079,14 @@ export default function LoginScreen() {
                   backgroundColor: theme.backgroundDefault,
                 },
               ]}
+              style={[
+                styles.input,
+                {
+                  borderColor: theme.border,
+                  color: theme.text,
+                  backgroundColor: theme.backgroundDefault,
+                },
+              ]}
               placeholder="Email"
               placeholderTextColor={theme.textSecondary}
               value={email}
@@ -807,6 +1096,14 @@ export default function LoginScreen() {
               autoFocus
             />
             <TextInput
+              style={[
+                styles.input,
+                {
+                  borderColor: theme.border,
+                  color: theme.text,
+                  backgroundColor: theme.backgroundDefault,
+                },
+              ]}
               style={[
                 styles.input,
                 {
@@ -834,6 +1131,7 @@ export default function LoginScreen() {
             >
               <ThemedText style={styles.loginButtonText}>
                 {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+                {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
               </ThemedText>
             </Pressable>
             <View style={styles.formFooter}>
@@ -855,13 +1153,28 @@ export default function LoginScreen() {
                     { color: theme.textSecondary },
                   ]}
                 >
+                <Feather
+                  name="arrow-left"
+                  size={20}
+                  color={theme.textSecondary}
+                />
+                <ThemedText
+                  style={[
+                    styles.backButtonText,
+                    { color: theme.textSecondary },
+                  ]}
+                >
                   Volver
                 </ThemedText>
               </Pressable>
               <Pressable
                 onPress={handleRegister}
                 style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
               >
+                <ThemedText
+                  style={[styles.registerText, { color: Colors.light.primary }]}
+                >
                 <ThemedText
                   style={[styles.registerText, { color: Colors.light.primary }]}
                 >
@@ -870,6 +1183,7 @@ export default function LoginScreen() {
               </Pressable>
             </View>
           </Animated.View>
+        ) : mode === "register" ? (
         ) : mode === "register" ? (
           <Animated.View
             style={[
@@ -885,12 +1199,29 @@ export default function LoginScreen() {
                   },
                 ],
               },
+                transform: [
+                  {
+                    translateY: formAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [50, 0],
+                    }),
+                  },
+                ],
+              },
             ]}
           >
             <ThemedText style={[styles.registerTitle, { color: theme.text }]}>
               Ingresa tu email
             </ThemedText>
             <TextInput
+              style={[
+                styles.input,
+                {
+                  borderColor: theme.border,
+                  color: theme.text,
+                  backgroundColor: theme.backgroundDefault,
+                },
+              ]}
               style={[
                 styles.input,
                 {
@@ -921,6 +1252,7 @@ export default function LoginScreen() {
               ]}
             >
               <ThemedText style={styles.loginButtonText}>Siguiente</ThemedText>
+              <ThemedText style={styles.loginButtonText}>Siguiente</ThemedText>
             </Pressable>
             <Pressable
               onPress={handleBack}
@@ -937,16 +1269,34 @@ export default function LoginScreen() {
               <ThemedText
                 style={[styles.backButtonText, { color: theme.textSecondary }]}
               >
+              <Feather
+                name="arrow-left"
+                size={20}
+                color={theme.textSecondary}
+              />
+              <ThemedText
+                style={[styles.backButtonText, { color: theme.textSecondary }]}
+              >
                 Volver
               </ThemedText>
             </Pressable>
           </Animated.View>
+        ) : mode === "register_password" ? (
         ) : mode === "register_password" ? (
           <Animated.View
             style={[
               styles.registerContainer,
               {
                 opacity: formAnim,
+                transform: [
+                  {
+                    translateY: formAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [50, 0],
+                    }),
+                  },
+                ],
+              },
                 transform: [
                   {
                     translateY: formAnim.interpolate({
@@ -963,6 +1313,15 @@ export default function LoginScreen() {
             </ThemedText>
             <View style={styles.passwordContainer}>
               <TextInput
+                style={[
+                  styles.input,
+                  styles.passwordInput,
+                  {
+                    borderColor: theme.border,
+                    color: theme.text,
+                    backgroundColor: theme.backgroundDefault,
+                  },
+                ]}
                 style={[
                   styles.input,
                   styles.passwordInput,
@@ -995,6 +1354,15 @@ export default function LoginScreen() {
             </View>
             <View style={styles.passwordContainer}>
               <TextInput
+                style={[
+                  styles.input,
+                  styles.passwordInput,
+                  {
+                    borderColor: theme.border,
+                    color: theme.text,
+                    backgroundColor: theme.backgroundDefault,
+                  },
+                ]}
                 style={[
                   styles.input,
                   styles.passwordInput,
@@ -1038,6 +1406,7 @@ export default function LoginScreen() {
               ]}
             >
               <ThemedText style={styles.loginButtonText}>Siguiente</ThemedText>
+              <ThemedText style={styles.loginButtonText}>Siguiente</ThemedText>
             </Pressable>
             <Pressable
               onPress={handleBack}
@@ -1054,10 +1423,19 @@ export default function LoginScreen() {
               <ThemedText
                 style={[styles.backButtonText, { color: theme.textSecondary }]}
               >
+              <Feather
+                name="arrow-left"
+                size={20}
+                color={theme.textSecondary}
+              />
+              <ThemedText
+                style={[styles.backButtonText, { color: theme.textSecondary }]}
+              >
                 Volver
               </ThemedText>
             </Pressable>
           </Animated.View>
+        ) : mode === "register_username" ? (
         ) : mode === "register_username" ? (
           <Animated.View
             style={[
@@ -1073,12 +1451,29 @@ export default function LoginScreen() {
                   },
                 ],
               },
+                transform: [
+                  {
+                    translateY: formAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [50, 0],
+                    }),
+                  },
+                ],
+              },
             ]}
           >
             <ThemedText style={[styles.registerTitle, { color: theme.text }]}>
               Ingresa tu nombre
             </ThemedText>
             <TextInput
+              style={[
+                styles.input,
+                {
+                  borderColor: theme.border,
+                  color: theme.text,
+                  backgroundColor: theme.backgroundDefault,
+                },
+              ]}
               style={[
                 styles.input,
                 {
@@ -1108,6 +1503,7 @@ export default function LoginScreen() {
               ]}
             >
               <ThemedText style={styles.loginButtonText}>Siguiente</ThemedText>
+              <ThemedText style={styles.loginButtonText}>Siguiente</ThemedText>
             </Pressable>
             <Pressable
               onPress={() => {
@@ -1117,6 +1513,7 @@ export default function LoginScreen() {
                   duration: 200,
                   useNativeDriver: false,
                 }).start(() => {
+                  setMode("register");
                   setMode("register");
                 });
               }}
@@ -1133,16 +1530,34 @@ export default function LoginScreen() {
               <ThemedText
                 style={[styles.backButtonText, { color: theme.textSecondary }]}
               >
+              <Feather
+                name="arrow-left"
+                size={20}
+                color={theme.textSecondary}
+              />
+              <ThemedText
+                style={[styles.backButtonText, { color: theme.textSecondary }]}
+              >
                 Volver
               </ThemedText>
             </Pressable>
           </Animated.View>
+        ) : mode === "register_phone" ? (
         ) : mode === "register_phone" ? (
           <Animated.View
             style={[
               styles.registerContainer,
               {
                 opacity: formAnim,
+                transform: [
+                  {
+                    translateY: formAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [50, 0],
+                    }),
+                  },
+                ],
+              },
                 transform: [
                   {
                     translateY: formAnim.interpolate({
@@ -1166,11 +1581,20 @@ export default function LoginScreen() {
                   backgroundColor: theme.backgroundDefault,
                 },
               ]}
+              style={[
+                styles.input,
+                {
+                  borderColor: theme.border,
+                  color: theme.text,
+                  backgroundColor: theme.backgroundDefault,
+                },
+              ]}
               placeholder="Teléfono"
               placeholderTextColor={theme.textSecondary}
               value={phone}
               onChangeText={(text) => {
                 // Solo permitir números y máximo 8 dígitos
+                const cleanedText = text.replace(/[^0-9]/g, "").slice(0, 8);
                 const cleanedText = text.replace(/[^0-9]/g, "").slice(0, 8);
                 setPhone(cleanedText);
               }}
@@ -1194,36 +1618,61 @@ export default function LoginScreen() {
                       "Usuario creado en Firebase Auth (sin teléfono):",
                       userCredential.user.uid,
                     );
+                    const userCredential = await createUserWithEmailAndPassword(
+                      auth,
+                      email,
+                      password,
+                    );
+                    console.log(
+                      "Usuario creado en Firebase Auth (sin teléfono):",
+                      userCredential.user.uid,
+                    );
 
                     // Guardar en Firestore sin teléfono
+                    await setDoc(doc(db, "users", userCredential.user.uid), {
                     await setDoc(doc(db, "users", userCredential.user.uid), {
                       id: userCredential.user.uid,
                       email: email,
                       name: username,
                       phone: "",
+                      phone: "",
                       createdAt: new Date(),
+                      status: "notVerified",
                       status: "notVerified",
                       isAdmin: false,
                       isVerifiedBroker: false,
                       avatar: "",
-                      bank: "",
+                      bankName: "",
                       card: "",
                       dpiDocument: {
                         back: "",
                         front: "",
+                        back: "",
+                        front: "",
                       },
+                      dpiNumber: "",
                       dpiNumber: "",
                     });
 
+                    console.log("Usuario creado sin teléfono");
                     console.log("Usuario creado sin teléfono");
 
                     // Ir a la pantalla principal
                     setHasAttemptedLogin(true);
                     navigation.replace("Main");
+                    navigation.replace("Main");
                   } catch (error: any) {
                     console.error("Error al crear usuario:", error);
                     let errorMessage = "Error al crear cuenta";
+                    console.error("Error al crear usuario:", error);
+                    let errorMessage = "Error al crear cuenta";
 
+                    if (error.code === "auth/email-already-in-use") {
+                      errorMessage = "Este email ya está en uso";
+                    } else if (error.code === "auth/invalid-email") {
+                      errorMessage = "Email inválido";
+                    } else if (error.code === "auth/weak-password") {
+                      errorMessage = "La contraseña es muy débil";
                     if (error.code === "auth/email-already-in-use") {
                       errorMessage = "Este email ya está en uso";
                     } else if (error.code === "auth/invalid-email") {
@@ -1250,9 +1699,18 @@ export default function LoginScreen() {
                     alignItems: "center",
                     justifyContent: "center",
                     borderColor: "#cccccc",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderColor: "#cccccc",
                   },
                 ]}
               >
+                <ThemedText
+                  style={[
+                    styles.skipText,
+                    { color: theme.textSecondary, marginTop: 0 },
+                  ]}
+                >
                 <ThemedText
                   style={[
                     styles.skipText,
@@ -1267,11 +1725,15 @@ export default function LoginScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   if (!phone.trim()) {
                     setErrorMessage("Por favor ingresa tu teléfono");
+                    setErrorMessage("Por favor ingresa tu teléfono");
                     setShowErrorPopup(true);
                     setTimeout(() => setShowErrorPopup(false), 3000);
                     return;
                   }
                   if (phone.length !== 8) {
+                    setErrorMessage(
+                      "El teléfono debe tener exactamente 8 dígitos",
+                    );
                     setErrorMessage(
                       "El teléfono debe tener exactamente 8 dígitos",
                     );
@@ -1284,6 +1746,7 @@ export default function LoginScreen() {
                     duration: 200,
                     useNativeDriver: false,
                   }).start(() => {
+                    setMode("verify_phone");
                     setMode("verify_phone");
                     formAnim.setValue(0);
                     Animated.timing(formAnim, {
@@ -1302,6 +1765,8 @@ export default function LoginScreen() {
                     marginLeft: Spacing.sm,
                     height: 50,
                     paddingVertical: 0,
+                    alignItems: "center",
+                    justifyContent: "center",
                     alignItems: "center",
                     justifyContent: "center",
                   },
@@ -1327,36 +1792,61 @@ export default function LoginScreen() {
                     "Usuario creado en Firebase Auth (sin teléfono):",
                     userCredential.user.uid,
                   );
+                  const userCredential = await createUserWithEmailAndPassword(
+                    auth,
+                    email,
+                    password,
+                  );
+                  console.log(
+                    "Usuario creado en Firebase Auth (sin teléfono):",
+                    userCredential.user.uid,
+                  );
 
                   // Guardar en Firestore sin teléfono
+                  await setDoc(doc(db, "users", userCredential.user.uid), {
                   await setDoc(doc(db, "users", userCredential.user.uid), {
                     id: userCredential.user.uid,
                     email: email,
                     name: username,
                     phone: "",
+                    phone: "",
                     createdAt: new Date(),
+                    status: "notVerified",
                     status: "notVerified",
                     isAdmin: false,
                     isVerifiedBroker: false,
                     avatar: "",
-                    bank: "",
+                    bankName: "",
                     card: "",
                     dpiDocument: {
                       back: "",
                       front: "",
+                      back: "",
+                      front: "",
                     },
+                    dpiNumber: "",
                     dpiNumber: "",
                   });
 
+                  console.log("Usuario creado sin teléfono");
                   console.log("Usuario creado sin teléfono");
 
                   // Ir a la pantalla principal
                   setHasAttemptedLogin(true);
                   navigation.replace("Main");
+                  navigation.replace("Main");
                 } catch (error: any) {
                   console.error("Error al crear usuario:", error);
                   let errorMessage = "Error al crear cuenta";
+                  console.error("Error al crear usuario:", error);
+                  let errorMessage = "Error al crear cuenta";
 
+                  if (error.code === "auth/email-already-in-use") {
+                    errorMessage = "Este email ya está en uso";
+                  } else if (error.code === "auth/invalid-email") {
+                    errorMessage = "Email inválido";
+                  } else if (error.code === "auth/weak-password") {
+                    errorMessage = "La contraseña es muy débil";
                   if (error.code === "auth/email-already-in-use") {
                     errorMessage = "Este email ya está en uso";
                   } else if (error.code === "auth/invalid-email") {
@@ -1382,6 +1872,9 @@ export default function LoginScreen() {
               <ThemedText
                 style={[styles.skipText, { color: theme.textSecondary }]}
               >
+              <ThemedText
+                style={[styles.skipText, { color: theme.textSecondary }]}
+              >
                 Saltar
               </ThemedText>
             </Pressable>
@@ -1393,6 +1886,7 @@ export default function LoginScreen() {
                   duration: 200,
                   useNativeDriver: false,
                 }).start(() => {
+                  setMode("register_username");
                   setMode("register_username");
                 });
               }}
@@ -1409,16 +1903,34 @@ export default function LoginScreen() {
               <ThemedText
                 style={[styles.backButtonText, { color: theme.textSecondary }]}
               >
+              <Feather
+                name="arrow-left"
+                size={20}
+                color={theme.textSecondary}
+              />
+              <ThemedText
+                style={[styles.backButtonText, { color: theme.textSecondary }]}
+              >
                 Volver
               </ThemedText>
             </Pressable>
           </Animated.View>
+        ) : mode === "verify_phone" ? (
         ) : mode === "verify_phone" ? (
           <Animated.View
             style={[
               styles.registerContainer,
               {
                 opacity: formAnim,
+                transform: [
+                  {
+                    translateY: formAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [50, 0],
+                    }),
+                  },
+                ],
+              },
                 transform: [
                   {
                     translateY: formAnim.interpolate({
@@ -1438,6 +1950,7 @@ export default function LoginScreen() {
                 const borderColor = codeColors[index].interpolate({
                   inputRange: [0, 1],
                   outputRange: ["#cccccc", Colors.light.primary],
+                  outputRange: ["#cccccc", Colors.light.primary],
                 });
 
                 return (
@@ -1445,7 +1958,14 @@ export default function LoginScreen() {
                     key={index}
                     style={[styles.codeSlotWrapper, { borderColor }]}
                   >
+                  <Animated.View
+                    key={index}
+                    style={[styles.codeSlotWrapper, { borderColor }]}
+                  >
                     <TextInput
+                      ref={(ref) => {
+                        codeInputRefs.current[index] = ref;
+                      }}
                       ref={(ref) => {
                         codeInputRefs.current[index] = ref;
                       }}
@@ -1485,6 +2005,11 @@ export default function LoginScreen() {
                           !digit &&
                           index > 0
                         ) {
+                        if (
+                          e.nativeEvent.key === "Backspace" &&
+                          !digit &&
+                          index > 0
+                        ) {
                           setTimeout(() => {
                             codeInputRefs.current[index - 1]?.focus();
                           }, 10);
@@ -1502,7 +2027,9 @@ export default function LoginScreen() {
               onPress={async () => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 const code = verificationCode.join("");
+                const code = verificationCode.join("");
                 if (code.length !== 6) {
+                  setErrorMessage("Por favor ingresa el código completo");
                   setErrorMessage("Por favor ingresa el código completo");
                   setShowErrorPopup(true);
                   setTimeout(() => setShowErrorPopup(false), 3000);
@@ -1512,6 +2039,15 @@ export default function LoginScreen() {
                 try {
                   // Crear usuario en Firebase Auth
                   const auth = getAuth();
+                  const userCredential = await createUserWithEmailAndPassword(
+                    auth,
+                    email,
+                    password,
+                  );
+                  console.log(
+                    "Usuario creado en Firebase Auth:",
+                    userCredential.user.uid,
+                  );
                   const userCredential = await createUserWithEmailAndPassword(
                     auth,
                     email,
@@ -1535,7 +2071,7 @@ export default function LoginScreen() {
                       isAdmin: false,
                       isVerifiedBroker: false,
                       avatar: "",
-                      bank: "",
+                      bankName: "",
                       card: "",
                       dpiDocument: {
                         back: "",
@@ -1547,11 +2083,17 @@ export default function LoginScreen() {
                   );
 
                   console.log("Datos guardados en Firestore correctamente");
+                  console.log("Datos guardados en Firestore correctamente");
 
                   // Redirect to main page
                   setHasAttemptedLogin(true);
                   navigation.replace("Main");
+                  navigation.replace("Main");
                 } catch (error: any) {
+                  console.error("Error al crear usuario:", error);
+                  let errorMsg = "Error al crear la cuenta";
+                  if (error.code === "auth/email-already-in-use") {
+                    errorMsg = "Este email ya está relacionado a una cuenta";
                   console.error("Error al crear usuario:", error);
                   let errorMsg = "Error al crear la cuenta";
                   if (error.code === "auth/email-already-in-use") {
@@ -1574,6 +2116,7 @@ export default function LoginScreen() {
               ]}
             >
               <ThemedText style={styles.loginButtonText}>Siguiente</ThemedText>
+              <ThemedText style={styles.loginButtonText}>Siguiente</ThemedText>
             </Pressable>
             <Pressable
               onPress={() => {
@@ -1583,6 +2126,7 @@ export default function LoginScreen() {
                   duration: 200,
                   useNativeDriver: false,
                 }).start(() => {
+                  setMode("register_phone");
                   setMode("register_phone");
                   formAnim.setValue(0);
                   Animated.timing(formAnim, {
@@ -1605,16 +2149,34 @@ export default function LoginScreen() {
               <ThemedText
                 style={[styles.backButtonText, { color: theme.textSecondary }]}
               >
+              <Feather
+                name="arrow-left"
+                size={20}
+                color={theme.textSecondary}
+              />
+              <ThemedText
+                style={[styles.backButtonText, { color: theme.textSecondary }]}
+              >
                 Volver
               </ThemedText>
             </Pressable>
           </Animated.View>
+        ) : mode === "google_phone" ? (
         ) : mode === "google_phone" ? (
           <Animated.View
             style={[
               styles.registerContainer,
               {
                 opacity: formAnim,
+                transform: [
+                  {
+                    translateY: formAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [50, 0],
+                    }),
+                  },
+                ],
+              },
                 transform: [
                   {
                     translateY: formAnim.interpolate({
@@ -1638,11 +2200,20 @@ export default function LoginScreen() {
                   backgroundColor: theme.backgroundDefault,
                 },
               ]}
+              style={[
+                styles.input,
+                {
+                  borderColor: theme.border,
+                  color: theme.text,
+                  backgroundColor: theme.backgroundDefault,
+                },
+              ]}
               placeholder="Teléfono"
               placeholderTextColor={theme.textSecondary}
               value={phone}
               onChangeText={(text) => {
                 // Solo permitir números y máximo 8 dígitos
+                const cleanedText = text.replace(/[^0-9]/g, "").slice(0, 8);
                 const cleanedText = text.replace(/[^0-9]/g, "").slice(0, 8);
                 setPhone(cleanedText);
               }}
@@ -1656,11 +2227,15 @@ export default function LoginScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   if (!phone.trim()) {
                     setErrorMessage("Por favor ingresa tu teléfono");
+                    setErrorMessage("Por favor ingresa tu teléfono");
                     setShowErrorPopup(true);
                     setTimeout(() => setShowErrorPopup(false), 3000);
                     return;
                   }
                   if (phone.length !== 8) {
+                    setErrorMessage(
+                      "El teléfono debe tener exactamente 8 dígitos",
+                    );
                     setErrorMessage(
                       "El teléfono debe tener exactamente 8 dígitos",
                     );
@@ -1675,6 +2250,7 @@ export default function LoginScreen() {
                     duration: 200,
                     useNativeDriver: false,
                   }).start(() => {
+                    setMode("google_verify_phone");
                     setMode("google_verify_phone");
                     formAnim.setValue(0);
                     Animated.timing(formAnim, {
@@ -1695,6 +2271,8 @@ export default function LoginScreen() {
                     paddingVertical: 0,
                     alignItems: "center",
                     justifyContent: "center",
+                    alignItems: "center",
+                    justifyContent: "center",
                   },
                 ]}
               >
@@ -1708,6 +2286,9 @@ export default function LoginScreen() {
                   try {
                     // Use saved Google user data
                     if (!googleUserData) {
+                      setErrorMessage(
+                        "Error de autenticación. Por favor intenta de nuevo.",
+                      );
                       setErrorMessage(
                         "Error de autenticación. Por favor intenta de nuevo.",
                       );
@@ -1729,7 +2310,7 @@ export default function LoginScreen() {
                         isAdmin: false,
                         isVerifiedBroker: false,
                         avatar: "",
-                        bank: "",
+                        bankName: "",
                         card: "",
                         dpiDocument: {
                           back: "",
@@ -1741,11 +2322,15 @@ export default function LoginScreen() {
                     );
 
                     console.log("Usuario de Google creado sin teléfono");
+                    console.log("Usuario de Google creado sin teléfono");
 
                     // Go to main screen
                     setHasAttemptedLogin(true);
                     navigation.replace("Main");
+                    navigation.replace("Main");
                   } catch (error: any) {
+                    console.error("Error al crear usuario:", error);
+                    setErrorMessage("Error al crear usuario");
                     console.error("Error al crear usuario:", error);
                     setErrorMessage("Error al crear usuario");
                     setShowErrorPopup(true);
@@ -1763,9 +2348,18 @@ export default function LoginScreen() {
                     alignItems: "center",
                     justifyContent: "center",
                     borderColor: "#cccccc",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderColor: "#cccccc",
                   },
                 ]}
               >
+                <ThemedText
+                  style={[
+                    styles.skipText,
+                    { color: theme.textSecondary, marginTop: 0 },
+                  ]}
+                >
                 <ThemedText
                   style={[
                     styles.skipText,
@@ -1785,6 +2379,7 @@ export default function LoginScreen() {
                   duration: 200,
                   useNativeDriver: false,
                 }).start(() => {
+                  setMode("buttons");
                   setMode("buttons");
                   setIsFromGoogle(false);
                   formAnim.setValue(0);
@@ -1808,16 +2403,34 @@ export default function LoginScreen() {
               <ThemedText
                 style={[styles.backButtonText, { color: theme.textSecondary }]}
               >
+              <Feather
+                name="arrow-left"
+                size={20}
+                color={theme.textSecondary}
+              />
+              <ThemedText
+                style={[styles.backButtonText, { color: theme.textSecondary }]}
+              >
                 Volver
               </ThemedText>
             </Pressable>
           </Animated.View>
+        ) : mode === "google_verify_phone" ? (
         ) : mode === "google_verify_phone" ? (
           <Animated.View
             style={[
               styles.registerContainer,
               {
                 opacity: formAnim,
+                transform: [
+                  {
+                    translateY: formAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [50, 0],
+                    }),
+                  },
+                ],
+              },
                 transform: [
                   {
                     translateY: formAnim.interpolate({
@@ -1837,6 +2450,7 @@ export default function LoginScreen() {
                 const borderColor = codeColors[index].interpolate({
                   inputRange: [0, 1],
                   outputRange: ["#cccccc", Colors.light.primary],
+                  outputRange: ["#cccccc", Colors.light.primary],
                 });
 
                 return (
@@ -1844,7 +2458,14 @@ export default function LoginScreen() {
                     key={index}
                     style={[styles.codeSlotWrapper, { borderColor }]}
                   >
+                  <Animated.View
+                    key={index}
+                    style={[styles.codeSlotWrapper, { borderColor }]}
+                  >
                     <TextInput
+                      ref={(ref) => {
+                        codeInputRefs.current[index] = ref;
+                      }}
                       ref={(ref) => {
                         codeInputRefs.current[index] = ref;
                       }}
@@ -1884,6 +2505,11 @@ export default function LoginScreen() {
                           !digit &&
                           index > 0
                         ) {
+                        if (
+                          e.nativeEvent.key === "Backspace" &&
+                          !digit &&
+                          index > 0
+                        ) {
                           setTimeout(() => {
                             codeInputRefs.current[index - 1]?.focus();
                           }, 10);
@@ -1901,7 +2527,9 @@ export default function LoginScreen() {
               onPress={async () => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 const code = verificationCode.join("");
+                const code = verificationCode.join("");
                 if (code.length !== 6) {
+                  setErrorMessage("Por favor ingresa el código completo");
                   setErrorMessage("Por favor ingresa el código completo");
                   setShowErrorPopup(true);
                   setTimeout(() => setShowErrorPopup(false), 3000);
@@ -1911,6 +2539,10 @@ export default function LoginScreen() {
                 try {
                   // Use saved Google user data
                   if (!googleUserData) {
+                    console.log("Error: Datos de Google no disponibles");
+                    setErrorMessage(
+                      "Error de autenticación. Por favor intenta de nuevo.",
+                    );
                     console.log("Error: Datos de Google no disponibles");
                     setErrorMessage(
                       "Error de autenticación. Por favor intenta de nuevo.",
@@ -1933,7 +2565,7 @@ export default function LoginScreen() {
                       isAdmin: false,
                       isVerifiedBroker: false,
                       avatar: "",
-                      bank: "",
+                      bankName: "",
                       card: "",
                       dpiDocument: {
                         back: "",
@@ -1947,11 +2579,17 @@ export default function LoginScreen() {
                   console.log(
                     "Teléfono y código guardados para usuario de Google",
                   );
+                  console.log(
+                    "Teléfono y código guardados para usuario de Google",
+                  );
 
                   // Go to main screen
                   setHasAttemptedLogin(true);
                   navigation.replace("Main");
+                  navigation.replace("Main");
                 } catch (error: any) {
+                  console.error("Error al guardar datos:", error);
+                  setErrorMessage("Error al guardar datos");
                   console.error("Error al guardar datos:", error);
                   setErrorMessage("Error al guardar datos");
                   setShowErrorPopup(true);
@@ -1968,6 +2606,7 @@ export default function LoginScreen() {
               ]}
             >
               <ThemedText style={styles.loginButtonText}>Siguiente</ThemedText>
+              <ThemedText style={styles.loginButtonText}>Siguiente</ThemedText>
             </Pressable>
             <Pressable
               onPress={() => {
@@ -1977,6 +2616,7 @@ export default function LoginScreen() {
                   duration: 200,
                   useNativeDriver: false,
                 }).start(() => {
+                  setMode("google_phone");
                   setMode("google_phone");
                   formAnim.setValue(0);
                   Animated.timing(formAnim, {
@@ -1999,6 +2639,14 @@ export default function LoginScreen() {
               <ThemedText
                 style={[styles.backButtonText, { color: theme.textSecondary }]}
               >
+              <Feather
+                name="arrow-left"
+                size={20}
+                color={theme.textSecondary}
+              />
+              <ThemedText
+                style={[styles.backButtonText, { color: theme.textSecondary }]}
+              >
                 Volver
               </ThemedText>
             </Pressable>
@@ -2010,9 +2658,15 @@ export default function LoginScreen() {
           <ThemedText
             style={[styles.linkText, { color: Colors.light.primary }]}
           >
+          <ThemedText
+            style={[styles.linkText, { color: Colors.light.primary }]}
+          >
             Terms of Service
           </ThemedText>{" "}
           and{" "}
+          <ThemedText
+            style={[styles.linkText, { color: Colors.light.primary }]}
+          >
           <ThemedText
             style={[styles.linkText, { color: Colors.light.primary }]}
           >
@@ -2029,10 +2683,15 @@ export default function LoginScreen() {
               top: insets.top + 20,
               transform: [{ translateX: errorSlideAnim }],
             },
+              transform: [{ translateX: errorSlideAnim }],
+            },
           ]}
         >
           <View style={styles.errorPopupContent}>
             <FontAwesome name="exclamation-circle" size={20} color="#FFFFFF" />
+            <ThemedText style={styles.errorPopupText}>
+              {errorMessage}
+            </ThemedText>
             <ThemedText style={styles.errorPopupText}>
               {errorMessage}
             </ThemedText>
@@ -2082,6 +2741,8 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   registerTitle: {
     fontSize: 18,
@@ -2098,11 +2759,13 @@ const styles = StyleSheet.create({
   },
   passwordContainer: {
     position: "relative",
+    position: "relative",
   },
   passwordInput: {
     paddingRight: 50,
   },
   eyeButton: {
+    position: "absolute",
     position: "absolute",
     right: 15,
     top: 15,
@@ -2143,6 +2806,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   registerText: {
     fontSize: 16,
@@ -2171,6 +2837,7 @@ const styles = StyleSheet.create({
   },
   errorPopup: {
     position: "absolute",
+    position: "absolute",
     top: 20,
     right: 20,
     zIndex: 1000,
@@ -2179,9 +2846,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#DC2626",
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "#DC2626",
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
+    shadowColor: "#000",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -2194,12 +2865,16 @@ const styles = StyleSheet.create({
   },
   errorPopupText: {
     color: "#FFFFFF",
+    color: "#FFFFFF",
     fontSize: 14,
+    fontWeight: "500",
     fontWeight: "500",
     marginLeft: Spacing.sm,
     flex: 1,
   },
   codeContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
     flexDirection: "row",
     justifyContent: "center",
     gap: Spacing.sm,
@@ -2210,11 +2885,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: BorderRadius.md,
     backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFFFFF",
   },
   codeSlot: {
     width: 45,
     height: 55,
     fontSize: 24,
+    fontWeight: "600",
+    textAlign: "center",
     fontWeight: "600",
     textAlign: "center",
     padding: 0,

@@ -150,7 +150,9 @@ export interface ExtractedProject {
   imageUrl: string;
 }
 
-export async function fetchPropiedadById(propertyId: string): Promise<APIPropiedad | null> {
+export async function fetchPropiedadById(
+  propertyId: string,
+): Promise<APIPropiedad | null> {
   try {
     const properties = await fetchPropiedades();
     const property = properties.find((p) => p.id.toString() === propertyId);
@@ -161,7 +163,9 @@ export async function fetchPropiedadById(propertyId: string): Promise<APIPropied
   }
 }
 
-export function extractProjectsFromProperties(properties: APIPropiedad[]): ExtractedProject[] {
+export function extractProjectsFromProperties(
+  properties: APIPropiedad[],
+): ExtractedProject[] {
   const projectMap = new Map<number, ExtractedProject>();
 
   properties.forEach((prop) => {
@@ -169,7 +173,9 @@ export function extractProjectsFromProperties(properties: APIPropiedad[]): Extra
       const projectId = prop.proyecto.id;
 
       if (!projectMap.has(projectId)) {
-        const firstImage = prop.imagenes.find((img) => img.formato === "imagen");
+        const firstImage = prop.imagenes.find(
+          (img) => img.formato === "imagen",
+        );
         const features = prop.proyecto.caracteristicas
           ? prop.proyecto.caracteristicas.split(",").map((f) => f.trim())
           : [];
@@ -183,14 +189,18 @@ export function extractProjectsFromProperties(properties: APIPropiedad[]): Extra
           status: prop.proyecto.estado,
           features,
           propertyCount: 1,
-          imageUrl: firstImage?.url || "https://via.placeholder.com/400x300?text=Proyecto",
+          imageUrl:
+            firstImage?.url ||
+            "https://via.placeholder.com/400x300?text=Proyecto",
         });
       } else {
         const existingProject = projectMap.get(projectId)!;
         existingProject.propertyCount++;
 
         if (existingProject.imageUrl.includes("placeholder")) {
-          const firstImage = prop.imagenes.find((img) => img.formato === "imagen");
+          const firstImage = prop.imagenes.find(
+            (img) => img.formato === "imagen",
+          );
           if (firstImage?.url) {
             existingProject.imageUrl = firstImage.url;
           }
@@ -222,18 +232,23 @@ export interface PropertyClient {
 }
 
 // Obtener propiedades favoritas del usuario con conteo de clientes
-export async function getUserFavoritePropertiesWithClients(userId: string): Promise<FavoritePropertyWithClients[]> {
+export async function getUserFavoritePropertiesWithClients(
+  userId: string,
+): Promise<FavoritePropertyWithClients[]> {
   try {
     // Obtener leads del usuario desde nuestro servidor proxy (evita CORS)
     // El puerto 5000 es el del servidor Express local (ahora usando variable de entorno)
-    const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`, {
-      headers: {
-        'ngrok-skip-browser-warning': 'true',
+    const leadsResponse = await fetch(
+      `${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`,
+      {
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+        },
       },
-    });
+    );
 
     if (!leadsResponse.ok) {
-      console.error('Error obteniendo leads:', leadsResponse.status);
+      console.error("Error obteniendo leads:", leadsResponse.status);
       return [];
     }
 
@@ -268,7 +283,7 @@ export async function getUserFavoritePropertiesWithClients(userId: string): Prom
           property_id: propertyId,
           added_at: new Date(),
           client_count: clients.length,
-          property: propertyData
+          property: propertyData,
         });
       }
     }
@@ -276,58 +291,64 @@ export async function getUserFavoritePropertiesWithClients(userId: string): Prom
     // Ordenar por cantidad de clientes (descendente)
     return favoritesWithClients.sort((a, b) => b.client_count - a.client_count);
   } catch (error) {
-    console.error('Error fetching user favorite properties:', error);
+    console.error("Error fetching user favorite properties:", error);
     return [];
   }
 }
 
 // Obtener clientes interesados en una propiedad específica
-export async function getPropertyClients(propertyId: string, userId: string): Promise<PropertyClient[]> {
+export async function getPropertyClients(
+  propertyId: string,
+  userId: string,
+): Promise<PropertyClient[]> {
   try {
     // Obtener todos los leads del usuario desde nuestro servidor proxy (evita CORS)
-    const leadsResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`, {
-      headers: {
-        'ngrok-skip-browser-warning': 'true',
+    const leadsResponse = await fetch(
+      `${process.env.EXPO_PUBLIC_API_URL}/lead/user/${userId}`,
+      {
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+        },
       },
-    });
+    );
 
     if (!leadsResponse.ok) {
-      console.error('Error obteniendo leads:', leadsResponse.status);
+      console.error("Error obteniendo leads:", leadsResponse.status);
       return [];
     }
 
     const allLeads = await leadsResponse.json();
 
     // Filtrar leads de la propiedad específica
-    const propertyLeads = allLeads.filter((lead: any) =>
-      lead.property_id.toString() === propertyId
+    const propertyLeads = allLeads.filter(
+      (lead: any) => lead.property_id.toString() === propertyId,
     );
 
     // Convertir los leads al formato PropertyClient
     const clients: PropertyClient[] = propertyLeads.map((lead: any) => {
       // Obtener el lead_status de la última fase si existe
-      let status = '1'; // Estado por defecto
+      let status = "1"; // Estado por defecto
       if (lead.phases && lead.phases.length > 0) {
         // Obtener la fase más reciente (última en el array)
         const latestPhase = lead.phases[lead.phases.length - 1];
-        status = latestPhase.lead_status?.toString() || '1';
+        status = latestPhase.lead_status?.toString() || "1";
       }
 
       return {
         id: lead.id,
         name: lead.client_name,
         phone: lead.client_phone,
-        comment: lead.comment || '',
-        date: new Date(lead.created_at).toLocaleDateString('es-ES'),
-        email: '', // No disponible en la API
-        additionalInfo: '',
-        status: status
+        comment: lead.comment || "",
+        date: new Date(lead.created_at).toLocaleDateString("es-ES"),
+        email: "", // No disponible en la API
+        additionalInfo: "",
+        status: status,
       };
     });
 
     return clients;
   } catch (error) {
-    console.error('Error fetching property clients:', error);
+    console.error("Error fetching property clients:", error);
     return [];
   }
 }
@@ -336,7 +357,7 @@ export async function getPropertyClients(propertyId: string, userId: string): Pr
 async function getPropertyById(propertyId: string): Promise<Property | null> {
   try {
     const properties = await fetchPropiedades();
-    const apiProperty = properties.find(p => p.id.toString() === propertyId);
+    const apiProperty = properties.find((p) => p.id.toString() === propertyId);
 
     if (apiProperty) {
       // Importar y usar mapAPIPropertyToProperty desde properties.ts
@@ -345,7 +366,7 @@ async function getPropertyById(propertyId: string): Promise<Property | null> {
 
     return null;
   } catch (error) {
-    console.error('Error getting property by ID:', error);
+    console.error("Error getting property by ID:", error);
     return null;
   }
 }

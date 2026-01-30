@@ -18,8 +18,14 @@ function setupCors(app: express.Application) {
   app.use((req, res, next) => {
     if (process.env.NODE_ENV === "development") {
       res.header("Access-Control-Allow-Origin", "*");
-      res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-      res.header("Access-Control-Allow-Headers", "Content-Type, x-api-key, expo-platform, ngrok-skip-browser-warning, Authorization");
+      res.header(
+        "Access-Control-Allow-Methods",
+        "GET, POST, PUT, DELETE, OPTIONS",
+      );
+      res.header(
+        "Access-Control-Allow-Headers",
+        "Content-Type, x-api-key, expo-platform, ngrok-skip-browser-warning, Authorization",
+      );
       res.header("Access-Control-Allow-Credentials", "true");
     } else {
       const origins = new Set<string>();
@@ -47,7 +53,10 @@ function setupCors(app: express.Application) {
           "Access-Control-Allow-Methods",
           "GET, POST, PUT, DELETE, OPTIONS",
         );
-        res.header("Access-Control-Allow-Headers", "Content-Type, x-api-key, expo-platform");
+        res.header(
+          "Access-Control-Allow-Headers",
+          "Content-Type, x-api-key, expo-platform",
+        );
         res.header("Access-Control-Allow-Credentials", "true");
       } else if (!origin && process.env.NODE_ENV === "development") {
         // Perissive in dev if no origin (e.g. some server-to-server or direct brower hits)
@@ -239,8 +248,14 @@ function setupErrorHandler(app: express.Application) {
 (async () => {
   // Log de variables de entorno al inicio
   console.log("🔐 Variables de entorno cargadas:");
-  console.log("   LARED_API_EMAIL:", process.env.LARED_API_EMAIL ? '✓ Configurado' : '✗ NO configurado');
-  console.log("   LARED_API_PASSWORD:", process.env.LARED_API_PASSWORD ? '✓ Configurado' : '✗ NO configurado');
+  console.log(
+    "   LARED_API_EMAIL:",
+    process.env.LARED_API_EMAIL ? "✓ Configurado" : "✗ NO configurado",
+  );
+  console.log(
+    "   LARED_API_PASSWORD:",
+    process.env.LARED_API_PASSWORD ? "✓ Configurado" : "✗ NO configurado",
+  );
   console.log("");
 
   setupCors(app);

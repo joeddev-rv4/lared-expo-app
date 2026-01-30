@@ -47,7 +47,8 @@ export default function CaptureClientScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [properties, setProperties] = useState<APIPropiedad[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProperty, setSelectedProperty] = useState<SelectedProperty | null>(null);
+  const [selectedProperty, setSelectedProperty] =
+    useState<SelectedProperty | null>(null);
 
   // Client data
   const [clientName, setClientName] = useState("");
@@ -79,7 +80,7 @@ export default function CaptureClientScreen() {
         prop.titulo?.toLowerCase().includes(query) ||
         prop.proyecto?.nombre_proyecto?.toLowerCase().includes(query) ||
         prop.ubicacion?.toLowerCase().includes(query) ||
-        prop.propiedad?.toLowerCase().includes(query)
+        prop.propiedad?.toLowerCase().includes(query),
     );
   }, [properties, searchQuery]);
 
@@ -101,7 +102,10 @@ export default function CaptureClientScreen() {
     if (currentStep === 2) {
       if (!clientName.trim() || !clientPhone.trim()) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        Alert.alert("Campos requeridos", "Por favor ingresa el nombre y teléfono del cliente.");
+        Alert.alert(
+          "Campos requeridos",
+          "Por favor ingresa el nombre y teléfono del cliente.",
+        );
         return;
       }
     }
@@ -125,7 +129,7 @@ export default function CaptureClientScreen() {
     Alert.alert(
       "¡Solicitud Enviada!",
       `Se ha registrado el interés de ${clientName} en ${selectedProperty?.title}`,
-      [{ text: "OK", onPress: () => navigation.goBack() }]
+      [{ text: "OK", onPress: () => navigation.goBack() }],
     );
     setIsSubmitting(false);
   };
@@ -140,9 +144,13 @@ export default function CaptureClientScreen() {
                 styles.stepCircle,
                 {
                   backgroundColor:
-                    currentStep >= step.id ? Colors.light.primary : theme.backgroundDefault,
+                    currentStep >= step.id
+                      ? Colors.light.primary
+                      : theme.backgroundDefault,
                   borderColor:
-                    currentStep >= step.id ? Colors.light.primary : theme.border,
+                    currentStep >= step.id
+                      ? Colors.light.primary
+                      : theme.border,
                 },
               ]}
             >
@@ -152,7 +160,9 @@ export default function CaptureClientScreen() {
                 <Ionicons
                   name={step.icon as any}
                   size={16}
-                  color={currentStep >= step.id ? "#FFFFFF" : theme.textSecondary}
+                  color={
+                    currentStep >= step.id ? "#FFFFFF" : theme.textSecondary
+                  }
                 />
               )}
             </View>
@@ -160,7 +170,10 @@ export default function CaptureClientScreen() {
               style={[
                 styles.stepLabel,
                 {
-                  color: currentStep >= step.id ? Colors.light.primary : theme.textSecondary,
+                  color:
+                    currentStep >= step.id
+                      ? Colors.light.primary
+                      : theme.textSecondary,
                 },
               ]}
               numberOfLines={1}
@@ -196,7 +209,9 @@ export default function CaptureClientScreen() {
         ]}
       >
         <Image
-          source={{ uri: firstImage?.url || "https://via.placeholder.com/100x100" }}
+          source={{
+            uri: firstImage?.url || "https://via.placeholder.com/100x100",
+          }}
           style={styles.propertyItemImage}
         />
         <View style={styles.propertyItemInfo}>
@@ -209,18 +224,26 @@ export default function CaptureClientScreen() {
           >
             {item.proyecto?.nombre_proyecto || "Sin proyecto"}
           </ThemedText>
-          <ThemedText style={[styles.propertyItemPrice, { color: Colors.light.primary }]}>
+          <ThemedText
+            style={[styles.propertyItemPrice, { color: Colors.light.primary }]}
+          >
             Q{item.precio.toLocaleString()}
           </ThemedText>
         </View>
-        <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+        <Ionicons
+          name="chevron-forward"
+          size={20}
+          color={theme.textSecondary}
+        />
       </Pressable>
     );
   };
 
   const renderStep1 = () => (
     <View style={styles.stepContent}>
-      <ThemedText style={styles.stepTitle}>¿En qué propiedad está interesado?</ThemedText>
+      <ThemedText style={styles.stepTitle}>
+        ¿En qué propiedad está interesado?
+      </ThemedText>
       <ThemedText style={[styles.stepSubtitle, { color: theme.textSecondary }]}>
         Busca y selecciona la propiedad de interés
       </ThemedText>
@@ -228,7 +251,10 @@ export default function CaptureClientScreen() {
       <View
         style={[
           styles.searchContainer,
-          { backgroundColor: theme.backgroundDefault, borderColor: theme.border },
+          {
+            backgroundColor: theme.backgroundDefault,
+            borderColor: theme.border,
+          },
         ]}
       >
         <Ionicons name="search-outline" size={20} color={theme.textSecondary} />
@@ -256,8 +282,12 @@ export default function CaptureClientScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="archive" size={48} color={theme.textSecondary} />
-            <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
-              {loading ? "Cargando propiedades..." : "No se encontraron propiedades"}
+            <ThemedText
+              style={[styles.emptyText, { color: theme.textSecondary }]}
+            >
+              {loading
+                ? "Cargando propiedades..."
+                : "No se encontraron propiedades"}
             </ThemedText>
           </View>
         }
@@ -276,20 +306,33 @@ export default function CaptureClientScreen() {
         <View
           style={[
             styles.selectedPropertyCard,
-            { backgroundColor: theme.backgroundDefault, borderColor: theme.border },
+            {
+              backgroundColor: theme.backgroundDefault,
+              borderColor: theme.border,
+            },
           ]}
         >
-          <Image source={{ uri: selectedProperty.imageUrl }} style={styles.selectedPropertyImage} />
+          <Image
+            source={{ uri: selectedProperty.imageUrl }}
+            style={styles.selectedPropertyImage}
+          />
           <View style={styles.selectedPropertyInfo}>
             <ThemedText style={styles.selectedPropertyTitle} numberOfLines={2}>
               {selectedProperty.title}
             </ThemedText>
-            <ThemedText style={[styles.selectedPropertyPrice, { color: Colors.light.primary }]}>
+            <ThemedText
+              style={[
+                styles.selectedPropertyPrice,
+                { color: Colors.light.primary },
+              ]}
+            >
               Q{selectedProperty.price.toLocaleString()}
             </ThemedText>
           </View>
           <Pressable onPress={handlePrevStep} style={styles.changeButton}>
-            <ThemedText style={[styles.changeButtonText, { color: Colors.light.primary }]}>
+            <ThemedText
+              style={[styles.changeButtonText, { color: Colors.light.primary }]}
+            >
               Cambiar
             </ThemedText>
           </Pressable>
@@ -303,7 +346,11 @@ export default function CaptureClientScreen() {
         <TextInput
           style={[
             styles.input,
-            { backgroundColor: theme.backgroundDefault, color: theme.text, borderColor: theme.border },
+            {
+              backgroundColor: theme.backgroundDefault,
+              color: theme.text,
+              borderColor: theme.border,
+            },
           ]}
           value={clientName}
           onChangeText={setClientName}
@@ -319,7 +366,11 @@ export default function CaptureClientScreen() {
         <TextInput
           style={[
             styles.input,
-            { backgroundColor: theme.backgroundDefault, color: theme.text, borderColor: theme.border },
+            {
+              backgroundColor: theme.backgroundDefault,
+              color: theme.text,
+              borderColor: theme.border,
+            },
           ]}
           value={clientPhone}
           onChangeText={setClientPhone}
@@ -337,7 +388,11 @@ export default function CaptureClientScreen() {
           style={[
             styles.input,
             styles.textArea,
-            { backgroundColor: theme.backgroundDefault, color: theme.text, borderColor: theme.border },
+            {
+              backgroundColor: theme.backgroundDefault,
+              color: theme.text,
+              borderColor: theme.border,
+            },
           ]}
           value={clientComment}
           onChangeText={setClientComment}
@@ -362,19 +417,40 @@ export default function CaptureClientScreen() {
         Revisa la información antes de enviar
       </ThemedText>
 
-      <View style={[styles.summaryCard, { backgroundColor: theme.backgroundDefault, borderColor: theme.border }]}>
+      <View
+        style={[
+          styles.summaryCard,
+          {
+            backgroundColor: theme.backgroundDefault,
+            borderColor: theme.border,
+          },
+        ]}
+      >
         <View style={styles.summarySection}>
-          <ThemedText style={[styles.summaryLabel, { color: theme.textSecondary }]}>
+          <ThemedText
+            style={[styles.summaryLabel, { color: theme.textSecondary }]}
+          >
             Propiedad de Interés
           </ThemedText>
           {selectedProperty && (
             <View style={styles.summaryPropertyRow}>
-              <Image source={{ uri: selectedProperty.imageUrl }} style={styles.summaryPropertyImage} />
+              <Image
+                source={{ uri: selectedProperty.imageUrl }}
+                style={styles.summaryPropertyImage}
+              />
               <View style={styles.summaryPropertyInfo}>
-                <ThemedText style={styles.summaryPropertyTitle} numberOfLines={2}>
+                <ThemedText
+                  style={styles.summaryPropertyTitle}
+                  numberOfLines={2}
+                >
                   {selectedProperty.title}
                 </ThemedText>
-                <ThemedText style={[styles.summaryPropertyPrice, { color: Colors.light.primary }]}>
+                <ThemedText
+                  style={[
+                    styles.summaryPropertyPrice,
+                    { color: Colors.light.primary },
+                  ]}
+                >
                   Q{selectedProperty.price.toLocaleString()}
                 </ThemedText>
               </View>
@@ -385,11 +461,17 @@ export default function CaptureClientScreen() {
         <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
         <View style={styles.summarySection}>
-          <ThemedText style={[styles.summaryLabel, { color: theme.textSecondary }]}>
+          <ThemedText
+            style={[styles.summaryLabel, { color: theme.textSecondary }]}
+          >
             Datos del Cliente
           </ThemedText>
           <View style={styles.summaryRow}>
-            <Ionicons name="person-outline" size={18} color={theme.textSecondary} />
+            <Ionicons
+              name="person-outline"
+              size={18}
+              color={theme.textSecondary}
+            />
             <ThemedText style={styles.summaryValue}>{clientName}</ThemedText>
           </View>
           <View style={styles.summaryRow}>
@@ -398,8 +480,14 @@ export default function CaptureClientScreen() {
           </View>
           {clientComment.trim().length > 0 && (
             <View style={styles.summaryRow}>
-              <Ionicons name="chatbox-outline" size={18} color={theme.textSecondary} />
-              <ThemedText style={[styles.summaryValue, { flex: 1 }]}>{clientComment}</ThemedText>
+              <Ionicons
+                name="chatbox-outline"
+                size={18}
+                color={theme.textSecondary}
+              />
+              <ThemedText style={[styles.summaryValue, { flex: 1 }]}>
+                {clientComment}
+              </ThemedText>
             </View>
           )}
         </View>
@@ -408,7 +496,9 @@ export default function CaptureClientScreen() {
 
         <View style={styles.summarySection}>
           <View style={styles.commissionRow}>
-            <ThemedText style={[styles.summaryLabel, { color: theme.textSecondary }]}>
+            <ThemedText
+              style={[styles.summaryLabel, { color: theme.textSecondary }]}
+            >
               Comisión potencial
             </ThemedText>
             <ThemedText style={styles.commissionValue}>Q750.00</ThemedText>
@@ -421,9 +511,15 @@ export default function CaptureClientScreen() {
           onPress={handlePrevStep}
           style={[styles.backButton, { borderColor: theme.border }]}
         >
-          <ThemedText style={[styles.backButtonText, { color: theme.text }]}>Atrás</ThemedText>
+          <ThemedText style={[styles.backButtonText, { color: theme.text }]}>
+            Atrás
+          </ThemedText>
         </Pressable>
-        <Button onPress={handleSubmit} disabled={isSubmitting} style={styles.submitButton}>
+        <Button
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+          style={styles.submitButton}
+        >
           {isSubmitting ? "Enviando..." : "Enviar Solicitud"}
         </Button>
       </View>
@@ -437,7 +533,10 @@ export default function CaptureClientScreen() {
         style={styles.keyboardView}
       >
         <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
-          <Pressable onPress={() => navigation.goBack()} style={styles.closeButton}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={styles.closeButton}
+          >
             <Ionicons name="close" size={24} color={theme.text} />
           </Pressable>
           <ThemedText style={styles.headerTitle}>Capturar Cliente</ThemedText>
@@ -446,7 +545,12 @@ export default function CaptureClientScreen() {
 
         {renderStepIndicator()}
 
-        <View style={[styles.content, { paddingBottom: insets.bottom + Spacing.lg }]}>
+        <View
+          style={[
+            styles.content,
+            { paddingBottom: insets.bottom + Spacing.lg },
+          ]}
+        >
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}

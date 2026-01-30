@@ -41,6 +41,8 @@ type PropertyDetailRouteProp = RouteProp<RootStackParamList, "PropertyDetail">;
 export default function PropertyDetailScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<PropertyDetailRouteProp>();
   const { theme } = useTheme();
   const { isGuest } = useAuth();
@@ -53,35 +55,6 @@ export default function PropertyDetailScreen() {
   const [showGallery, setShowGallery] = useState(false);
   const [downloadingAll, setDownloadingAll] = useState(false);
   const [downloadingIndex, setDownloadingIndex] = useState<number | null>(null);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [selectedMediaIndices, setSelectedMediaIndices] = useState<number[]>([
-    0,
-  ]);
-  const [isSharing, setIsSharing] = useState(false);
-
-  const propertyMedia = property?.imagenes
-    ?.filter((img) => ["Imagen", "Video"].includes(img.tipo))
-    ?.map((img) => ({ url: img.url, tipo: img.tipo })) || [
-    { url: property?.imageUrl || "", tipo: "Imagen" },
-  ];
-
-  const isVideoMedia = (url: string, tipo?: string) => {
-    return tipo === "Video" || url.includes(".mp4") || url.includes("video");
-  };
-
-  const toggleMediaSelection = (index: number) => {
-    setSelectedMediaIndices((prev) => {
-      if (prev.includes(index)) {
-        if (prev.length === 1) return prev;
-        return prev.filter((i) => i !== index);
-      }
-      return [...prev, index];
-    });
-  };
-
-  const selectAllMedia = () => {
-    setSelectedMediaIndices(propertyMedia.map((_, i) => i));
-  };
 
   const filteredImages =
     property?.imagenes
@@ -92,6 +65,9 @@ export default function PropertyDetailScreen() {
 
   if (!property) {
     return (
+      <View
+        style={[styles.container, { backgroundColor: theme.backgroundRoot }]}
+      >
       <View
         style={[styles.container, { backgroundColor: theme.backgroundRoot }]}
       >
@@ -111,6 +87,7 @@ export default function PropertyDetailScreen() {
         "Acción no disponible",
         "Debes crear una cuenta para guardar propiedades en favoritos.",
         [{ text: "Entendido" }],
+        [{ text: "Entendido" }],
       );
       return;
     }
@@ -123,6 +100,7 @@ export default function PropertyDetailScreen() {
       Alert.alert(
         "Acción no disponible",
         "Debes crear una cuenta para compartir propiedades.",
+        [{ text: "Entendido" }],
         [{ text: "Entendido" }],
       );
       return;
@@ -369,9 +347,15 @@ export default function PropertyDetailScreen() {
           "Permiso requerido",
           "Necesitas dar permiso para guardar archivos en tu galería.",
         );
+        Alert.alert(
+          "Permiso requerido",
+          "Necesitas dar permiso para guardar archivos en tu galería.",
+        );
         return;
       }
 
+      const extension =
+        imageUrl.includes(".mp4") || imageUrl.includes("video") ? "mp4" : "jpg";
       const extension =
         imageUrl.includes(".mp4") || imageUrl.includes("video") ? "mp4" : "jpg";
       const filename = `${property.title.replace(/[^a-zA-Z0-9]/g, "_")}_${index + 1}.${extension}`;
@@ -406,10 +390,18 @@ export default function PropertyDetailScreen() {
           "Permiso requerido",
           "Necesitas dar permiso para guardar archivos en tu galería.",
         );
+        Alert.alert(
+          "Permiso requerido",
+          "Necesitas dar permiso para guardar archivos en tu galería.",
+        );
         setDownloadingAll(false);
         return;
       }
 
+      const allMedia =
+        property?.imagenes?.filter((img) =>
+          ["Imagen", "Video", "masterplan"].includes(img.tipo),
+        ) || [];
       const allMedia =
         property?.imagenes?.filter((img) =>
           ["Imagen", "Video", "masterplan"].includes(img.tipo),
@@ -430,9 +422,17 @@ export default function PropertyDetailScreen() {
             media.tipo === "Video" || media.url.includes(".mp4")
               ? "mp4"
               : "jpg";
+          const extension =
+            media.tipo === "Video" || media.url.includes(".mp4")
+              ? "mp4"
+              : "jpg";
           const filename = `${property.title.replace(/[^a-zA-Z0-9]/g, "_")}_${i + 1}.${extension}`;
           const fileUri = FileSystem.documentDirectory + filename;
 
+          const downloadResult = await FileSystem.downloadAsync(
+            media.url,
+            fileUri,
+          );
           const downloadResult = await FileSystem.downloadAsync(
             media.url,
             fileUri,
@@ -448,6 +448,10 @@ export default function PropertyDetailScreen() {
       }
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert(
+        "Descarga completa",
+        `Se descargaron ${downloadedCount} de ${allMedia.length} archivos a tu galería.`,
+      );
       Alert.alert(
         "Descarga completa",
         `Se descargaron ${downloadedCount} de ${allMedia.length} archivos a tu galería.`,
@@ -491,6 +495,21 @@ export default function PropertyDetailScreen() {
           { icon: "truck", label: "Estacionamiento" },
           { icon: "droplet", label: "Piscina" },
         ];
+  const amenities =
+    property.proyectoCaracteristicas &&
+    property.proyectoCaracteristicas.length > 0
+      ? property.proyectoCaracteristicas.map((c) => ({
+          icon: "check",
+          label: c,
+        }))
+      : [
+          { icon: "wifi", label: "WiFi" },
+          { icon: "wind", label: "Aire acondicionado" },
+          { icon: "tv", label: "TV" },
+          { icon: "coffee", label: "Cocina" },
+          { icon: "truck", label: "Estacionamiento" },
+          { icon: "droplet", label: "Piscina" },
+        ];
 
   const renderImageItem = ({ item }: { item: string }) => (
     <Image source={{ uri: item }} style={styles.carouselImage} />
@@ -502,11 +521,22 @@ export default function PropertyDetailScreen() {
     property.descripcionLarga ||
     property.description ||
     "Esta hermosa propiedad ofrece un espacio cómodo y moderno en una ubicación privilegiada.";
+  const shortDescription =
+    property.descripcionCorta || property.description || "";
+  const fullDescription =
+    property.descripcionLarga ||
+    property.description ||
+    "Esta hermosa propiedad ofrece un espacio cómodo y moderno en una ubicación privilegiada.";
 
   return (
     <View style={[styles.container, { backgroundColor: "#FFFFFF" }]}>
       <ScrollView
+      <ScrollView
         style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 100 + insets.bottom },
+        ]}
         contentContainerStyle={[
           styles.scrollContent,
           { paddingBottom: 100 + insets.bottom },
@@ -527,6 +557,9 @@ export default function PropertyDetailScreen() {
           <View
             style={[styles.floatingHeader, { paddingTop: insets.top + 10 }]}
           >
+          <View
+            style={[styles.floatingHeader, { paddingTop: insets.top + 10 }]}
+          >
             <Pressable onPress={handleBack} style={styles.floatingButton}>
               <Ionicons name="chevron-back" size={24} color="#222222" />
             </Pressable>
@@ -539,11 +572,25 @@ export default function PropertyDetailScreen() {
                   name="heart-outline"
                   size={20}
                   color={isFavorite ? Colors.light.primary : "#222222"}
+                <Ionicons
+                  name="heart-outline"
+                  size={20}
+                  color={isFavorite ? Colors.light.primary : "#222222"}
                 />
               </Pressable>
             </View>
           </View>
           <View style={styles.paginationContainer}>
+            <Pressable
+              style={styles.pagination}
+              onPress={() => setShowGallery(true)}
+            >
+              <Ionicons
+                name="grid-outline"
+                size={12}
+                color="#FFFFFF"
+                style={{ marginRight: 6 }}
+              />
             <Pressable
               style={styles.pagination}
               onPress={() => setShowGallery(true)}
@@ -578,11 +625,16 @@ export default function PropertyDetailScreen() {
         <View style={styles.content}>
           <ThemedText style={styles.title}>{property.title}</ThemedText>
 
+
           {shortDescription ? (
             <ThemedText style={styles.shortDescription}>
               {shortDescription}
             </ThemedText>
+            <ThemedText style={styles.shortDescription}>
+              {shortDescription}
+            </ThemedText>
           ) : null}
+
 
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
@@ -590,10 +642,16 @@ export default function PropertyDetailScreen() {
               <ThemedText style={styles.statText}>
                 10 veces compartida
               </ThemedText>
+              <ThemedText style={styles.statText}>
+                10 veces compartida
+              </ThemedText>
             </View>
             <ThemedText style={styles.statDot}>·</ThemedText>
             <View style={styles.statItem}>
               <Ionicons name="people-outline" size={14} color="#222222" />
+              <ThemedText style={styles.statText}>
+                2 personas interesadas
+              </ThemedText>
               <ThemedText style={styles.statText}>
                 2 personas interesadas
               </ThemedText>
@@ -627,6 +685,24 @@ export default function PropertyDetailScreen() {
                     </View>
                   </View>
                 ))
+              property.caracteristicas
+                .slice(0, 4)
+                .map((caracteristica, index) => (
+                  <View key={index} style={styles.highlight}>
+                    <View style={styles.highlightIcon}>
+                      <Ionicons
+                        name="checkmark-circle-outline"
+                        size={24}
+                        color="#222222"
+                      />
+                    </View>
+                    <View style={styles.highlightContent}>
+                      <ThemedText style={styles.highlightTitle}>
+                        {caracteristica}
+                      </ThemedText>
+                    </View>
+                  </View>
+                ))
             ) : (
               <>
                 <View style={styles.highlight}>
@@ -634,6 +710,9 @@ export default function PropertyDetailScreen() {
                     <Ionicons name="home" size={24} color="#222222" />
                   </View>
                   <View style={styles.highlightContent}>
+                    <ThemedText style={styles.highlightTitle}>
+                      Propiedad completa
+                    </ThemedText>
                     <ThemedText style={styles.highlightTitle}>
                       Propiedad completa
                     </ThemedText>
@@ -648,6 +727,9 @@ export default function PropertyDetailScreen() {
                     <Ionicons name="flash-outline" size={24} color="#222222" />
                   </View>
                   <View style={styles.highlightContent}>
+                    <ThemedText style={styles.highlightTitle}>
+                      Limpieza mejorada
+                    </ThemedText>
                     <ThemedText style={styles.highlightTitle}>
                       Limpieza mejorada
                     </ThemedText>
@@ -667,6 +749,10 @@ export default function PropertyDetailScreen() {
               Acerca de este espacio
             </ThemedText>
             <ThemedText
+            <ThemedText style={styles.sectionTitle}>
+              Acerca de este espacio
+            </ThemedText>
+            <ThemedText
               style={styles.description}
               numberOfLines={showFullDescription ? undefined : 4}
             >
@@ -676,7 +762,18 @@ export default function PropertyDetailScreen() {
               <Pressable
                 onPress={() => setShowFullDescription(!showFullDescription)}
               >
+              <Pressable
+                onPress={() => setShowFullDescription(!showFullDescription)}
+              >
                 <ThemedText style={styles.showMore}>
+                  {showFullDescription ? "Mostrar menos" : "Mostrar más"}
+                  <Ionicons
+                    name={
+                      showFullDescription ? "chevron-up" : "chevron-forward"
+                    }
+                    size={14}
+                    color="#222222"
+                  />
                   {showFullDescription ? "Mostrar menos" : "Mostrar más"}
                   <Ionicons
                     name={
@@ -696,9 +793,20 @@ export default function PropertyDetailScreen() {
             <ThemedText style={styles.sectionTitle}>
               Lo que este lugar ofrece
             </ThemedText>
+            <ThemedText style={styles.sectionTitle}>
+              Lo que este lugar ofrece
+            </ThemedText>
             <View style={styles.amenitiesGrid}>
               {amenities.map((amenity, index) => (
                 <View key={index} style={styles.amenityItem}>
+                  <Ionicons
+                    name={amenity.icon as any}
+                    size={24}
+                    color="#222222"
+                  />
+                  <ThemedText style={styles.amenityLabel}>
+                    {amenity.label}
+                  </ThemedText>
                   <Ionicons
                     name={amenity.icon as any}
                     size={24}
@@ -724,11 +832,14 @@ export default function PropertyDetailScreen() {
             Precio: {formatPrice(property.price)}
           </ThemedText>
           <ThemedText style={styles.priceDetail}>
-            Cuota desde: Q1,950/mes
+            Cuota desde: {formatPrice(Math.round(property.price / 180))}/mes
           </ThemedText>
         </View>
         <View style={styles.buttonsContainer}>
           <Pressable style={styles.reserveButton}>
+            <ThemedText style={styles.reserveButtonText}>
+              Comparte y gana
+            </ThemedText>
             <ThemedText style={styles.reserveButtonText}>
               Comparte y gana
             </ThemedText>
@@ -855,6 +966,10 @@ export default function PropertyDetailScreen() {
               onPress={() => setShowGallery(false)}
               style={styles.galleryBackButton}
             >
+            <Pressable
+              onPress={() => setShowGallery(false)}
+              style={styles.galleryBackButton}
+            >
               <Ionicons name="arrow-back" size={24} color="#222222" />
             </Pressable>
             <ThemedText style={styles.galleryTitle}>
@@ -863,7 +978,12 @@ export default function PropertyDetailScreen() {
             <View style={{ width: 40 }} />
           </View>
           <ScrollView
+          <ScrollView
             style={styles.galleryScrollView}
+            contentContainerStyle={[
+              styles.galleryContent,
+              { paddingBottom: insets.bottom + 20 },
+            ]}
             contentContainerStyle={[
               styles.galleryContent,
               { paddingBottom: insets.bottom + 20 },
@@ -886,6 +1006,11 @@ export default function PropertyDetailScreen() {
                     {downloadingIndex === index ? (
                       <ActivityIndicator size="small" color="#FFFFFF" />
                     ) : (
+                      <Ionicons
+                        name="download-outline"
+                        size={20}
+                        color="#FFFFFF"
+                      />
                       <Ionicons
                         name="download-outline"
                         size={20}

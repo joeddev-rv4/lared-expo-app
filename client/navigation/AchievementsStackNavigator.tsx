@@ -6,7 +6,7 @@ import AchievementsScreen from "@/screens/AchievementsScreen";
 import AchievementsScreenWeb from "@/screens/AchievementsScreen.web";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 
-const isWeb = Platform.OS === 'web';
+const isWeb = Platform.OS === "web";
 
 export type AchievementsStackParamList = {
   Achievements: undefined;

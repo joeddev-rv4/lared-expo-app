@@ -43,7 +43,8 @@ export default function RootStackNavigator() {
   const { theme } = useTheme();
   const { isInitializing, user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>("Landing");
+  const [initialRoute, setInitialRoute] =
+    useState<keyof RootStackParamList>("Landing");
 
   useEffect(() => {
     if (!isInitializing) {

@@ -15,7 +15,9 @@ interface DrawerMenuItem {
   onPress: () => void;
 }
 
-export default function DrawerContent({ navigation }: DrawerContentComponentProps) {
+export default function DrawerContent({
+  navigation,
+}: DrawerContentComponentProps) {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
 
@@ -79,7 +81,9 @@ export default function DrawerContent({ navigation }: DrawerContentComponentProp
           resizeMode="contain"
         />
         <ThemedText style={styles.appName}>La Red Inmobiliaria</ThemedText>
-        <ThemedText style={styles.tagline}>Hecho por vendedores, para vendedores</ThemedText>
+        <ThemedText style={styles.tagline}>
+          Hecho por vendedores, para vendedores
+        </ThemedText>
       </View>
 
       <ScrollView
@@ -108,7 +112,10 @@ export default function DrawerContent({ navigation }: DrawerContentComponentProp
       <View
         style={[
           styles.footer,
-          { paddingBottom: insets.bottom + Spacing.lg, borderTopColor: theme.border },
+          {
+            paddingBottom: insets.bottom + Spacing.lg,
+            borderTopColor: theme.border,
+          },
         ]}
       >
         <ThemedText style={[styles.footerText, { color: theme.textSecondary }]}>

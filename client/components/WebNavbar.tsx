@@ -9,7 +9,11 @@ import {
   useWindowDimensions,
   Animated,
   ScrollView,
+  Alert,
+  TextInput,
+  Platform,
 } from "react-native";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useNavigation, useNavigationState } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -18,6 +22,11 @@ import { ThemedText } from "@/components/ThemedText";
 import { Avatar } from "@/components/Avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/config';
+import { useQueryClient } from '@tanstack/react-query';
+import { setDocument } from '@/lib/firestore';
+import { COLLECTIONS } from '@/lib/collections';
 
 interface NavItem {
   key: string;
@@ -149,10 +158,316 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
   const [sellerHovered, setSellerHovered] = useState(false);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [hoveredUpdate, setHoveredUpdate] = useState(false);
+  const [hoveredDelete, setHoveredDelete] = useState(false);
+  const [hoveredSave, setHoveredSave] = useState(false);
+  const [editableName, setEditableName] = useState(user?.name || '');
+  const [editableEmail, setEditableEmail] = useState(user?.email || '');
+  const [editablePhone, setEditablePhone] = useState(user?.phone || '');
+  const [editableDpi, setEditableDpi] = useState(user?.dpiNumber || '');
+  const [editableBank, setEditableBank] = useState(user?.bankName || '');
+  const [editableCard, setEditableCard] = useState(user?.card || '');
+  const [banks, setBanks] = useState<{id: string, name: string}[]>([]);
+  const [showBankDropdown, setShowBankDropdown] = useState(false);
+  const dropdownHeight = useRef(new Animated.Value(0)).current;
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const [isEditingDpi, setIsEditingDpi] = useState(false);
+  const [isEditingCard, setIsEditingCard] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    setEditableName(user?.name || '');
+    setEditableEmail(user?.email || '');
+    setEditablePhone(user?.phone || '');
+    setEditableDpi(user?.dpiNumber || '');
+    setEditableBank(user?.bankName || '');
+    setEditableCard(user?.card || '');
+  }, [user]);
+
+  useEffect(() => {
+    const fetchBanks = async () => {
+      try {
+        const banksCollection = collection(db, 'banks');
+        const banksSnapshot = await getDocs(banksCollection);
+        const banksList = banksSnapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name }));
+        setBanks(banksList);
+      } catch (error) {
+        console.error('Error fetching banks:', error);
+      }
+    };
+    fetchBanks();
+  }, []);
+
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<any>(null);
+  const [uploadingDpiFront, setUploadingDpiFront] = useState(false);
+  const [uploadingDpiBack, setUploadingDpiBack] = useState(false);
+  const fileInputFrontRef = useRef<any>(null);
+  const fileInputBackRef = useRef<any>(null);
+  const [hoveredSaveFront, setHoveredSaveFront] = useState(false);
+  const [hoveredSaveBack, setHoveredSaveBack] = useState(false);
+
+  // DPI viewer state (to show images full-screen) ✅
+  const [dpiViewerVisible, setDpiViewerVisible] = useState(false);
+  const [dpiViewerUrl, setDpiViewerUrl] = useState<string | null>(null);
+
+  const handleAvatarClick = async () => {
+    if (!user?.id) return;
+    if (Platform.OS === 'web') {
+      fileInputRef.current?.click();
+      return;
+    }
+
+    // Try to open native image picker if available
+    try {
+      // @ts-ignore - optional dependency, only used on native when available
+      const ImagePicker = await import('expo-image-picker');
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
+      });
+
+      if (!result || (result as any).canceled) return;
+      const asset = (result as any).assets && (result as any).assets[0];
+      if (!asset?.uri) return;
+
+      const uri: string = asset.uri;
+      // Fetch blob and upload
+      try {
+        setUploadingAvatar(true);
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const storage = getStorage();
+        const fileName = `avatars/${user.id}/${Date.now()}_${uri.split('/').pop()}`;
+        const storageReference = storageRef(storage, fileName);
+        await uploadBytes(storageReference, blob as any);
+        const downloadURL = await getDownloadURL(storageReference);
+
+        const updatedUser = { ...(user as any), avatar: downloadURL } as any;
+        await setDocument(COLLECTIONS.USERS, user.id, updatedUser);
+        queryClient.setQueryData(['user'], updatedUser);
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('userData', JSON.stringify(updatedUser));
+        }
+
+        Alert.alert('Guardado', 'Foto de perfil actualizada');
+      } catch (err) {
+        console.error('Error uploading avatar (native):', err);
+        Alert.alert('Error', 'No se pudo subir la imagen');
+      } finally {
+        setUploadingAvatar(false);
+      }
+    } catch (err) {
+      // expo-image-picker not available or failed
+      Alert.alert('No disponible', 'El selector de imágenes no está disponible en esta plataforma. Por favor usa la versión web para subir tu foto.');
+    }
+  };
+
+  const handleFileChange = async (e: any) => {
+    const file = e?.target?.files && e.target.files[0];
+    if (!file) return;
+    if (!user?.id) return;
+
+    setUploadingAvatar(true);
+    try {
+      const storage = getStorage();
+      const fileName = `avatars/${user.id}/${Date.now()}_${file.name}`;
+      const storageReference = storageRef(storage, fileName);
+      // In web, File is a Blob and can be uploaded directly
+      await uploadBytes(storageReference, file);
+      const downloadURL = await getDownloadURL(storageReference);
+
+      const updatedUser = { ...(user as any), avatar: downloadURL } as any;
+      await setDocument(COLLECTIONS.USERS, user.id, updatedUser);
+      queryClient.setQueryData(['user'], updatedUser);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('userData', JSON.stringify(updatedUser));
+      }
+
+      Alert.alert('Guardado', 'Foto de perfil actualizada');
+    } catch (err) {
+      console.error('Error uploading avatar (web):', err);
+      Alert.alert('Error', 'No se pudo subir la imagen');
+    } finally {
+      setUploadingAvatar(false);
+      // clear the input value so same file can be selected again
+      try { if (fileInputRef.current) fileInputRef.current.value = null; } catch {};
+    }
+  };
+
+  const handleDpiFrontClick = async () => {
+    if (!user?.id) return;
+    if (Platform.OS === 'web') {
+      fileInputFrontRef.current?.click();
+      return;
+    }
+
+    try {
+      // @ts-ignore - optional dependency
+      const ImagePicker = await import('expo-image-picker');
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
+      });
+      if (!result || (result as any).canceled) return;
+      const asset = (result as any).assets && (result as any).assets[0];
+      if (!asset?.uri) return;
+      const uri: string = asset.uri;
+
+      try {
+        setUploadingDpiFront(true);
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const storage = getStorage();
+        const fileName = `dpi/${user.id}/front_${Date.now()}_${uri.split('/').pop()}`;
+        const storageReference = storageRef(storage, fileName);
+        await uploadBytes(storageReference, blob as any);
+        const downloadURL = await getDownloadURL(storageReference);
+
+        const updatedUser = { ...(user as any), dpiDocument: { ...(user.dpiDocument || {}), front: downloadURL } } as any;
+        await setDocument(COLLECTIONS.USERS, user.id, updatedUser);
+        queryClient.setQueryData(['user'], updatedUser);
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('userData', JSON.stringify(updatedUser));
+        }
+
+        Alert.alert('Guardado', 'DPI frontal actualizado');
+      } catch (err) {
+        console.error('Error uploading DPI front (native):', err);
+        Alert.alert('Error', 'No se pudo subir la imagen');
+      } finally {
+        setUploadingDpiFront(false);
+      }
+    } catch (err) {
+      Alert.alert('No disponible', 'El selector de imágenes no está disponible en esta plataforma.');
+    }
+  };
+
+  const handleDpiFrontFileChange = async (e: any) => {
+    const file = e?.target?.files && e.target.files[0];
+    if (!file) return;
+    if (!user?.id) return;
+
+    setUploadingDpiFront(true);
+    try {
+      const storage = getStorage();
+      const fileName = `dpi/${user.id}/front_${Date.now()}_${file.name}`;
+      const storageReference = storageRef(storage, fileName);
+      await uploadBytes(storageReference, file);
+      const downloadURL = await getDownloadURL(storageReference);
+
+      const updatedUser = { ...(user as any), dpiDocument: { ...(user.dpiDocument || {}), front: downloadURL } } as any;
+      await setDocument(COLLECTIONS.USERS, user.id, updatedUser);
+      queryClient.setQueryData(['user'], updatedUser);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('userData', JSON.stringify(updatedUser));
+      }
+
+      Alert.alert('Guardado', 'DPI frontal actualizado');
+    } catch (err) {
+      console.error('Error uploading DPI front (web):', err);
+      Alert.alert('Error', 'No se pudo subir la imagen');
+    } finally {
+      setUploadingDpiFront(false);
+      try { if (fileInputFrontRef.current) fileInputFrontRef.current.value = null; } catch {};
+    }
+  };
+
+  const handleDpiBackClick = async () => {
+    if (!user?.id) return;
+    if (Platform.OS === 'web') {
+      fileInputBackRef.current?.click();
+      return;
+    }
+
+    try {
+      // @ts-ignore - optional dependency
+      const ImagePicker = await import('expo-image-picker');
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
+      });
+      if (!result || (result as any).canceled) return;
+      const asset = (result as any).assets && (result as any).assets[0];
+      if (!asset?.uri) return;
+      const uri: string = asset.uri;
+
+      try {
+        setUploadingDpiBack(true);
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const storage = getStorage();
+        const fileName = `dpi/${user.id}/back_${Date.now()}_${uri.split('/').pop()}`;
+        const storageReference = storageRef(storage, fileName);
+        await uploadBytes(storageReference, blob as any);
+        const downloadURL = await getDownloadURL(storageReference);
+
+        const updatedUser = { ...(user as any), dpiDocument: { ...(user.dpiDocument || {}), back: downloadURL } } as any;
+        await setDocument(COLLECTIONS.USERS, user.id, updatedUser);
+        queryClient.setQueryData(['user'], updatedUser);
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('userData', JSON.stringify(updatedUser));
+        }
+
+        Alert.alert('Guardado', 'DPI posterior actualizado');
+      } catch (err) {
+        console.error('Error uploading DPI back (native):', err);
+        Alert.alert('Error', 'No se pudo subir la imagen');
+      } finally {
+        setUploadingDpiBack(false);
+      }
+    } catch (err) {
+      Alert.alert('No disponible', 'El selector de imágenes no está disponible en esta plataforma.');
+    }
+  };
+
+  const handleDpiBackFileChange = async (e: any) => {
+    const file = e?.target?.files && e.target.files[0];
+    if (!file) return;
+    if (!user?.id) return;
+
+    setUploadingDpiBack(true);
+    try {
+      const storage = getStorage();
+      const fileName = `dpi/${user.id}/back_${Date.now()}_${file.name}`;
+      const storageReference = storageRef(storage, fileName);
+      await uploadBytes(storageReference, file);
+      const downloadURL = await getDownloadURL(storageReference);
+
+      const updatedUser = { ...(user as any), dpiDocument: { ...(user.dpiDocument || {}), back: downloadURL } } as any;
+      await setDocument(COLLECTIONS.USERS, user.id, updatedUser);
+      queryClient.setQueryData(['user'], updatedUser);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('userData', JSON.stringify(updatedUser));
+      }
+
+      Alert.alert('Guardado', 'DPI posterior actualizado');
+    } catch (err) {
+      console.error('Error uploading DPI back (web):', err);
+      Alert.alert('Error', 'No se pudo subir la imagen');
+    } finally {
+      setUploadingDpiBack(false);
+      try { if (fileInputBackRef.current) fileInputBackRef.current.value = null; } catch {};
+    }
+  };
+
+  const normalizedStatus = (user?.status || "").toString().toLowerCase();
   const slideAnim = useRef(new Animated.Value(-100)).current;
+  const profileSlideAnim = useRef(new Animated.Value(600)).current;
 
   const isMobile = width < 768;
   const isTablet = width >= 768 && width < 1024;
+
+  // Responsive input width for mobile
+  const inputWidth: any = isMobile ? '100%' : 220;
 
   // Calcular notificaciones sin leer
   const unreadNotificationsCount = notifications.filter(notification => !notification.read).length;
@@ -370,7 +685,14 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
     return (
       <>
         <View style={styles.floatingNavContainer}>
-          <Pressable style={styles.floatingUserButton} onPress={() => handleNavPress("profile")}>
+          <Pressable style={styles.floatingUserButton} onPress={() => {
+            setProfileModalVisible(true);
+            Animated.timing(profileSlideAnim, {
+              toValue: 0,
+              duration: 300,
+              useNativeDriver: true,
+            }).start();
+          }}>
             <Avatar 
               name={user?.name || "Usuario"} 
               size={40} 
@@ -533,11 +855,25 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
                 </ThemedText>
               </Pressable>
 
-              <Pressable style={styles.profileButton}>
-                <Avatar 
-                  name={user?.name || "Usuario"} 
-                  size={36} 
-                />
+              <Pressable 
+                style={styles.profileButton}
+                onPress={() => {
+                  setProfileModalVisible(true);
+                  Animated.timing(profileSlideAnim, {
+                    toValue: 0,
+                    duration: 300,
+                    useNativeDriver: true,
+                  }).start();
+                }}
+              >
+                {user?.avatar ? (
+                  <Image source={{ uri: user.avatar }} style={styles.profileImage} />
+                ) : (
+                  <Avatar 
+                    name={user?.name || "Usuario"} 
+                    size={36} 
+                  />
+                )}
               </Pressable>
 
               <Pressable
@@ -705,6 +1041,465 @@ export function WebNavbar({ activeTabOverride }: WebNavbarProps) {
           </Animated.View>
         </Pressable>
       </Modal>
+
+      {profileModalVisible && (
+        <View style={styles.profileModalOverlay}>
+          <Pressable
+            style={styles.profileModalBackdrop}
+            onPress={() => {
+              Animated.timing(profileSlideAnim, {
+                toValue: 600,
+                duration: 300,
+                useNativeDriver: true,
+              }).start(() => setProfileModalVisible(false));
+            }}
+          />
+
+          <Animated.View 
+            style={[
+              isMobile ? styles.profileModalSidebarMobile : styles.profileModalSidebar,
+              { transform: isMobile ? [{ translateY: profileSlideAnim }] : [{ translateX: profileSlideAnim }] }
+            ]}
+          >
+            <View style={styles.profileModalHeader}>
+              <View style={{ width: 20 }} />
+              <ThemedText style={styles.profileModalTitle}>Mi Perfil</ThemedText>
+            </View>
+            <ScrollView 
+              style={styles.profileModalScroll}
+              contentContainerStyle={styles.profileModalBody}
+            >
+              <ThemedText style={styles.profileModalLabel}>Foto de Perfil</ThemedText>
+              <View style={styles.avatarContainer}>
+                {user?.avatar ? (
+                  <Image
+                    source={{ uri: user.avatar }}
+                    style={styles.profileModalAvatar}
+                  />
+                ) : (
+                  <View style={styles.profileModalAvatarPlaceholder}>
+                    <ThemedText style={styles.profileModalAvatarInitial}>
+                      {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                    </ThemedText>
+                  </View>
+                )}
+                <View style={styles.avatarButtons}>
+                  <Pressable 
+                    style={hoveredUpdate ? styles.updateButtonHovered : styles.updateButton}
+                    onHoverIn={() => setHoveredUpdate(true)}
+                    onHoverOut={() => setHoveredUpdate(false)}
+                    onPress={() => handleAvatarClick()}
+                    disabled={uploadingAvatar}
+                  >
+                    <ThemedText style={hoveredUpdate ? styles.updateButtonTextHovered : styles.updateButtonText}>{uploadingAvatar ? 'Cargando...' : 'Actualizar'}</ThemedText>
+                  </Pressable>
+                  <Pressable 
+                    style={hoveredDelete ? styles.deleteButtonHovered : styles.deleteButton}
+                    onHoverIn={() => setHoveredDelete(true)}
+                    onHoverOut={() => setHoveredDelete(false)}
+                    onPress={async () => {
+                      if (!user?.id) return;
+                      setUploadingAvatar(true);
+                      try {
+                        // Try removing file from Firebase Storage if present
+                        if (user?.avatar) {
+                          try {
+                            const storage = getStorage();
+                            // Extract storage path from download URL
+                            const match = user.avatar.match(/\/o\/(.*?)\?/);
+                            if (match && match[1]) {
+                              const path = decodeURIComponent(match[1]);
+                              const storageReference = storageRef(storage, path);
+                              await deleteObject(storageReference);
+                            }
+                          } catch (storageErr) {
+                            console.warn('Error deleting avatar from storage:', storageErr);
+                          }
+                        }
+
+                        await setDocument(COLLECTIONS.USERS, user.id, { ...user, avatar: null });
+                        queryClient.setQueryData(['user'], { ...user, avatar: null });
+                        if (typeof window !== 'undefined' && window.localStorage) {
+                          const updated = { ...user, avatar: null };
+                          localStorage.setItem('userData', JSON.stringify(updated));
+                        }
+                        Alert.alert('Eliminado', 'Foto de perfil eliminada');
+                      } catch (err) {
+                        console.error('Error deleting avatar:', err);
+                        Alert.alert('Error', 'No se pudo eliminar la foto');
+                      } finally {
+                        setUploadingAvatar(false);
+                      }
+                    }}
+                    disabled={uploadingAvatar}
+                  >
+                    <Ionicons name="trash" size={24} color={hoveredDelete ? '#bf0a0a' : '#fff'} />
+                  </Pressable>
+
+                  {/* Hidden file input for web */}
+                  {Platform.OS === 'web' && (
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={handleFileChange}
+                    />
+                  )}
+
+                  <View style={styles.statusContainer}>
+                    <ThemedText style={styles.profileModalDetail}>
+                      Status: <ThemedText style={normalizedStatus === 'verified' ? styles.statusVerified : (normalizedStatus === 'notverified' || normalizedStatus === 'not_verified') ? styles.statusNotVerified : styles.statusDefault}>{user?.status || "N/A"}</ThemedText>
+                    </ThemedText>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.profileModalUserInfo}>
+                <View style={styles.fieldRow}>
+                    <View style={styles.fieldColumn}>
+                    <ThemedText style={styles.profileModalLabel}>Nombre</ThemedText>
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                          style={[styles.nameInput, { width: inputWidth, backgroundColor: isEditingName ? '#fff' : '#f5f5f5', opacity: isEditingName ? 1 : 0.6, outlineWidth: 0, outlineColor: 'transparent' }]}
+                          value={editableName}
+                          onChangeText={setEditableName}
+                          placeholder="Ingresa tu nombre"
+                          editable={isEditingName}
+                          focusable={isEditingName}
+                          onBlur={() => setIsEditingName(false)}
+                          onSubmitEditing={() => setIsEditingName(false)}
+                          pointerEvents={isEditingName ? 'auto' : 'none'}
+                        />
+                      <Pressable onPress={() => setIsEditingName(true)}>
+                        <Ionicons name="pencil" size={20} color="#666" style={styles.inputIcon} />
+                      </Pressable>
+                    </View>
+                  </View>
+                    <View style={styles.fieldColumn}> 
+                    <ThemedText style={styles.profileModalLabel}>Email</ThemedText>
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                          style={[styles.nameInput, { width: inputWidth, backgroundColor: isEditingEmail ? '#fff' : '#f5f5f5', opacity: isEditingEmail ? 1 : 0.6, outlineWidth: 0, outlineColor: 'transparent' }]}
+                          value={editableEmail}
+                          onChangeText={setEditableEmail}
+                          placeholder="Ingresa tu email"
+                          editable={isEditingEmail}
+                          focusable={isEditingEmail}
+                          onBlur={() => setIsEditingEmail(false)}
+                          onSubmitEditing={() => setIsEditingEmail(false)}
+                          pointerEvents={isEditingEmail ? 'auto' : 'none'}
+                        />
+                      <Pressable onPress={() => setIsEditingEmail(true)}>
+                        <Ionicons name="pencil" size={20} color="#666" style={styles.inputIcon} />
+                      </Pressable>
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.fieldRow}>
+                  <View style={styles.fieldColumn}>
+                    <ThemedText style={styles.profileModalLabel}>Teléfono</ThemedText>
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                          style={[styles.nameInput, { width: inputWidth, backgroundColor: isEditingPhone ? '#fff' : '#f5f5f5', opacity: isEditingPhone ? 1 : 0.6, outlineWidth: 0, outlineColor: 'transparent' }]}
+                          value={editablePhone}
+                          onChangeText={setEditablePhone}
+                          placeholder="Ingresa tu teléfono"
+                          editable={isEditingPhone}
+                          focusable={isEditingPhone}
+                          onBlur={() => setIsEditingPhone(false)}
+                          onSubmitEditing={() => setIsEditingPhone(false)}
+                          pointerEvents={isEditingPhone ? 'auto' : 'none'}
+                        />
+                      <Pressable onPress={() => setIsEditingPhone(true)}>
+                        <Ionicons name="pencil" size={20} color="#666" style={styles.inputIcon} />
+                      </Pressable>
+                    </View>
+                  </View>
+                    <View style={styles.fieldColumn}> 
+                    <ThemedText style={styles.profileModalLabel}>DPI</ThemedText>
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                          style={[styles.nameInput, { width: inputWidth, backgroundColor: isEditingDpi ? '#fff' : '#f5f5f5', opacity: isEditingDpi ? 1 : 0.6, outlineWidth: 0, outlineColor: 'transparent' }]}
+                          value={editableDpi}
+                          onChangeText={setEditableDpi}
+                          placeholder="Ingresa tu DPI"
+                          editable={isEditingDpi}
+                          focusable={isEditingDpi}
+                          onBlur={() => setIsEditingDpi(false)}
+                          onSubmitEditing={() => setIsEditingDpi(false)}
+                          pointerEvents={isEditingDpi ? 'auto' : 'none'}
+                        />
+                      <Pressable onPress={() => setIsEditingDpi(true)}>
+                        <Ionicons name="pencil" size={20} color="#666" style={styles.inputIcon} />
+                      </Pressable>
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.fieldRow}>
+                  <View style={styles.fieldColumn}>
+                    <ThemedText style={styles.profileModalLabel}>Banco</ThemedText>
+                    <Pressable onPress={() => {
+                      const newState = !showBankDropdown;
+                      setShowBankDropdown(newState);
+                      Animated.timing(dropdownHeight, {
+                        toValue: newState ? 150 : 0,
+                        duration: 300,
+                        useNativeDriver: false,
+                      }).start();
+                    }} style={styles.inputContainer}>
+                        <TextInput
+                          style={[styles.nameInput, {
+                            width: inputWidth,
+                            borderBottomWidth: showBankDropdown ? 0 : 1,
+                            borderBottomLeftRadius: showBankDropdown ? 0 : 8,
+                            borderBottomRightRadius: showBankDropdown ? 0 : 8,
+                            borderColor: showBankDropdown ? 'transparent' : '#ccc'
+                          }]}
+                          value={editableBank}
+                          editable={false}
+                          placeholder="Selecciona un banco"
+                        />
+                      <Ionicons name={showBankDropdown ? "chevron-up" : "chevron-down"} size={20} color="#666" style={styles.inputIcon} />
+                    </Pressable>
+                    <Animated.View style={[styles.dropdown, {
+                      height: dropdownHeight,
+                      borderTopWidth: showBankDropdown ? 1 : 0,
+                      borderTopColor: showBankDropdown ? '#ccc' : 'transparent',
+                      borderWidth: showBankDropdown ? 1 : 0,
+                      borderColor: showBankDropdown ? '#ccc' : 'transparent'
+                    }]}> 
+                      <ScrollView>
+                        {banks.map(bank => (
+                          <Pressable
+                            key={bank.id}
+                            onPress={() => {
+                              setEditableBank(bank.name);
+                              setShowBankDropdown(false);
+                              Animated.timing(dropdownHeight, {
+                                toValue: 0,
+                                duration: 300,
+                                useNativeDriver: false,
+                              }).start();
+                            }}
+                            style={styles.dropdownItem}
+                          >
+                            <ThemedText style={styles.dropdownText}>{bank.name}</ThemedText>
+                          </Pressable>
+                        ))}
+                      </ScrollView>
+                    </Animated.View>
+                  </View>
+                    <View style={styles.fieldColumn}> 
+                    <ThemedText style={styles.profileModalLabel}>Cuenta</ThemedText>
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                          style={[styles.nameInput, { width: inputWidth, backgroundColor: isEditingCard ? '#fff' : '#f5f5f5', opacity: isEditingCard ? 1 : 0.6, outlineWidth: 0, outlineColor: 'transparent' }]}
+                          value={editableCard}
+                          onChangeText={setEditableCard}
+                          placeholder="Ingresa tu cuenta"
+                          editable={isEditingCard}
+                          focusable={isEditingCard}
+                          onBlur={() => setIsEditingCard(false)}
+                          onSubmitEditing={() => setIsEditingCard(false)}
+                          pointerEvents={isEditingCard ? 'auto' : 'none'}
+                        />
+                      <Pressable onPress={() => setIsEditingCard(true)}>
+                        <Ionicons name="pencil" size={20} color="#666" style={styles.inputIcon} />
+                      </Pressable>
+                    </View>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.profileModalActions}>
+                <View style={{ width: '100%', marginBottom: 12, alignItems: 'center' }}>
+                  <Pressable
+                    style={[
+                      hoveredSave ? styles.updateButtonHovered : styles.updateButton,
+                      (savingProfile || uploadingAvatar) && { opacity: 0.7 },
+                      isMobile ? { transform: [{ translateX: 0 }], width: '90%', alignSelf: 'center' } : { transform: [{ translateX: -25 }] }
+                    ]}
+                    onHoverIn={() => setHoveredSave(true)}
+                    onHoverOut={() => setHoveredSave(false)}
+                    onPress={async () => {
+                      if (!user?.id) return;
+                      setSavingProfile(true);
+                      const updatedUser = {
+                        ...user,
+                        name: editableName,
+                        email: editableEmail,
+                        phone: editablePhone,
+                        dpiNumber: editableDpi,
+                        bankName: editableBank,
+                        card: editableCard,
+                      } as any;
+
+                      try {
+                        // Actualizar en Firestore
+                        await setDocument(COLLECTIONS.USERS, user.id, updatedUser);
+
+                        // Actualizar caché local (react-query) y storage
+                        queryClient.setQueryData(['user'], updatedUser);
+                        if (typeof window !== 'undefined' && window.localStorage) {
+                          localStorage.setItem('userData', JSON.stringify(updatedUser));
+                        }
+
+                        // Intentar notificar API externa (opcional)
+                        try {
+                          const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+                          if (apiUrl) {
+                            await fetch(`${apiUrl}/user/${user.id}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                name: editableName,
+                                email: editableEmail,
+                                phone: editablePhone,
+                                dpiNumber: editableDpi,
+                                bankName: editableBank,
+                                card: editableCard,
+                              }),
+                            });
+                          }
+                        } catch (externalErr) {
+                          // No crítico, sólo loggear
+                          console.warn('Error notifying external API:', externalErr);
+                        }
+
+                        Alert.alert('Guardado', 'Perfil actualizado correctamente');
+                      } catch (err) {
+                        console.error('Error saving profile:', err);
+                        Alert.alert('Error', 'No se pudo guardar el perfil');
+                      } finally {
+                        setSavingProfile(false);
+                        // cerrar modo edición en todos los campos
+                        setIsEditingName(false);
+                        setIsEditingEmail(false);
+                        setIsEditingPhone(false);
+                        setIsEditingDpi(false);
+                        setIsEditingCard(false);
+                      }
+                    }}
+                    disabled={savingProfile || uploadingAvatar}
+                  >
+                    <ThemedText style={(savingProfile || uploadingAvatar || hoveredSave) ? styles.updateButtonTextHovered : styles.updateButtonText}>{uploadingAvatar ? 'Cargando...' : (savingProfile ? 'Guardando...' : 'Guardar')}</ThemedText>
+                  </Pressable>
+                </View>
+
+                <View style={[styles.dpiTilesContainer, isMobile && styles.dpiTilesContainerMobile]}>
+                  <View style={[styles.dpiTileWrapper, isMobile && styles.dpiTileWrapperMobile]}>
+                    <View style={styles.dpiTile}>
+                      {user?.dpiDocument?.front ? (
+                        <Pressable
+                          onPress={() => {
+                            setDpiViewerUrl(user.dpiDocument.front);
+                            setDpiViewerVisible(true);
+                          }}
+                          style={{ width: '100%', height: '100%' }}
+                        >
+                          <Image
+                            source={{ uri: user.dpiDocument.front }}
+                            style={styles.dpiImage}
+                            resizeMode="cover"
+                          />
+                        </Pressable>
+                      ) : (
+                        <View style={styles.dpiPlaceholder}>
+                          <Ionicons name="alert-circle" size={48} color="#bf0a0a" />
+                          <ThemedText style={styles.carouselPlaceholderText}>
+                            Aún no has cargado tu DPI (frontal)
+                          </ThemedText>
+                        </View>
+                      )}
+                    </View>
+
+                    {Platform.OS === 'web' && (
+                      <input
+                        ref={fileInputFrontRef}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleDpiFrontFileChange}
+                      />
+                    )}
+
+                    <Pressable
+                      style={[hoveredSaveFront ? styles.updateButtonHovered : styles.updateButton, uploadingDpiFront && { opacity: 0.7 }, { width: '100%', marginTop: 8 }]}
+                      onHoverIn={() => setHoveredSaveFront(true)}
+                      onHoverOut={() => setHoveredSaveFront(false)}
+                      onPress={() => handleDpiFrontClick()}
+                      disabled={uploadingDpiFront}
+                    >
+                      <ThemedText style={(uploadingDpiFront || hoveredSaveFront) ? styles.updateButtonTextHovered : styles.updateButtonText}>{uploadingDpiFront ? 'Cargando...' : 'Guardar DPI Frontal'}</ThemedText>
+                    </Pressable>
+                  </View>
+
+                  <View style={[styles.dpiTileWrapper, isMobile && styles.dpiTileWrapperMobile]}>
+                    <View style={styles.dpiTile}>
+                      {user?.dpiDocument?.back ? (
+                        <Pressable
+                          onPress={() => {
+                            setDpiViewerUrl(user.dpiDocument.back);
+                            setDpiViewerVisible(true);
+                          }}
+                          style={{ width: '100%', height: '100%' }}
+                        >
+                          <Image
+                            source={{ uri: user.dpiDocument.back }}
+                            style={styles.dpiImage}
+                            resizeMode="cover"
+                          />
+                        </Pressable>
+                      ) : (
+                        <View style={styles.dpiPlaceholder}>
+                          <Ionicons name="alert-circle" size={48} color="#bf0a0a" />
+                          <ThemedText style={styles.carouselPlaceholderText}>
+                            Aún no has cargado tu DPI (posterior)
+                          </ThemedText>
+                        </View>
+                      )}
+                    </View>
+
+                    {Platform.OS === 'web' && (
+                      <input
+                        ref={fileInputBackRef}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleDpiBackFileChange}
+                      />
+                    )}
+
+                    <Pressable
+                      style={[hoveredSaveBack ? styles.updateButtonHovered : styles.updateButton, uploadingDpiBack && { opacity: 0.7 }, { width: '100%', marginTop: 8 }]}
+                      onHoverIn={() => setHoveredSaveBack(true)}
+                      onHoverOut={() => setHoveredSaveBack(false)}
+                      onPress={() => handleDpiBackClick()}
+                      disabled={uploadingDpiBack}
+                    >
+                      <ThemedText style={(uploadingDpiBack || hoveredSaveBack) ? styles.updateButtonTextHovered : styles.updateButtonText}>{uploadingDpiBack ? 'Cargando...' : 'Guardar DPI Posterior'}</ThemedText>
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
+            </ScrollView>
+          </Animated.View>
+
+          {/* DPI viewer modal */}
+          {dpiViewerVisible && (
+            <Modal visible={dpiViewerVisible} transparent animationType="fade" onRequestClose={() => setDpiViewerVisible(false)}>
+              <Pressable style={styles.dpiViewerOverlay} onPress={() => setDpiViewerVisible(false)}>
+                {dpiViewerUrl ? (
+                  <Image source={{ uri: dpiViewerUrl }} style={styles.dpiViewerImage} resizeMode="contain" />
+                ) : null}
+                <Pressable style={styles.dpiViewerCloseButton} onPress={() => setDpiViewerVisible(false)}>
+                  <Ionicons name="close" size={28} color="#fff" />
+                </Pressable>
+              </Pressable>
+            </Modal>
+          )}
+
+        </View>
+      )}
     </View>
   );
 }
@@ -1152,5 +1947,378 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 11,
     fontWeight: "700",
+  },
+  profileModalOverlay: {
+    position: 'fixed' as any,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    zIndex: 2000,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  profileModalBackdrop: {
+    flex: 1,
+  },
+  profileModalSidebar: {
+    position: 'fixed' as any,
+    right: 0,
+    top: 0,
+    height: '100%',
+    width: 600,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: -4, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 8,
+    paddingTop: 20,
+    zIndex: 2001,
+  },
+  profileModalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#999",
+  },
+  profileModalScroll: {
+    flex: 1,
+  },
+  profileModalAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignSelf: "flex-start",
+    marginBottom: 10,
+  },
+  profileModalAvatarPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#bf0a0a",
+    alignSelf: "flex-start",
+    marginBottom: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  profileModalAvatarInitial: {
+    color: "#fff",
+    fontSize: 40,
+    fontWeight: "bold",
+  },
+  profileModalLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 10,
+    textAlign: 'left',
+  },
+  nameInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 16,
+    color: '#333',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  inputIcon: {
+    marginLeft: 10,
+  },
+  dropdown: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderTopWidth: 0,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 8,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+  },
+  dropdownItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  fieldRow: {
+    flexDirection: 'row',
+    marginBottom: 15,
+  },
+  fieldColumn: {
+    flex: 1,
+    marginHorizontal: 10,
+  },
+  avatarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+  },
+  avatarButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  updateButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#bf0a0a',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  updateButtonHovered: {
+    backgroundColor: '#bf0a0a',
+    borderWidth: 1,
+    borderColor: '#bf0a0a',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  updateButtonText: {
+    color: '#bf0a0a',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  updateButtonTextHovered: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  deleteButton: {
+    backgroundColor: '#bf0a0a',
+    borderRadius: 8,
+    padding: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  deleteButtonHovered: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#bf0a0a',
+  },
+  statusContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  profileModalUserInfo: {
+    flex: 1,
+    marginTop: 20,
+    alignItems: "flex-start",
+  },
+  profileModalName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 10,
+  },
+  profileModalDetail: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "left",
+  },
+  profileModalEmail: {
+    fontSize: 14,
+    color: "#666",
+  },
+  profileModalPhone: {
+    fontSize: 14,
+    color: "#666",
+  },
+  profileModalStatus: {
+    fontSize: 14,
+    color: "#666",
+  },
+  statusVerified: {
+    color: "green",
+  },
+  statusNotVerified: {
+    color: "red",
+  },
+  statusDefault: {
+    color: "#666",
+  },
+  profileModalActions: {
+    marginTop: 20,
+  },
+  profileModalButton: {
+    backgroundColor: "#007AFF",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  profileModalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  profileModalCloseButton: {
+    backgroundColor: "#f0f0f0",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  profileModalCloseButtonText: {
+    color: "#333",
+    fontSize: 16,
+  },
+  profileModalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+    flex: 1,
+  },
+  profileModalBody: {
+    alignItems: "flex-start",
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+  },
+  profileInfo: {
+    alignItems: "center",
+    marginTop: 15,
+  },
+  profileName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 10,
+  },
+  profileDetail: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 5,
+  },
+  carouselContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginTop: 20,
+    marginLeft: 160,
+  },
+  carouselArrow: {
+    padding: 5,
+  },
+  carouselContent: {
+    flex: 1,
+    height: 200,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    backgroundColor: "#f9f9f9",
+  },
+  carouselImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 10,
+  },
+  carouselPlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  carouselPlaceholderText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
+  },
+  dpiTilesContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '100%',
+    marginTop: 20,
+    alignItems: 'flex-start',
+  },
+  dpiTileWrapper: {
+    width: 260,
+    alignItems: 'center',
+    marginHorizontal: 12,
+  },
+  dpiTile: {
+    width: '100%',
+    height: 200,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    backgroundColor: '#f9f9f9',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dpiImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+  },
+  dpiPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+  },
+  // Mobile responsive adjustments ✅
+  dpiTilesContainerMobile: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  dpiTileWrapperMobile: {
+    width: '100%',
+    maxWidth: 360,
+    alignItems: 'center',
+    marginHorizontal: 0,
+    marginBottom: 12,
+  },
+  profileModalSidebarMobile: {
+    position: 'fixed' as any,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    top: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#fff',
+    paddingTop: 20,
+    zIndex: 2001,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+  },
+  dpiViewerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 3000,
+  },
+  dpiViewerImage: {
+    width: '90%',
+    height: '80%',
+  },
+  dpiViewerCloseButton: {
+    position: 'absolute',
+    top: 40,
+    right: 30,
+    padding: 8,
   },
 });

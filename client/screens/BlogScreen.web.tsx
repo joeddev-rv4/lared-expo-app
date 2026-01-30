@@ -96,20 +96,26 @@ export default function BlogScreenWeb() {
 
   const galleryMedia = property?.imagenes
     ?.filter((img) => ["Imagen", "Video"].includes(img.tipo))
-    ?.map((img) => ({ url: img.url, tipo: img.tipo })) || [{ url: property?.imageUrl || "", tipo: "Imagen" }];
-  const galleryImages = galleryMedia.map(m => m.url);
-  
+    ?.map((img) => ({ url: img.url, tipo: img.tipo })) || [
+    { url: property?.imageUrl || "", tipo: "Imagen" },
+  ];
+  const galleryImages = galleryMedia.map((m) => m.url);
+
   const isVideo = (url: string, tipo?: string) => {
     return tipo === "Video" || url.includes(".mp4") || url.includes("video");
   };
 
-  const masterplanImage = property?.imagenes?.find((img) => img.tipo === "masterplan")?.url;
+  const masterplanImage = property?.imagenes?.find(
+    (img) => img.tipo === "masterplan",
+  )?.url;
 
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
         <ActivityIndicator size="large" color={Colors.light.primary} />
-        <ThemedText style={styles.loadingText}>Cargando propiedad...</ThemedText>
+        <ThemedText style={styles.loadingText}>
+          Cargando propiedad...
+        </ThemedText>
       </View>
     );
   }
@@ -118,7 +124,9 @@ export default function BlogScreenWeb() {
     return (
       <View style={[styles.container, styles.centerContent]}>
         <Ionicons name="alert-circle-outline" size={64} color="#717171" />
-        <ThemedText style={styles.errorText}>{error || "Propiedad no encontrada"}</ThemedText>
+        <ThemedText style={styles.errorText}>
+          {error || "Propiedad no encontrada"}
+        </ThemedText>
       </View>
     );
   }
@@ -146,17 +154,23 @@ export default function BlogScreenWeb() {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         {/* 2. Hero Section (Full Image + Form) */}
-        <View style={[styles.heroSection, isMobile && styles.heroSectionMobile]}>
+        <View
+          style={[styles.heroSection, isMobile && styles.heroSectionMobile]}
+        >
           <Image
             source={{ uri: galleryImages[0] }}
             style={styles.heroImage}
             resizeMode="cover"
           />
           <View style={styles.heroOverlay}>
-            <View style={[styles.heroContent, isMobile && styles.heroContentMobile]}>
+            <View
+              style={[styles.heroContent, isMobile && styles.heroContentMobile]}
+            >
               <View style={styles.heroFormContainer}>
                 <ContactFormWeb
                   userId={params.userId}
@@ -170,16 +184,26 @@ export default function BlogScreenWeb() {
         </View>
 
         {/* 3. Info & Carousel Section */}
-        <View style={[styles.infoSection, isMobile && styles.infoSectionMobile]}>
+        <View
+          style={[styles.infoSection, isMobile && styles.infoSectionMobile]}
+        >
           {/* Left Side: Info */}
           <View style={styles.infoColumn}>
-            <ThemedText style={styles.propertyTitle}>{property.title}</ThemedText>
-            <ThemedText style={styles.propertyPrice}>{formatPrice(property.price)}</ThemedText>
-            <ThemedText style={styles.propertyCuota}>Cuota desde: Q1,950/mes</ThemedText>
+            <ThemedText style={styles.propertyTitle}>
+              {property.title}
+            </ThemedText>
+            <ThemedText style={styles.propertyPrice}>
+              {formatPrice(property.price)}
+            </ThemedText>
+            <ThemedText style={styles.propertyCuota}>
+              Cuota desde: {formatPrice(Math.round(property.price / 180))}/mes
+            </ThemedText>
 
             <View style={styles.locationRow}>
               <Ionicons name="location-outline" size={20} color="#717171" />
-              <ThemedText style={styles.locationText}>{property.location}</ThemedText>
+              <ThemedText style={styles.locationText}>
+                {property.location}
+              </ThemedText>
             </View>
 
             <View style={styles.divider} />
@@ -189,7 +213,9 @@ export default function BlogScreenWeb() {
               {property.descripcionCorta || property.description}
             </ThemedText>
             {property.descripcionLarga && (
-              <ThemedText style={[styles.descriptionText, { marginTop: Spacing.md }]}>
+              <ThemedText
+                style={[styles.descriptionText, { marginTop: Spacing.md }]}
+              >
                 {property.descripcionLarga}
               </ThemedText>
             )}
@@ -200,7 +226,11 @@ export default function BlogScreenWeb() {
             <View style={styles.featuresGrid}>
               {property.caracteristicas?.map((feature, index) => (
                 <View key={index} style={styles.featureItem}>
-                  <Ionicons name="checkmark-circle-outline" size={20} color={Colors.light.primary} />
+                  <Ionicons
+                    name="checkmark-circle-outline"
+                    size={20}
+                    color={Colors.light.primary}
+                  />
                   <ThemedText style={styles.featureText}>{feature}</ThemedText>
                 </View>
               ))}
@@ -219,62 +249,105 @@ export default function BlogScreenWeb() {
                     setShowGallery(true);
                   }}
                 >
-                  <Image source={{ uri: media.url }} style={styles.galleryGridImage} resizeMode="cover" />
+                  <Image
+                    source={{ uri: media.url }}
+                    style={styles.galleryGridImage}
+                    resizeMode="cover"
+                  />
                   {isVideo(media.url, media.tipo) && (
                     <View style={styles.videoPlayOverlay}>
-                      <Ionicons name="play-circle" size={48} color="rgba(255,255,255,0.9)" />
+                      <Ionicons
+                        name="play-circle"
+                        size={48}
+                        color="rgba(255,255,255,0.9)"
+                      />
                     </View>
                   )}
                   {index === 3 && galleryMedia.length > 4 && (
                     <View style={styles.moreImagesOverlay}>
-                      <ThemedText style={styles.moreImagesText}>+{galleryMedia.length - 4}</ThemedText>
+                      <ThemedText style={styles.moreImagesText}>
+                        +{galleryMedia.length - 4}
+                      </ThemedText>
                     </View>
                   )}
                 </Pressable>
               ))}
             </View>
-            <Pressable style={styles.viewAllButton} onPress={() => setShowGallery(true)}>
+            <Pressable
+              style={styles.viewAllButton}
+              onPress={() => setShowGallery(true)}
+            >
               <Ionicons name="images-outline" size={18} color="#222" />
-              <ThemedText style={styles.viewAllText}>Ver galería completa</ThemedText>
+              <ThemedText style={styles.viewAllText}>
+                Ver galería completa
+              </ThemedText>
             </Pressable>
           </View>
         </View>
 
         {/* 4. Location Section (Masterplan) */}
         {masterplanImage && (
-          <View style={[styles.sectionContainer, isMobile && styles.sectionContainerMobile]}>
-            <ThemedText style={styles.sectionHeaderTitle}>Ubicación del Proyecto</ThemedText>
+          <View
+            style={[
+              styles.sectionContainer,
+              isMobile && styles.sectionContainerMobile,
+            ]}
+          >
+            <ThemedText style={styles.sectionHeaderTitle}>
+              Ubicación del Proyecto
+            </ThemedText>
             <View style={styles.masterplanContainer}>
-              <Image source={{ uri: masterplanImage }} style={styles.masterplanImage} resizeMode="contain" />
+              <Image
+                source={{ uri: masterplanImage }}
+                style={styles.masterplanImage}
+                resizeMode="contain"
+              />
             </View>
           </View>
         )}
 
         {/* 5. Amenities Section */}
-        {property.proyectoCaracteristicas && property.proyectoCaracteristicas.length > 0 && (
-          <View style={[styles.sectionContainer, { backgroundColor: '#FAFAFA' }, isMobile && styles.sectionContainerMobile]}>
-            <View style={styles.amenitiesHeader}>
-              <ThemedText style={styles.amenitiesTitle}>Amenidades del Proyecto</ThemedText>
-              <ThemedText style={styles.amenitiesSubtitle}>
-                Disfruta de todas las comodidades que este proyecto tiene para ti
-              </ThemedText>
-            </View>
-            <View style={styles.amenitiesGrid}>
-              {property.proyectoCaracteristicas.map((amenity, index) => (
-                <View key={index} style={styles.amenityCard}>
-                  <View style={styles.amenityIconContainer}>
-                    <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+        {property.proyectoCaracteristicas &&
+          property.proyectoCaracteristicas.length > 0 && (
+            <View
+              style={[
+                styles.sectionContainer,
+                { backgroundColor: "#FAFAFA" },
+                isMobile && styles.sectionContainerMobile,
+              ]}
+            >
+              <View style={styles.amenitiesHeader}>
+                <ThemedText style={styles.amenitiesTitle}>
+                  Amenidades del Proyecto
+                </ThemedText>
+                <ThemedText style={styles.amenitiesSubtitle}>
+                  Disfruta de todas las comodidades que este proyecto tiene para
+                  ti
+                </ThemedText>
+              </View>
+              <View style={styles.amenitiesGrid}>
+                {property.proyectoCaracteristicas.map((amenity, index) => (
+                  <View key={index} style={styles.amenityCard}>
+                    <View style={styles.amenityIconContainer}>
+                      <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+                    </View>
+                    <ThemedText style={styles.amenityText}>
+                      {amenity}
+                    </ThemedText>
                   </View>
-                  <ThemedText style={styles.amenityText}>{amenity}</ThemedText>
-                </View>
-              ))}
+                ))}
+              </View>
             </View>
-          </View>
-        )}
+          )}
 
         {/* 6. Contact Form Section */}
-        <View style={[styles.sectionContainer, isMobile && styles.sectionContainerMobile]}>
-          <View style={{ maxWidth: 600, width: '100%', alignSelf: 'center' }}>
+        <View
+          style={[
+            styles.sectionContainer,
+            isMobile && styles.sectionContainerMobile,
+          ]}
+        >
+          <View style={{ maxWidth: 600, width: "100%", alignSelf: "center" }}>
             <ContactFormWeb
               userId={params.userId}
               propertyId={params.propertyId}
@@ -294,12 +367,15 @@ export default function BlogScreenWeb() {
                 resizeMode="contain"
               />
               <ThemedText style={styles.footerDescription}>
-                La Red Inmobiliaria es tu plataforma de confianza para encontrar la propiedad de tus sueños.
+                La Red Inmobiliaria es tu plataforma de confianza para encontrar
+                la propiedad de tus sueños.
               </ThemedText>
             </View>
 
             <View style={styles.footerColumn}>
-              <ThemedText style={styles.footerTitle}>Enlaces Rápidos</ThemedText>
+              <ThemedText style={styles.footerTitle}>
+                Enlaces Rápidos
+              </ThemedText>
               <ThemedText style={styles.footerLink}>Inicio</ThemedText>
               <ThemedText style={styles.footerLink}>Propiedades</ThemedText>
               <ThemedText style={styles.footerLink}>Blog</ThemedText>
@@ -310,34 +386,50 @@ export default function BlogScreenWeb() {
               <ThemedText style={styles.footerTitle}>Contacto</ThemedText>
               <View style={styles.contactRow}>
                 <Ionicons name="location-outline" size={18} color="#717171" />
-                <ThemedText style={styles.contactText}>Ciudad de Guatemala, Guatemala</ThemedText>
+                <ThemedText style={styles.contactText}>
+                  Ciudad de Guatemala, Guatemala
+                </ThemedText>
               </View>
               <View style={styles.contactRow}>
                 <Ionicons name="mail-outline" size={18} color="#717171" />
-                <ThemedText style={styles.contactText}>info@laredinmobiliaria.com</ThemedText>
+                <ThemedText style={styles.contactText}>
+                  info@laredinmobiliaria.com
+                </ThemedText>
               </View>
               <View style={styles.contactRow}>
                 <Ionicons name="call-outline" size={18} color="#717171" />
-                <ThemedText style={styles.contactText}>+502 1234 5678</ThemedText>
+                <ThemedText style={styles.contactText}>
+                  +502 1234 5678
+                </ThemedText>
               </View>
             </View>
           </View>
           <View style={styles.footerBottom}>
             <ThemedText style={styles.copyrightText}>
-              © {new Date().getFullYear()} La Red Inmobiliaria. Todos los derechos reservados.
+              © {new Date().getFullYear()} La Red Inmobiliaria. Todos los
+              derechos reservados.
             </ThemedText>
           </View>
         </View>
-
       </ScrollView>
 
       {/* Gallery Modal */}
-      <Modal visible={showGallery} animationType="fade" onRequestClose={() => setShowGallery(false)}>
+      <Modal
+        visible={showGallery}
+        animationType="fade"
+        onRequestClose={() => setShowGallery(false)}
+      >
         <View style={styles.galleryModal}>
-          <Pressable onPress={() => setShowGallery(false)} style={styles.closeButton}>
+          <Pressable
+            onPress={() => setShowGallery(false)}
+            style={styles.closeButton}
+          >
             <Ionicons name="close" size={32} color="#fff" />
           </Pressable>
-          {isVideo(galleryMedia[currentImageIndex]?.url, galleryMedia[currentImageIndex]?.tipo) ? (
+          {isVideo(
+            galleryMedia[currentImageIndex]?.url,
+            galleryMedia[currentImageIndex]?.tipo,
+          ) ? (
             <video
               src={galleryMedia[currentImageIndex]?.url}
               style={{ width: "90%", maxHeight: "80%", objectFit: "contain" }}
@@ -354,22 +446,39 @@ export default function BlogScreenWeb() {
           )}
           <View style={styles.modalControls}>
             <Pressable
-              onPress={() => setCurrentImageIndex(Math.max(0, currentImageIndex - 1))}
+              onPress={() =>
+                setCurrentImageIndex(Math.max(0, currentImageIndex - 1))
+              }
               disabled={currentImageIndex === 0}
             >
-              <Ionicons name="chevron-back" size={48} color={currentImageIndex > 0 ? "#fff" : "#555"} />
+              <Ionicons
+                name="chevron-back"
+                size={48}
+                color={currentImageIndex > 0 ? "#fff" : "#555"}
+              />
             </Pressable>
-            <ThemedText style={{ color: '#fff' }}>{currentImageIndex + 1} / {galleryMedia.length}</ThemedText>
+            <ThemedText style={{ color: "#fff" }}>
+              {currentImageIndex + 1} / {galleryMedia.length}
+            </ThemedText>
             <Pressable
-              onPress={() => setCurrentImageIndex(Math.min(galleryMedia.length - 1, currentImageIndex + 1))}
+              onPress={() =>
+                setCurrentImageIndex(
+                  Math.min(galleryMedia.length - 1, currentImageIndex + 1),
+                )
+              }
               disabled={currentImageIndex === galleryMedia.length - 1}
             >
-              <Ionicons name="chevron-forward" size={48} color={currentImageIndex < galleryMedia.length - 1 ? "#fff" : "#555"} />
+              <Ionicons
+                name="chevron-forward"
+                size={48}
+                color={
+                  currentImageIndex < galleryMedia.length - 1 ? "#fff" : "#555"
+                }
+              />
             </Pressable>
           </View>
         </View>
       </Modal>
-
     </View>
   );
 }
@@ -399,7 +508,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#EBEBEB",
     justifyContent: "center",
-    position: 'fixed' as any,
+    position: "fixed" as any,
     top: 0,
     left: 0,
     right: 0,
@@ -583,7 +692,7 @@ const styles = StyleSheet.create({
     aspectRatio: 1.5,
     borderRadius: BorderRadius.md,
     overflow: "hidden",
-    position: 'relative',
+    position: "relative",
   },
   galleryGridImage: {
     width: "100%",
@@ -609,12 +718,12 @@ const styles = StyleSheet.create({
   viewAllButton: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: 'center',
+    justifyContent: "center",
     gap: Spacing.xs,
     marginTop: Spacing.md,
     padding: Spacing.sm,
     borderWidth: 1,
-    borderColor: '#EBEBEB',
+    borderColor: "#EBEBEB",
     borderRadius: BorderRadius.full,
   },
   viewAllText: {
@@ -634,7 +743,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#222",
     marginBottom: Spacing.xl,
-    textAlign: 'center',
+    textAlign: "center",
   },
   sectionContainerMobile: {
     paddingVertical: Spacing.xl,
@@ -716,7 +825,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: Spacing.xl,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
     gap: Spacing.xl,
   },
   footerColumn: {
@@ -788,8 +897,8 @@ const styles = StyleSheet.create({
     height: "80%",
   },
   modalControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.xl,
     marginTop: Spacing.lg,
   },

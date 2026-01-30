@@ -25,7 +25,14 @@ interface FilterChipProps {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export function FilterChip({ label, isSelected, onPress, icon, emoji, selectedColor = Colors.light.primary }: FilterChipProps) {
+export function FilterChip({
+  label,
+  isSelected,
+  onPress,
+  icon,
+  emoji,
+  selectedColor = Colors.light.primary,
+}: FilterChipProps) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
   const selectedAnim = useSharedValue(isSelected ? 1 : 0);
@@ -42,12 +49,12 @@ export function FilterChip({ label, isSelected, onPress, icon, emoji, selectedCo
     backgroundColor: interpolateColor(
       selectedAnim.value,
       [0, 1],
-      [theme.backgroundDefault, selectedColor]
+      [theme.backgroundDefault, selectedColor],
     ),
     borderColor: interpolateColor(
       selectedAnim.value,
       [0, 1],
-      [theme.border, selectedColor]
+      [theme.border, selectedColor],
     ),
   }));
 
@@ -55,7 +62,7 @@ export function FilterChip({ label, isSelected, onPress, icon, emoji, selectedCo
     color: interpolateColor(
       selectedAnim.value,
       [0, 1],
-      [theme.text, "#FFFFFF"]
+      [theme.text, "#FFFFFF"],
     ),
   }));
 
@@ -77,16 +84,10 @@ export function FilterChip({ label, isSelected, onPress, icon, emoji, selectedCo
       onPress={handlePress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      style={[
-        styles.chip,
-        chipAnimatedStyle,
-        animatedStyle,
-      ]}
+      style={[styles.chip, chipAnimatedStyle, animatedStyle]}
     >
       <View style={styles.chipContent}>
-        {emoji && (
-          <ThemedText style={styles.emoji}>{emoji}</ThemedText>
-        )}
+        {emoji && <ThemedText style={styles.emoji}>{emoji}</ThemedText>}
         {icon && (
           <Ionicons
             name={icon}
@@ -95,12 +96,7 @@ export function FilterChip({ label, isSelected, onPress, icon, emoji, selectedCo
             style={styles.icon}
           />
         )}
-        <Animated.Text
-          style={[
-            styles.label,
-            textAnimatedStyle,
-          ]}
-        >
+        <Animated.Text style={[styles.label, textAnimatedStyle]}>
           {label}
         </Animated.Text>
       </View>

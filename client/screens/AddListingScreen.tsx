@@ -61,7 +61,9 @@ export default function AddListingScreen() {
         bedrooms: parseInt(bedrooms) || 1,
         bathrooms: parseInt(bathrooms) || 1,
         guests: parseInt(guests) || 2,
-        imageUrl: imageUrl || "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800",
+        imageUrl:
+          imageUrl ||
+          "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800",
       });
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

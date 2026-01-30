@@ -20,7 +20,11 @@ import { AuthProvider } from "@/contexts/AuthContext";
 SplashScreen.preventAutoHideAsync();
 
 const getWebOrigin = () => {
-  if (Platform.OS === "web" && typeof window !== "undefined" && window.location) {
+  if (
+    Platform.OS === "web" &&
+    typeof window !== "undefined" &&
+    window.location
+  ) {
     return window.location.origin;
   }
   return "";

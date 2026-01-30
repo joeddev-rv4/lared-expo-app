@@ -53,18 +53,40 @@ const resolveAsset = (asset: any): string => {
 };
 
 // Imágenes cargadas con require() (igual que LoginScreen)
-const heroImage1 = resolveAsset(require("../../../assets/images-lared/get-started-bg.png"));
-const heroImage2 = resolveAsset(require("../../../assets/images-lared/get-started-bg-2.png"));
-const heroImage3 = resolveAsset(require("../../../assets/images-lared/get-started-bg-3.png"));
-const heroImageMobile1 = resolveAsset(require("../../../assets/images-lared/get-started-bg-mobile-1.png"));
-const heroImageMobile2 = resolveAsset(require("../../../assets/images-lared/get-started-bg-mobile-2.png"));
-const heroImageMobile3 = resolveAsset(require("../../../assets/images-lared/get-started-bg-mobile-3.png"));
+const heroImage1 = resolveAsset(
+  require("../../../assets/images-lared/get-started-bg.png"),
+);
+const heroImage2 = resolveAsset(
+  require("../../../assets/images-lared/get-started-bg-2.png"),
+);
+const heroImage3 = resolveAsset(
+  require("../../../assets/images-lared/get-started-bg-3.png"),
+);
+const heroImageMobile1 = resolveAsset(
+  require("../../../assets/images-lared/get-started-bg-mobile-1.png"),
+);
+const heroImageMobile2 = resolveAsset(
+  require("../../../assets/images-lared/get-started-bg-mobile-2.png"),
+);
+const heroImageMobile3 = resolveAsset(
+  require("../../../assets/images-lared/get-started-bg-mobile-3.png"),
+);
 const logoSvg = resolveAsset(require("../../../assets/images-lared/logo.svg"));
-const horizontalLinesImg = resolveAsset(require("../../../assets/images-lared/horizontal-lines.png"));
-const phoneImg = resolveAsset(require("../../../assets/images-lared/phone.png"));
-const portfolioImg = resolveAsset(require("../../../assets/images-lared/portfolio_v2.png"));
-const rrssImg = resolveAsset(require("../../../assets/images-lared/rrss_v2.png"));
-const hombreFelizImg = resolveAsset(require("../../../assets/images-lared/hombre_feliz_v2.png"));
+const horizontalLinesImg = resolveAsset(
+  require("../../../assets/images-lared/horizontal-lines.png"),
+);
+const phoneImg = resolveAsset(
+  require("../../../assets/images-lared/phone.png"),
+);
+const portfolioImg = resolveAsset(
+  require("../../../assets/images-lared/portfolio_v2.png"),
+);
+const rrssImg = resolveAsset(
+  require("../../../assets/images-lared/rrss_v2.png"),
+);
+const hombreFelizImg = resolveAsset(
+  require("../../../assets/images-lared/hombre_feliz_v2.png"),
+);
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -1727,9 +1749,7 @@ const ContactFormSection = () => {
               ) : null}
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>
-                Numero de telefono 
-              </label>
+              <label style={styles.formLabel}>Numero de telefono</label>
               <div style={{ display: "flex", gap: 8 }}>
                 <select
                   value={countryCode}
@@ -1751,7 +1771,7 @@ const ContactFormSection = () => {
                   type="tel"
                   value={formData.phoneNumber}
                   onChange={(e) => {
-                    const numericOnly = e.target.value.replace(/[^0-9]/g, '');
+                    const numericOnly = e.target.value.replace(/[^0-9]/g, "");
                     setFormData({ ...formData, phoneNumber: numericOnly });
                   }}
                   style={{ ...styles.formInput, flex: 1 }}
@@ -1793,7 +1813,14 @@ const ContactFormSection = () => {
                     justifyContent: "center",
                   }}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#666"
+                    strokeWidth="2"
+                  >
                     {showPassword ? (
                       <>
                         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
@@ -1821,7 +1848,10 @@ const ContactFormSection = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   value={formData.confirmPassword}
                   onChange={(e) => {
-                    setFormData({ ...formData, confirmPassword: e.target.value });
+                    setFormData({
+                      ...formData,
+                      confirmPassword: e.target.value,
+                    });
                     if (errors.confirmPassword)
                       setErrors({ ...errors, confirmPassword: "" });
                   }}
@@ -1849,7 +1879,14 @@ const ContactFormSection = () => {
                     justifyContent: "center",
                   }}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#666"
+                    strokeWidth="2"
+                  >
                     {showConfirmPassword ? (
                       <>
                         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
@@ -1912,105 +1949,329 @@ const ContactFormSection = () => {
   );
 };
 
-type LegalPopupType = 'privacy' | 'terms' | null;
+type LegalPopupType = "privacy" | "terms" | null;
 
 const privacyContentData = {
   en: {
     title: "Privacy Policy",
     sections: [
-      { title: "1. Introduction", content: "At La Red Inmobiliaria, we respect and protect the privacy of our users. This policy describes how we collect, use, and protect personal and non-personal information from individuals who interact with our services, in accordance with international best practices and aligned with current Guatemalan legislation, including Decree 57-2008 \"Law on Access to Public Information\"." },
-      { title: "2. Information We Collect", content: "Personal Information: name, email address, phone number, address, and other details voluntarily provided by the user.\n\nNon-Personal Information: technical data such as IP address, browser type, operating system, visited pages, and usage statistics." },
-      { title: "3. How We Use Information", content: "• Provide and customize our services.\n• Improve user experience.\n• Communicate updates, promotions, or relevant information.\n• Comply with legal or regulatory requirements.\n• Ensure the security of our platforms." },
-      { title: "4. Legal Basis", content: "Processing is based on: voluntary consent, contractual obligations, legitimate interests, and guidelines inspired by Decree 57-2008 of Guatemala." },
-      { title: "5. Information Protection", content: "We implement technical, administrative, and physical security measures to protect information from loss, theft, unauthorized access, disclosure, copying, use, or modification." },
-      { title: "6. Sharing Information", content: "We do not sell or rent personal information. We may share only with service providers, when required by law, or to protect our rights." },
-      { title: "7. User Rights", content: "Users may: access, correct, request deletion of their data, or object to processing. Contact: hola@laredgt.com" },
-      { title: "8. Contact", content: "For questions: hola@laredgt.com" }
-    ]
+      {
+        title: "1. Introduction",
+        content:
+          'At La Red Inmobiliaria, we respect and protect the privacy of our users. This policy describes how we collect, use, and protect personal and non-personal information from individuals who interact with our services, in accordance with international best practices and aligned with current Guatemalan legislation, including Decree 57-2008 "Law on Access to Public Information".',
+      },
+      {
+        title: "2. Information We Collect",
+        content:
+          "Personal Information: name, email address, phone number, address, and other details voluntarily provided by the user.\n\nNon-Personal Information: technical data such as IP address, browser type, operating system, visited pages, and usage statistics.",
+      },
+      {
+        title: "3. How We Use Information",
+        content:
+          "• Provide and customize our services.\n• Improve user experience.\n• Communicate updates, promotions, or relevant information.\n• Comply with legal or regulatory requirements.\n• Ensure the security of our platforms.",
+      },
+      {
+        title: "4. Legal Basis",
+        content:
+          "Processing is based on: voluntary consent, contractual obligations, legitimate interests, and guidelines inspired by Decree 57-2008 of Guatemala.",
+      },
+      {
+        title: "5. Information Protection",
+        content:
+          "We implement technical, administrative, and physical security measures to protect information from loss, theft, unauthorized access, disclosure, copying, use, or modification.",
+      },
+      {
+        title: "6. Sharing Information",
+        content:
+          "We do not sell or rent personal information. We may share only with service providers, when required by law, or to protect our rights.",
+      },
+      {
+        title: "7. User Rights",
+        content:
+          "Users may: access, correct, request deletion of their data, or object to processing. Contact: hola@laredgt.com",
+      },
+      { title: "8. Contact", content: "For questions: hola@laredgt.com" },
+    ],
   },
   es: {
     title: "Politica de Privacidad",
     sections: [
-      { title: "1. Introduccion", content: "En La Red Inmobiliaria, respetamos y protegemos la privacidad de nuestros usuarios. Esta politica describe como recopilamos, utilizamos y protegemos la informacion personal y no personal, en cumplimiento de las mejores practicas internacionales y de forma alineada con la legislacion vigente en Guatemala, incluyendo el Decreto 57-2008." },
-      { title: "2. Informacion que recopilamos", content: "Informacion personal: nombre, correo electronico, telefono, direccion y otros datos proporcionados voluntariamente.\n\nInformacion no personal: datos tecnicos como IP, navegador, sistema operativo, paginas visitadas y estadisticas de uso." },
-      { title: "3. Uso de la informacion", content: "• Proporcionar y personalizar nuestros servicios.\n• Mejorar la experiencia del usuario.\n• Comunicarnos sobre actualizaciones y promociones.\n• Cumplir con requisitos legales.\n• Garantizar la seguridad de nuestras plataformas." },
-      { title: "4. Base legal", content: "El tratamiento se realiza con base en: consentimiento voluntario, obligaciones contractuales, intereses legitimos y lineamientos del Decreto 57-2008." },
-      { title: "5. Proteccion", content: "Implementamos medidas de seguridad tecnicas, administrativas y fisicas para proteger la informacion contra perdida, robo y acceso no autorizado." },
-      { title: "6. Comparticion", content: "No vendemos ni alquilamos informacion personal. Podremos compartirla con proveedores de servicios, cuando sea requerido por ley o para proteger nuestros derechos." },
-      { title: "7. Derechos del usuario", content: "El usuario puede: acceder, rectificar, solicitar eliminacion de sus datos u oponerse al tratamiento. Contacto: hola@laredgt.com" },
-      { title: "8. Contacto", content: "Para preguntas: hola@laredgt.com" }
-    ]
-  }
+      {
+        title: "1. Introduccion",
+        content:
+          "En La Red Inmobiliaria, respetamos y protegemos la privacidad de nuestros usuarios. Esta politica describe como recopilamos, utilizamos y protegemos la informacion personal y no personal, en cumplimiento de las mejores practicas internacionales y de forma alineada con la legislacion vigente en Guatemala, incluyendo el Decreto 57-2008.",
+      },
+      {
+        title: "2. Informacion que recopilamos",
+        content:
+          "Informacion personal: nombre, correo electronico, telefono, direccion y otros datos proporcionados voluntariamente.\n\nInformacion no personal: datos tecnicos como IP, navegador, sistema operativo, paginas visitadas y estadisticas de uso.",
+      },
+      {
+        title: "3. Uso de la informacion",
+        content:
+          "• Proporcionar y personalizar nuestros servicios.\n• Mejorar la experiencia del usuario.\n• Comunicarnos sobre actualizaciones y promociones.\n• Cumplir con requisitos legales.\n• Garantizar la seguridad de nuestras plataformas.",
+      },
+      {
+        title: "4. Base legal",
+        content:
+          "El tratamiento se realiza con base en: consentimiento voluntario, obligaciones contractuales, intereses legitimos y lineamientos del Decreto 57-2008.",
+      },
+      {
+        title: "5. Proteccion",
+        content:
+          "Implementamos medidas de seguridad tecnicas, administrativas y fisicas para proteger la informacion contra perdida, robo y acceso no autorizado.",
+      },
+      {
+        title: "6. Comparticion",
+        content:
+          "No vendemos ni alquilamos informacion personal. Podremos compartirla con proveedores de servicios, cuando sea requerido por ley o para proteger nuestros derechos.",
+      },
+      {
+        title: "7. Derechos del usuario",
+        content:
+          "El usuario puede: acceder, rectificar, solicitar eliminacion de sus datos u oponerse al tratamiento. Contacto: hola@laredgt.com",
+      },
+      { title: "8. Contacto", content: "Para preguntas: hola@laredgt.com" },
+    ],
+  },
 };
 
 const termsContentData = {
   en: {
     title: "Terms of Use",
     sections: [
-      { title: "Welcome", content: "Welcome to La Red Inmobiliaria (\"the App\"), owned by La Red Inmobiliaria Guatemala. By using the App, you agree to these Terms. If you do not agree, please do not use the App." },
-      { title: "1. Use of the App", content: "• Platform for promoting real estate properties and generating leads.\n• Users may be eligible for fees for successful lead generation, handled outside the App.\n• No payments are conducted within the App." },
-      { title: "2. Eligibility", content: "You must be at least 18 years old to use the App." },
-      { title: "3. User Responsibilities", content: "You agree to: provide accurate property information, not use the App for illegal purposes, not harm the App's functionality." },
-      { title: "4. Intellectual Property", content: "All content (branding, design, logos, text) is owned by La Red Inmobiliaria and protected under copyright and trademark laws." },
-      { title: "5. Limitation of Liability", content: "The App is provided \"as is\" without warranties. We are not liable for damages from your use of the App." },
-      { title: "6. Termination", content: "We reserve the right to terminate or suspend your access if you violate these Terms." },
-      { title: "7. Account Security", content: "Users are responsible for maintaining confidentiality of login credentials. Activity through your account is your responsibility." },
-      { title: "8. Governing Law", content: "These Terms are governed by the laws of Guatemala. Disputes are subject to Guatemalan courts." },
-      { title: "9. Changes to Terms", content: "We may update these Terms at any time. Continued use constitutes acceptance." },
-      { title: "10. Contact", content: "Questions? Contact us at: hola@laredgt.com" }
-    ]
+      {
+        title: "Welcome",
+        content:
+          'Welcome to La Red Inmobiliaria ("the App"), owned by La Red Inmobiliaria Guatemala. By using the App, you agree to these Terms. If you do not agree, please do not use the App.',
+      },
+      {
+        title: "1. Use of the App",
+        content:
+          "• Platform for promoting real estate properties and generating leads.\n• Users may be eligible for fees for successful lead generation, handled outside the App.\n• No payments are conducted within the App.",
+      },
+      {
+        title: "2. Eligibility",
+        content: "You must be at least 18 years old to use the App.",
+      },
+      {
+        title: "3. User Responsibilities",
+        content:
+          "You agree to: provide accurate property information, not use the App for illegal purposes, not harm the App's functionality.",
+      },
+      {
+        title: "4. Intellectual Property",
+        content:
+          "All content (branding, design, logos, text) is owned by La Red Inmobiliaria and protected under copyright and trademark laws.",
+      },
+      {
+        title: "5. Limitation of Liability",
+        content:
+          'The App is provided "as is" without warranties. We are not liable for damages from your use of the App.',
+      },
+      {
+        title: "6. Termination",
+        content:
+          "We reserve the right to terminate or suspend your access if you violate these Terms.",
+      },
+      {
+        title: "7. Account Security",
+        content:
+          "Users are responsible for maintaining confidentiality of login credentials. Activity through your account is your responsibility.",
+      },
+      {
+        title: "8. Governing Law",
+        content:
+          "These Terms are governed by the laws of Guatemala. Disputes are subject to Guatemalan courts.",
+      },
+      {
+        title: "9. Changes to Terms",
+        content:
+          "We may update these Terms at any time. Continued use constitutes acceptance.",
+      },
+      {
+        title: "10. Contact",
+        content: "Questions? Contact us at: hola@laredgt.com",
+      },
+    ],
   },
   es: {
     title: "Terminos de Uso",
     sections: [
-      { title: "Bienvenida", content: "Bienvenido a La Red Inmobiliaria (\"la App\"), propiedad de La Red Inmobiliaria Guatemala. Al utilizar la App, aceptas estos Terminos. Si no estas de acuerdo, no utilices la App." },
-      { title: "1. Uso de la App", content: "• Plataforma para promocionar propiedades inmobiliarias y generar prospectos.\n• Los usuarios pueden ser elegibles para comisiones, gestionadas fuera de la App.\n• No se realizan pagos dentro de la App." },
-      { title: "2. Elegibilidad", content: "Debes tener al menos 18 anos de edad para utilizar la App." },
-      { title: "3. Responsabilidades", content: "Te comprometes a: proporcionar informacion precisa, no utilizar la App para fines ilegales, no danar la funcionalidad de la App." },
-      { title: "4. Propiedad Intelectual", content: "Todo el contenido (marca, diseno, logotipos, texto) es propiedad de La Red Inmobiliaria y esta protegido por leyes de derechos de autor." },
-      { title: "5. Limitacion de Responsabilidad", content: "La App se proporciona \"tal cual\" sin garantias. No somos responsables por danos del uso de la App." },
-      { title: "6. Terminacion", content: "Nos reservamos el derecho de terminar o suspender tu acceso si violas estos Terminos." },
-      { title: "7. Cuenta y Seguridad", content: "Los usuarios son responsables de mantener la confidencialidad de sus credenciales. Toda actividad desde tu cuenta es tu responsabilidad." },
-      { title: "8. Legislacion", content: "Estos Terminos se rigen por las leyes de Guatemala. Las disputas estan sujetas a tribunales guatemaltecos." },
-      { title: "9. Cambios", content: "Podemos actualizar estos Terminos en cualquier momento. El uso continuo constituye aceptacion." },
-      { title: "10. Contacto", content: "Preguntas? Contactanos en: hola@laredgt.com" }
-    ]
-  }
+      {
+        title: "Bienvenida",
+        content:
+          'Bienvenido a La Red Inmobiliaria ("la App"), propiedad de La Red Inmobiliaria Guatemala. Al utilizar la App, aceptas estos Terminos. Si no estas de acuerdo, no utilices la App.',
+      },
+      {
+        title: "1. Uso de la App",
+        content:
+          "• Plataforma para promocionar propiedades inmobiliarias y generar prospectos.\n• Los usuarios pueden ser elegibles para comisiones, gestionadas fuera de la App.\n• No se realizan pagos dentro de la App.",
+      },
+      {
+        title: "2. Elegibilidad",
+        content: "Debes tener al menos 18 anos de edad para utilizar la App.",
+      },
+      {
+        title: "3. Responsabilidades",
+        content:
+          "Te comprometes a: proporcionar informacion precisa, no utilizar la App para fines ilegales, no danar la funcionalidad de la App.",
+      },
+      {
+        title: "4. Propiedad Intelectual",
+        content:
+          "Todo el contenido (marca, diseno, logotipos, texto) es propiedad de La Red Inmobiliaria y esta protegido por leyes de derechos de autor.",
+      },
+      {
+        title: "5. Limitacion de Responsabilidad",
+        content:
+          'La App se proporciona "tal cual" sin garantias. No somos responsables por danos del uso de la App.',
+      },
+      {
+        title: "6. Terminacion",
+        content:
+          "Nos reservamos el derecho de terminar o suspender tu acceso si violas estos Terminos.",
+      },
+      {
+        title: "7. Cuenta y Seguridad",
+        content:
+          "Los usuarios son responsables de mantener la confidencialidad de sus credenciales. Toda actividad desde tu cuenta es tu responsabilidad.",
+      },
+      {
+        title: "8. Legislacion",
+        content:
+          "Estos Terminos se rigen por las leyes de Guatemala. Las disputas estan sujetas a tribunales guatemaltecos.",
+      },
+      {
+        title: "9. Cambios",
+        content:
+          "Podemos actualizar estos Terminos en cualquier momento. El uso continuo constituye aceptacion.",
+      },
+      {
+        title: "10. Contacto",
+        content: "Preguntas? Contactanos en: hola@laredgt.com",
+      },
+    ],
+  },
 };
 
-const LegalPopupComponent = ({ 
-  type, 
-  onClose, 
-  language, 
-  onLanguageChange 
-}: { 
-  type: LegalPopupType; 
-  onClose: () => void; 
-  language: 'es' | 'en';
-  onLanguageChange: (lang: 'es' | 'en') => void;
+const LegalPopupComponent = ({
+  type,
+  onClose,
+  language,
+  onLanguageChange,
+}: {
+  type: LegalPopupType;
+  onClose: () => void;
+  language: "es" | "en";
+  onLanguageChange: (lang: "es" | "en") => void;
 }) => {
   if (!type) return null;
-  
-  const content = type === 'privacy' ? privacyContentData[language] : termsContentData[language];
-  
+
+  const content =
+    type === "privacy"
+      ? privacyContentData[language]
+      : termsContentData[language];
+
   const popupStyles: { [key: string]: React.CSSProperties } = {
-    overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: 20 },
-    modal: { backgroundColor: '#fff', borderRadius: 16, maxWidth: 700, width: '100%', maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)' },
-    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #eee', flexShrink: 0 },
-    headerRight: { display: 'flex', alignItems: 'center', gap: 16 },
-    title: { fontSize: 22, fontWeight: 700, color: '#1a1a2e', margin: 0, fontFamily: "'Nunito', sans-serif" },
-    languageSwitch: { display: 'flex', backgroundColor: '#f0f0f0', borderRadius: 8, padding: 4 },
-    langButton: { padding: '6px 12px', border: 'none', background: 'transparent', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#666', transition: 'all 0.2s', fontFamily: "'Nunito', sans-serif" },
-    langButtonActive: { backgroundColor: '#044BB8', color: '#fff' },
-    closeButton: { background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' },
-    contentArea: { padding: 24, overflowY: 'auto', flex: 1 },
+    overlay: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 10000,
+      padding: 20,
+    },
+    modal: {
+      backgroundColor: "#fff",
+      borderRadius: 16,
+      maxWidth: 700,
+      width: "100%",
+      maxHeight: "85vh",
+      display: "flex",
+      flexDirection: "column",
+      boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+    },
+    header: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "20px 24px",
+      borderBottom: "1px solid #eee",
+      flexShrink: 0,
+    },
+    headerRight: { display: "flex", alignItems: "center", gap: 16 },
+    title: {
+      fontSize: 22,
+      fontWeight: 700,
+      color: "#1a1a2e",
+      margin: 0,
+      fontFamily: "'Nunito', sans-serif",
+    },
+    languageSwitch: {
+      display: "flex",
+      backgroundColor: "#f0f0f0",
+      borderRadius: 8,
+      padding: 4,
+    },
+    langButton: {
+      padding: "6px 12px",
+      border: "none",
+      background: "transparent",
+      borderRadius: 6,
+      cursor: "pointer",
+      fontSize: 13,
+      fontWeight: 600,
+      color: "#666",
+      transition: "all 0.2s",
+      fontFamily: "'Nunito', sans-serif",
+    },
+    langButtonActive: { backgroundColor: "#044BB8", color: "#fff" },
+    closeButton: {
+      background: "none",
+      border: "none",
+      cursor: "pointer",
+      padding: 4,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      color: "#666",
+    },
+    contentArea: { padding: 24, overflowY: "auto", flex: 1 },
     section: { marginBottom: 24 },
-    sectionTitle: { fontSize: 16, fontWeight: 700, color: '#1a1a2e', marginBottom: 8, fontFamily: "'Nunito', sans-serif" },
-    sectionContent: { fontSize: 14, color: '#555', lineHeight: 1.7, whiteSpace: 'pre-line', fontFamily: "'Nunito', sans-serif", margin: 0 },
-    footerArea: { marginTop: 32, paddingTop: 16, borderTop: '1px solid #eee', textAlign: 'center' },
-    copyrightText: { fontSize: 13, color: '#999', fontFamily: "'Nunito', sans-serif" },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: 700,
+      color: "#1a1a2e",
+      marginBottom: 8,
+      fontFamily: "'Nunito', sans-serif",
+    },
+    sectionContent: {
+      fontSize: 14,
+      color: "#555",
+      lineHeight: 1.7,
+      whiteSpace: "pre-line",
+      fontFamily: "'Nunito', sans-serif",
+      margin: 0,
+    },
+    footerArea: {
+      marginTop: 32,
+      paddingTop: 16,
+      borderTop: "1px solid #eee",
+      textAlign: "center",
+    },
+    copyrightText: {
+      fontSize: 13,
+      color: "#999",
+      fontFamily: "'Nunito', sans-serif",
+    },
   };
-  
+
   return (
     <div style={popupStyles.overlay} onClick={onClose}>
       <div style={popupStyles.modal} onClick={(e) => e.stopPropagation()}>
@@ -2018,21 +2279,34 @@ const LegalPopupComponent = ({
           <h2 style={popupStyles.title}>{content.title}</h2>
           <div style={popupStyles.headerRight}>
             <div style={popupStyles.languageSwitch}>
-              <button 
-                style={{ ...popupStyles.langButton, ...(language === 'es' ? popupStyles.langButtonActive : {}) }}
-                onClick={() => onLanguageChange('es')}
+              <button
+                style={{
+                  ...popupStyles.langButton,
+                  ...(language === "es" ? popupStyles.langButtonActive : {}),
+                }}
+                onClick={() => onLanguageChange("es")}
               >
                 ES
               </button>
-              <button 
-                style={{ ...popupStyles.langButton, ...(language === 'en' ? popupStyles.langButtonActive : {}) }}
-                onClick={() => onLanguageChange('en')}
+              <button
+                style={{
+                  ...popupStyles.langButton,
+                  ...(language === "en" ? popupStyles.langButtonActive : {}),
+                }}
+                onClick={() => onLanguageChange("en")}
               >
                 EN
               </button>
             </div>
             <button style={popupStyles.closeButton} onClick={onClose}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
@@ -2047,7 +2321,9 @@ const LegalPopupComponent = ({
             </div>
           ))}
           <div style={popupStyles.footerArea}>
-            <p style={popupStyles.copyrightText}>© 2025 La Red Inmobiliaria, Inc.</p>
+            <p style={popupStyles.copyrightText}>
+              © 2025 La Red Inmobiliaria, Inc.
+            </p>
           </div>
         </div>
       </div>
@@ -2058,13 +2334,15 @@ const LegalPopupComponent = ({
 const Footer = () => {
   const isMobile = useIsMobile();
   const [legalPopupType, setLegalPopupType] = useState<LegalPopupType>(null);
-  const [legalLanguage, setLegalLanguage] = useState<'es' | 'en'>('es');
-  
+  const [legalLanguage, setLegalLanguage] = useState<"es" | "en">("es");
+
   return (
     <>
       <footer
         style={
-          isMobile ? { ...styles.footer, padding: "48px 0 24px" } : styles.footer
+          isMobile
+            ? { ...styles.footer, padding: "48px 0 24px" }
+            : styles.footer
         }
       >
         <div
@@ -2138,19 +2416,25 @@ const Footer = () => {
               </h3>
               <ul style={styles.footerLinks}>
                 <li>
-                  <a 
-                    href="#" 
+                  <a
+                    href="#"
                     style={styles.footerLink}
-                    onClick={(e) => { e.preventDefault(); setLegalPopupType('privacy'); }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setLegalPopupType("privacy");
+                    }}
                   >
                     Privacidad y condiciones
                   </a>
                 </li>
                 <li>
-                  <a 
-                    href="#" 
+                  <a
+                    href="#"
                     style={styles.footerLink}
-                    onClick={(e) => { e.preventDefault(); setLegalPopupType('terms'); }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setLegalPopupType("terms");
+                    }}
                   >
                     Terminos
                   </a>
@@ -2234,10 +2518,10 @@ const Footer = () => {
           </div>
         </div>
       </footer>
-      
-      <LegalPopupComponent 
-        type={legalPopupType} 
-        onClose={() => setLegalPopupType(null)} 
+
+      <LegalPopupComponent
+        type={legalPopupType}
+        onClose={() => setLegalPopupType(null)}
         language={legalLanguage}
         onLanguageChange={setLegalLanguage}
       />

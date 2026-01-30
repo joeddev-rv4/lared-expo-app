@@ -1,4 +1,4 @@
-import { whatsappService } from './whatsapp-service';
+import { whatsappService } from "./whatsapp-service";
 
 interface VerificationCode {
   code: string;
@@ -55,7 +55,9 @@ class VerificationService {
     });
   }
 
-  async sendVerificationCode(phoneNumber: string): Promise<{ success: boolean; message: string }> {
+  async sendVerificationCode(
+    phoneNumber: string,
+  ): Promise<{ success: boolean; message: string }> {
     // Limpiar códigos expirados
     this.cleanupExpiredCodes();
 
@@ -63,7 +65,8 @@ class VerificationService {
     if (!this.checkRateLimit(phoneNumber)) {
       return {
         success: false,
-        message: 'Has alcanzado el límite de códigos. Intenta nuevamente en 10 minutos.',
+        message:
+          "Has alcanzado el límite de códigos. Intenta nuevamente en 10 minutos.",
       };
     }
 
@@ -87,23 +90,26 @@ class VerificationService {
       this.verificationCodes.delete(phoneNumber);
       return {
         success: false,
-        message: 'Error al enviar el código. Verifica el número de teléfono.',
+        message: "Error al enviar el código. Verifica el número de teléfono.",
       };
     }
 
     return {
       success: true,
-      message: 'Código enviado exitosamente',
+      message: "Código enviado exitosamente",
     };
   }
 
-  verifyCode(phoneNumber: string, code: string): { success: boolean; message: string } {
+  verifyCode(
+    phoneNumber: string,
+    code: string,
+  ): { success: boolean; message: string } {
     const verification = this.verificationCodes.get(phoneNumber);
 
     if (!verification) {
       return {
         success: false,
-        message: 'No se encontró un código de verificación para este número.',
+        message: "No se encontró un código de verificación para este número.",
       };
     }
 
@@ -114,7 +120,7 @@ class VerificationService {
       this.verificationCodes.delete(phoneNumber);
       return {
         success: false,
-        message: 'El código ha expirado. Solicita uno nuevo.',
+        message: "El código ha expirado. Solicita uno nuevo.",
       };
     }
 
@@ -123,7 +129,8 @@ class VerificationService {
       this.verificationCodes.delete(phoneNumber);
       return {
         success: false,
-        message: 'Has excedido el número máximo de intentos. Solicita un nuevo código.',
+        message:
+          "Has excedido el número máximo de intentos. Solicita un nuevo código.",
       };
     }
 
@@ -143,13 +150,13 @@ class VerificationService {
 
     return {
       success: true,
-      message: 'Número verificado exitosamente',
+      message: "Número verificado exitosamente",
     };
   }
 
   // Para pruebas/debugging (opcional)
   getCodeForTesting(phoneNumber: string): string | null {
-    if (process.env.NODE_ENV !== 'development') {
+    if (process.env.NODE_ENV !== "development") {
       return null;
     }
     const verification = this.verificationCodes.get(phoneNumber);

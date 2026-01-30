@@ -51,8 +51,9 @@ function AddListingButton({ onPress }: { onPress: () => void }) {
 export default function MainTabNavigator() {
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  
-  const androidBottomPadding = Platform.OS === 'android' ? Math.max(insets.bottom, 16) : 0;
+
+  const androidBottomPadding =
+    Platform.OS === "android" ? Math.max(insets.bottom, 16) : 0;
   const tabBarHeight = Platform.OS === "ios" ? 88 : 64 + androidBottomPadding;
 
   return (
@@ -93,68 +94,68 @@ export default function MainTabNavigator() {
           },
         }}
       >
-      <Tab.Screen
-        name="explore"
-        component={ExploreStackNavigator}
-        options={{
-          title: "Explorar",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="favorites"
-        component={FavoritesStackNavigator}
-        options={{
-          title: "Favoritos",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      {Platform.OS !== "web" && (
         <Tab.Screen
-          name="addlisting"
-          component={AddListingScreen}
-          options={({ navigation }) => ({
-            title: "",
-            tabBarIcon: () => null,
-            tabBarButton: () => (
-              <AddListingButton
-                onPress={() => navigation.navigate("AddListingModal")}
-              />
+          name="explore"
+          component={ExploreStackNavigator}
+          options={{
+            title: "Explorar",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="search-outline" size={size} color={color} />
             ),
-          })}
-          listeners={({ navigation }) => ({
-            tabPress: (e) => {
-              e.preventDefault();
-              navigation.navigate("AddListingModal");
-            },
-          })}
+          }}
         />
-      )}
-      <Tab.Screen
-        name="profile"
-        component={ProfileStackNavigator}
-        options={{
-          title: "Mi Perfil",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="achievements"
-        component={AchievementsStackNavigator}
-        options={{
-          title: "Mis Logros",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="trophy-outline" size={size} color={color} />
-          ),
-        }}
-      />
-    </Tab.Navigator>
+        <Tab.Screen
+          name="favorites"
+          component={FavoritesStackNavigator}
+          options={{
+            title: "Favoritos",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="heart-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        {Platform.OS !== "web" && (
+          <Tab.Screen
+            name="addlisting"
+            component={AddListingScreen}
+            options={({ navigation }) => ({
+              title: "",
+              tabBarIcon: () => null,
+              tabBarButton: () => (
+                <AddListingButton
+                  onPress={() => navigation.navigate("AddListingModal")}
+                />
+              ),
+            })}
+            listeners={({ navigation }) => ({
+              tabPress: (e) => {
+                e.preventDefault();
+                navigation.navigate("AddListingModal");
+              },
+            })}
+          />
+        )}
+        <Tab.Screen
+          name="profile"
+          component={ProfileStackNavigator}
+          options={{
+            title: "Mi Perfil",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="person-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="achievements"
+          component={AchievementsStackNavigator}
+          options={{
+            title: "Mis Logros",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="trophy-outline" size={size} color={color} />
+            ),
+          }}
+        />
+      </Tab.Navigator>
     </View>
   );
 }

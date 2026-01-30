@@ -1,12 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
-import { sendVerificationCode, verifyCode } from '@/lib/verification-api';
+import { useState, useEffect, useCallback } from "react";
+import { sendVerificationCode, verifyCode } from "@/lib/verification-api";
 
 const CODE_EXPIRY_SECONDS = 300; // 5 minutos
 
 export function usePhoneVerification(phoneNumber: string) {
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(CODE_EXPIRY_SECONDS);
   const [canResend, setCanResend] = useState(false);
@@ -33,7 +33,7 @@ export function usePhoneVerification(phoneNumber: string) {
 
   const sendCode = useCallback(async () => {
     setIsLoading(true);
-    setError('');
+    setError("");
     setCanResend(false);
     setTimeRemaining(CODE_EXPIRY_SECONDS);
 
@@ -43,7 +43,7 @@ export function usePhoneVerification(phoneNumber: string) {
         setError(result.message);
       }
     } catch (err) {
-      setError('Error al enviar el código');
+      setError("Error al enviar el código");
     } finally {
       setIsLoading(false);
     }
@@ -51,12 +51,12 @@ export function usePhoneVerification(phoneNumber: string) {
 
   const verify = useCallback(async () => {
     if (code.length !== 6) {
-      setError('El código debe tener 6 dígitos');
+      setError("El código debe tener 6 dígitos");
       return false;
     }
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       const result = await verifyCode(phoneNumber, code);
@@ -68,7 +68,7 @@ export function usePhoneVerification(phoneNumber: string) {
         return false;
       }
     } catch (err) {
-      setError('Error al verificar el código');
+      setError("Error al verificar el código");
       return false;
     } finally {
       setIsLoading(false);
@@ -76,8 +76,8 @@ export function usePhoneVerification(phoneNumber: string) {
   }, [phoneNumber, code]);
 
   const resend = useCallback(async () => {
-    setCode('');
-    setError('');
+    setCode("");
+    setError("");
     setSuccess(false);
     await sendCode();
   }, [sendCode]);
@@ -85,7 +85,7 @@ export function usePhoneVerification(phoneNumber: string) {
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   return {

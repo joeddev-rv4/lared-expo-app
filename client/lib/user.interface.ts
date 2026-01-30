@@ -1,7 +1,7 @@
 export enum UserStatus {
-  NOT_VERIFIED = 'notVerified',
-  VERIFIED = 'Verified',
-  BLOCKED = 'BLOCKED',
+  NOT_VERIFIED = "notVerified",
+  VERIFIED = "Verified",
+  BLOCKED = "BLOCKED",
 }
 
 export interface FirestoreUser {
@@ -15,7 +15,7 @@ export interface FirestoreUser {
   isAdmin: boolean;
   isVerifiedBroker: boolean;
   avatar: string;
-  bank: string;
+  bankName: string;
   card: string;
   dpiDocument: {
     back: string;

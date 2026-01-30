@@ -1,5 +1,12 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  varchar,
+  integer,
+  timestamp,
+  jsonb,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -33,7 +40,9 @@ export const lead_phase = pgTable("lead_phase", {
   id: varchar("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  lead_id: varchar("lead_id").notNull().references(() => leads.id),
+  lead_id: varchar("lead_id")
+    .notNull()
+    .references(() => leads.id),
   lead_status: text("lead_status").notNull(),
   phase_data: jsonb("phase_data"),
   created_at: timestamp("created_at").defaultNow(),
@@ -45,22 +54,28 @@ export const lead_history = pgTable("lead_history", {
   id: varchar("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  lead_phase_id: varchar("lead_phase_id").notNull().references(() => lead_phase.id),
+  lead_phase_id: varchar("lead_phase_id")
+    .notNull()
+    .references(() => lead_phase.id),
   history_data: jsonb("history_data").notNull(),
   created_at: timestamp("created_at").defaultNow(),
 });
 
 // Tabla de propiedades favoritas del usuario
-export const user_favorites = pgTable("user_favorites", {
-  id: varchar("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  user_id: varchar("user_id").notNull(),
-  property_id: varchar("property_id").notNull(),
-  created_at: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  unique: sql`unique(${table.user_id}, ${table.property_id})`,
-}));
+export const user_favorites = pgTable(
+  "user_favorites",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    user_id: varchar("user_id").notNull(),
+    property_id: varchar("property_id").notNull(),
+    created_at: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    unique: sql`unique(${table.user_id}, ${table.property_id})`,
+  }),
+);
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,

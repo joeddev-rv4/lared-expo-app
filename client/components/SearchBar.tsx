@@ -35,9 +35,17 @@ export function SearchBar({
           isDark ? null : Shadows.card,
         ]}
       >
-        <Ionicons name="search-outline" size={isWeb ? 18 : 20} color={theme.textSecondary} />
+        <Ionicons
+          name="search-outline"
+          size={isWeb ? 18 : 20}
+          color={theme.textSecondary}
+        />
         <TextInput
-          style={[styles.input, isWeb && styles.inputWeb, { color: theme.text }]}
+          style={[
+            styles.input,
+            isWeb && styles.inputWeb,
+            { color: theme.text },
+          ]}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}

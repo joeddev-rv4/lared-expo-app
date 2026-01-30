@@ -43,16 +43,18 @@ export function mapAPIPropertyToProperty(apiProp: APIPropiedad): Property {
     ? apiProp.proyecto.caracteristicas.split(",").map((a) => a.trim())
     : [];
 
-  const imagenes: PropertyImage[] = apiProp.imagenes?.map(img => ({
-    tipo: img.tipo,
-    url: img.url,
-    formato: img.formato,
-  })) || [];
+  const imagenes: PropertyImage[] =
+    apiProp.imagenes?.map((img) => ({
+      tipo: img.tipo,
+      url: img.url,
+      formato: img.formato,
+    })) || [];
 
   return {
     id: apiProp.id.toString(),
     title: apiProp.titulo || `${apiProp.tipo} ${apiProp.propiedad}`,
-    location: apiProp.proyecto?.direccion || apiProp.ubicacion || "Sin ubicación",
+    location:
+      apiProp.proyecto?.direccion || apiProp.ubicacion || "Sin ubicación",
     price: apiProp.precio,
     priceUnit: "total",
     rating: 0,
@@ -62,7 +64,8 @@ export function mapAPIPropertyToProperty(apiProp: APIPropiedad): Property {
     descripcionLarga: apiProp.descripcion || "",
     caracteristicas,
     proyectoCaracteristicas,
-    imageUrl: firstImage?.url || "https://via.placeholder.com/400x300?text=Sin+Imagen",
+    imageUrl:
+      firstImage?.url || "https://via.placeholder.com/400x300?text=Sin+Imagen",
     imagenes,
     bedrooms: apiProp.habitaciones || 0,
     bathrooms: apiProp.baños || 0,

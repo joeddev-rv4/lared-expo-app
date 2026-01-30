@@ -22,15 +22,16 @@ interface SkeletonBoxProps {
   style?: any;
 }
 
-function SkeletonBox({ width, height, borderRadius = BorderRadius.sm, style }: SkeletonBoxProps) {
+function SkeletonBox({
+  width,
+  height,
+  borderRadius = BorderRadius.sm,
+  style,
+}: SkeletonBoxProps) {
   const shimmer = useSharedValue(0);
 
   useEffect(() => {
-    shimmer.value = withRepeat(
-      withTiming(1, { duration: 1500 }),
-      -1,
-      false
-    );
+    shimmer.value = withRepeat(withTiming(1, { duration: 1500 }), -1, false);
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -220,7 +221,11 @@ const styles = StyleSheet.create({
 export function FavoritesScreenSkeleton() {
   return (
     <View style={styles.favoritesContainer}>
-      <SkeletonBox width={200} height={24} style={styles.favoritesTitleSkeleton} />
+      <SkeletonBox
+        width={200}
+        height={24}
+        style={styles.favoritesTitleSkeleton}
+      />
       {isWeb ? (
         <View style={styles.webGrid}>
           {[1, 2, 3, 4].map((i) => (

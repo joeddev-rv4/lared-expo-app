@@ -22,7 +22,9 @@ export function WebLayout({ children, showNavbar = true }: WebLayoutProps) {
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
       {showNavbar && <WebNavbar />}
-      <View style={[styles.content, showNavbar && styles.contentWithNavbar]}>{children}</View>
+      <View style={[styles.content, showNavbar && styles.contentWithNavbar]}>
+        {children}
+      </View>
     </View>
   );
 }

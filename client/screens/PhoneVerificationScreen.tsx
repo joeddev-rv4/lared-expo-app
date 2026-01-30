@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -6,13 +6,13 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-} from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { Button } from '@/components/Button';
-import Spacer from '@/components/Spacer';
-import { usePhoneVerification } from '@/hooks/usePhoneVerification';
-import { Colors, Spacing, BorderRadius } from '@/constants/theme';
+} from "react-native";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { Button } from "@/components/Button";
+import Spacer from "@/components/Spacer";
+import { usePhoneVerification } from "@/hooks/usePhoneVerification";
+import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 
 interface PhoneVerificationScreenProps {
   phoneNumber: string;
@@ -69,24 +69,24 @@ export function PhoneVerificationScreen({
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
       <ThemedView style={styles.content}>
         <ThemedText style={styles.title}>Verificación de Teléfono</ThemedText>
         <Spacer height={8} />
-        
+
         <ThemedText style={styles.subtitle}>
           Hemos enviado un código de 6 dígitos al número:
         </ThemedText>
         <Spacer height={8} />
-        
+
         <ThemedText style={styles.phoneNumber}>{phoneNumber}</ThemedText>
         <Spacer height={24} />
 
         <ThemedText style={styles.label}>Código de verificación</ThemedText>
         <Spacer height={8} />
-        
+
         <TextInput
           style={styles.input}
           value={code}
@@ -131,7 +131,7 @@ export function PhoneVerificationScreen({
           disabled={isLoading || code.length !== 6 || success}
         >
           <ThemedText style={styles.buttonText}>
-            {isLoading ? 'Verificando...' : 'Verificar Código'}
+            {isLoading ? "Verificando..." : "Verificar Código"}
           </ThemedText>
         </Button>
 
@@ -143,7 +143,7 @@ export function PhoneVerificationScreen({
           style={styles.secondaryButton}
         >
           <ThemedText style={styles.secondaryButtonText}>
-            {canResend ? 'Reenviar Código' : `Reenviar en ${formatTime()}`}
+            {canResend ? "Reenviar Código" : `Reenviar en ${formatTime()}`}
           </ThemedText>
         </Button>
 
@@ -175,83 +175,83 @@ export function PhoneVerificationScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: Spacing.lg,
   },
   content: {
     padding: Spacing.xl,
     borderRadius: BorderRadius.lg,
     maxWidth: 500,
-    width: '100%',
-    alignSelf: 'center',
+    width: "100%",
+    alignSelf: "center",
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     opacity: 0.7,
   },
   phoneNumber: {
     fontSize: 20,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
   label: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     fontSize: 24,
-    textAlign: 'center',
+    textAlign: "center",
     letterSpacing: 8,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   error: {
-    color: '#e74c3c',
-    textAlign: 'center',
+    color: "#e74c3c",
+    textAlign: "center",
     fontSize: 14,
   },
   successText: {
-    color: '#27ae60',
-    textAlign: 'center',
+    color: "#27ae60",
+    textAlign: "center",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   timer: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 14,
     opacity: 0.7,
   },
   loadingOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: BorderRadius.lg,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   secondaryButton: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
   },
   secondaryButtonText: {
-    color: '#484848',
+    color: "#484848",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

@@ -101,7 +101,9 @@ export default function OnboardingScreen() {
           ))}
         </ScrollView>
 
-        <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing.xl }]}>
+        <View
+          style={[styles.footer, { paddingBottom: insets.bottom + Spacing.xl }]}
+        >
           <View style={styles.pagination}>
             {SLIDES.map((_, index) => (
               <View
@@ -110,7 +112,9 @@ export default function OnboardingScreen() {
                   styles.dot,
                   {
                     backgroundColor:
-                      index === currentPage ? "#FFFFFF" : "rgba(255, 255, 255, 0.5)",
+                      index === currentPage
+                        ? "#FFFFFF"
+                        : "rgba(255, 255, 255, 0.5)",
                     width: index === currentPage ? 24 : 8,
                   },
                 ]}
@@ -134,7 +138,10 @@ export default function OnboardingScreen() {
               onPress={handleContinue}
               style={({ pressed }) => [
                 styles.continueButton,
-                { opacity: pressed ? 0.9 : 1, backgroundColor: Colors.light.primary },
+                {
+                  opacity: pressed ? 0.9 : 1,
+                  backgroundColor: Colors.light.primary,
+                },
               ]}
               testID="continue-button"
             >

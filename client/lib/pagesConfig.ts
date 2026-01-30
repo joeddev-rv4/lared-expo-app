@@ -1,5 +1,5 @@
 export const pagesConfig = {
-  explore: '/explore',
-  login: '/login',
-  profile: '/profile',
+  explore: "/explore",
+  login: "/login",
+  profile: "/profile",
 };

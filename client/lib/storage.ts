@@ -44,7 +44,10 @@ export async function toggleFavorite(propertyId: string): Promise<string[]> {
     } else {
       favorites.push(propertyId);
     }
-    await AsyncStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favorites));
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.FAVORITES,
+      JSON.stringify(favorites),
+    );
     return favorites;
   } catch (error) {
     console.error("Error toggling favorite:", error);
@@ -72,7 +75,10 @@ export async function getUserProfile(): Promise<UserProfile | null> {
 
 export async function setUserProfile(profile: UserProfile): Promise<void> {
   try {
-    await AsyncStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(profile));
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.USER_PROFILE,
+      JSON.stringify(profile),
+    );
   } catch (error) {
     console.error("Error saving user profile:", error);
   }
@@ -109,7 +115,9 @@ export async function getUserListings(): Promise<UserListing[]> {
   }
 }
 
-export async function addUserListing(listing: Omit<UserListing, "id" | "createdAt">): Promise<UserListing> {
+export async function addUserListing(
+  listing: Omit<UserListing, "id" | "createdAt">,
+): Promise<UserListing> {
   try {
     const listings = await getUserListings();
     const newListing: UserListing = {
@@ -139,7 +147,7 @@ export async function getUserId(): Promise<string | null> {
     const value = await AsyncStorage.getItem(STORAGE_KEYS.USER_ID);
     return value;
   } catch (error) {
-    console.error('Error getting user ID:', error);
+    console.error("Error getting user ID:", error);
     return null;
   }
 }
