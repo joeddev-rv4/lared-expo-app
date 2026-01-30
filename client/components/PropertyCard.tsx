@@ -704,7 +704,7 @@ export function PropertyCard({
     }
   };
 
-  const bankQuota = Math.round(property.price / 180);
+  const bankQuota = 1950;
 
   return (
     <AnimatedPressable

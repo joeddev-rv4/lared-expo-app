@@ -336,7 +336,7 @@ export default function PropertyDetailScreenWeb() {
                 </View>
                 <View style={styles.mobilePriceRow}>
                   <ThemedText style={styles.mobilePriceLabel}>Cuota desde:</ThemedText>
-                  <ThemedText style={styles.mobilePriceValue}>{formatPrice(Math.round(property.price / 180))}/mes</ThemedText>
+                  <ThemedText style={styles.mobilePriceValue}>Q1,950/mes</ThemedText>
                 </View>
                 <View style={styles.mobileCommissionRow}>
                   <ThemedText style={styles.mobileCommissionText}>Gana Q750.00 por compartir</ThemedText>
@@ -464,7 +464,7 @@ export default function PropertyDetailScreenWeb() {
 
               <View style={styles.commissionInfo}>
                 <ThemedText style={styles.commissionLabel}>Cuota desde:</ThemedText>
-                <ThemedText style={styles.commissionValue}>{formatPrice(Math.round(property.price / 180))}/mes</ThemedText>
+                <ThemedText style={styles.commissionValue}>Q1,950/mes</ThemedText>
               </View>
 
               <Pressable style={styles.reserveButton}>

@@ -274,7 +274,7 @@ export default function ProfileScreen() {
   };
 
   const renderClientPropertyCard = (property: Property) => {
-    const bankQuota = Math.round(property.price / 180);
+    const bankQuota = 1950;
     // Get client count from the property data
     const clientCount = (property as any).clientCount || 0;
 

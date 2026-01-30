@@ -724,7 +724,7 @@ export default function PropertyDetailScreen() {
             Precio: {formatPrice(property.price)}
           </ThemedText>
           <ThemedText style={styles.priceDetail}>
-            Cuota desde: {formatPrice(Math.round(property.price / 180))}/mes
+            Cuota desde: Q1,950/mes
           </ThemedText>
         </View>
         <View style={styles.buttonsContainer}>
