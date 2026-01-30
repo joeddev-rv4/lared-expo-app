@@ -253,8 +253,8 @@ function setupErrorHandler(app: express.Application) {
 
   setupErrorHandler(app);
 
-  const apiUrl = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
-  const port = parseInt(new URL(apiUrl).port || "3000", 10);
+  // Use PORT env var first (set by Replit), then fall back to API URL port, then 5000
+  const port = parseInt(process.env.PORT || "5000", 10);
   server.listen(port, () => {
     log(`express server serving on port ${port}`);
   });
