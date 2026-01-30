@@ -72,6 +72,11 @@ export default function AchievementsScreenWeb() {
         { id: 'tip', text: selectedTip, icon: "bulb" as const, color: "#F59E0B" }
     ];
 
+    // Responsive sizes for banner
+    const bannerFontSizeTitle = windowWidth < 768 ? 12 : 14;
+    const bannerFontSizeText = windowWidth < 768 ? 10 : 12;
+    const bannerIconSize = windowWidth < 768 ? 24 : 32;
+
     // Calculate chart data based on metrics
     // Moved to useEffect
 
@@ -207,7 +212,7 @@ export default function AchievementsScreenWeb() {
                         {/* Right: Controls */}
                         <View style={[styles.rightColumn, { width: columnRightWidth, alignItems: 'flex-end', justifyContent: 'center' }]}>
                             <View style={styles.controls}>
-                                <View style={[styles.toggleContainer, { backgroundColor: theme.backgroundSecondary }]}>
+                                <View style={[styles.toggleContainer, { backgroundColor: theme.backgroundSecondary, ...(isMobileWeb && { marginLeft: 50 }) }]}>
                                     <Pressable onPress={() => setTimeRange("Month")} style={[styles.toggleBtn, timeRange === "Month" && styles.activeToggle]}>
                                         <ThemedText style={[styles.toggleText, timeRange === "Month" && styles.activeToggleText]}>Este mes</ThemedText>
                                     </Pressable>
@@ -226,7 +231,7 @@ export default function AchievementsScreenWeb() {
                         {/* Left: Metrics Stack */}
                         <View style={[styles.leftColumn, { width: '100%', alignItems: 'center' }, isMobileWeb && styles.leftColumnMobile]}>
                             <ThemedText style={[styles.sectionTitle, { textAlign: 'center' }]}>Resumen</ThemedText>
-                            <View style={[styles.metricsStack, { flexDirection: 'row', gap: 0, alignItems: 'center', height: 120 }]}>
+                            <View style={[styles.metricsStack, { flexDirection: isMobileWeb ? 'column' : 'row', gap: isMobileWeb ? Spacing.md : 0, alignItems: 'center', flexWrap: isMobileWeb ? 'nowrap' : 'wrap' }]}>
                                 <DashboardMetricCard
                                     title="Ganancias Estimadas"
                                     value={metrics.ganancias.value}
@@ -235,7 +240,7 @@ export default function AchievementsScreenWeb() {
                                     noBackground
                                     style={{ marginHorizontal: 10 }}
                                 />
-                                <View style={[styles.separator, { marginHorizontal: 5 }]} />
+                                {!isMobileWeb && <View style={[styles.separator, { marginHorizontal: 5 }]} />}
                                 <DashboardMetricCard
                                     title="Propiedades Asignadas"
                                     value={metrics.propiedades.value}
@@ -244,7 +249,7 @@ export default function AchievementsScreenWeb() {
                                     noBackground
                                     style={{ marginHorizontal: 10 }}
                                 />
-                                <View style={styles.separator} />
+                                {!isMobileWeb && <View style={styles.separator} />}
                                 <DashboardMetricCard
                                     title="Clientes Obtenidos"
                                     value={metrics.clientes.value}
@@ -253,7 +258,7 @@ export default function AchievementsScreenWeb() {
                                     noBackground
                                     style={{ marginHorizontal: 10 }}
                                 />
-                                <View style={styles.separator} />
+                                {!isMobileWeb && <View style={styles.separator} />}
                                 <DashboardMetricCard
                                     title="Ganancias Totales"
                                     value={metrics.gananciasTotales.value}
@@ -273,7 +278,13 @@ export default function AchievementsScreenWeb() {
                         <View style={[styles.leftColumn, { width: '100%', alignItems: 'center' }, isMobileWeb && styles.leftColumnMobile]}>
                             <ThemedText style={[styles.sectionTitle, { textAlign: 'center' }]}>Tips De Venta</ThemedText>
                             <View style={{ flexDirection: 'row', gap: Spacing.md, justifyContent: 'center' }}>
-                                <DashboardBanner messages={TIPS_MESSAGES} interval={3000} />
+                                <DashboardBanner 
+                                    messages={TIPS_MESSAGES} 
+                                    interval={3000} 
+                                    fontSizeTitle={bannerFontSizeTitle} 
+                                    fontSizeText={bannerFontSizeText} 
+                                    iconSize={bannerIconSize} 
+                                />
                             </View>
                         </View>
                     </View>
@@ -354,8 +365,10 @@ const styles = StyleSheet.create({
     },
     toggleContainer: {
         flexDirection: 'row',
+        justifyContent: 'center',
         padding: 4,
         borderRadius: BorderRadius.md,
+        width: '100%',
     },
     toggleBtn: {
         paddingVertical: 8,

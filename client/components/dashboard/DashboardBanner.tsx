@@ -16,9 +16,12 @@ interface DashboardBannerProps {
     messages: Message[];
     interval?: number;
     title?: string;
+    fontSizeTitle?: number;
+    fontSizeText?: number;
+    iconSize?: number;
 }
 
-export const DashboardBanner = ({ messages, interval = 2000, title }: DashboardBannerProps) => {
+export const DashboardBanner = ({ messages, interval = 2000, title, fontSizeTitle = 14, fontSizeText = 12, iconSize = 32 }: DashboardBannerProps) => {
     const { theme } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [fadeAnim] = useState(new Animated.Value(1));
@@ -52,12 +55,12 @@ export const DashboardBanner = ({ messages, interval = 2000, title }: DashboardB
 
     return (
         <View style={[styles.container, { backgroundColor: theme.backgroundDefault }]}>
-            {title && <ThemedText style={styles.title}>{title}</ThemedText>}
+            {title && <ThemedText style={[styles.title, { fontSize: fontSizeTitle }]}>{title}</ThemedText>}
             <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-                <View style={[styles.iconContainer, { backgroundColor: currentMessage.color + '20' }]}>
-                    <Ionicons name={currentMessage.icon} size={24} color={currentMessage.color} />
+                <View style={[styles.iconContainer, { width: iconSize, height: iconSize, borderRadius: iconSize / 2 }]}>
+                    <Ionicons name={currentMessage.icon} size={iconSize * 0.6} color={currentMessage.color} />
                 </View>
-                <ThemedText style={styles.text}>{currentMessage.text}</ThemedText>
+                <ThemedText style={[styles.text, { fontSize: fontSizeText }]} numberOfLines={2} ellipsizeMode="tail">{currentMessage.text}</ThemedText>
             </Animated.View>
         </View>
     );
@@ -65,32 +68,27 @@ export const DashboardBanner = ({ messages, interval = 2000, title }: DashboardB
 
 const styles = StyleSheet.create({
     container: {
-        padding: Spacing.lg,
+        padding: Spacing.md,
         borderRadius: BorderRadius.lg,
-        height: 100,
+        minHeight: 70,
         justifyContent: 'center',
         overflow: 'hidden',
     },
     title: {
-        fontSize: 18,
         fontWeight: '700',
         textAlign: 'center',
-        marginBottom: Spacing.sm,
+        marginBottom: Spacing.xs,
     },
     content: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: Spacing.md,
+        gap: Spacing.sm,
     },
     iconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
         alignItems: 'center',
         justifyContent: 'center',
     },
     text: {
-        fontSize: 16,
         fontWeight: '600',
         flex: 1,
     },
